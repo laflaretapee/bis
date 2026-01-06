@@ -1,0 +1,24 @@
+/*
+Theme Name: BIS Theme
+Theme URI: http://example.com/bis-theme
+Author: BIS Team
+Author URI: http://example.com
+Description: Custom theme for BIS - Balance Engineering Systems
+Version: 1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: bis-theme
+*/
+
+/* Main styles will be enqueued from assets/css/style.css */
+
+.bis-condensed {
+    display: inline-block;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.06em;
+    transform: scaleX(0.68);
+    transform-origin: left center;
+    font-stretch: 75%;
+    margin-right: -0.32em;
+}

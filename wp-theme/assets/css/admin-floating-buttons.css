@@ -1,0 +1,75 @@
+.bis-floating-buttons-description {
+  max-width: 720px;
+  margin-bottom: 18px;
+}
+
+#bis-floating-buttons-list {
+  margin: 0;
+  padding: 0;
+}
+
+.bis-floating-buttons-item {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #dcdcde;
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 12px;
+}
+
+.bis-floating-buttons-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  border: 1px dashed #c3c4c7;
+  background-color: #f6f7f7;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.bis-floating-buttons-item.has-image .bis-floating-buttons-preview {
+  border-color: transparent;
+}
+
+.bis-floating-buttons-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.bis-floating-buttons-fields label span {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.bis-floating-buttons-fields .regular-text {
+  width: 100%;
+}
+
+.bis-floating-buttons-empty {
+  color: #93979f;
+  font-style: italic;
+  margin-top: 0;
+}
+
+.bis-floating-buttons-empty.hidden {
+  display: none;
+}
+
+@media (max-width: 782px) {
+  .bis-floating-buttons-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bis-floating-buttons-preview {
+    width: 100%;
+    height: 180px;
+  }
+}
