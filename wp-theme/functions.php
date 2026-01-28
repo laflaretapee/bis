@@ -12,6 +12,29 @@ function bis_theme_scripts() {
     // Enqueue Slider Script
     if (is_front_page()) {
         wp_enqueue_script('bis-slider', get_template_directory_uri() . '/assets/js/slider.js', array(), '1.0', true);
+
+        $revenue = bis_get_revenue_settings();
+        $revenue_points = array();
+
+        if (!empty($revenue['points']) && is_array($revenue['points'])) {
+            foreach ($revenue['points'] as $point) {
+                if (!isset($point['label'], $point['value'])) {
+                    continue;
+                }
+                $label = sanitize_text_field($point['label']);
+                $value = floatval($point['value']);
+                if ($label === '') {
+                    continue;
+                }
+                $revenue_points[] = array(
+                    'label' => $label,
+                    'value' => $value,
+                );
+            }
+        }
+
+        $revenue['points'] = $revenue_points;
+        wp_localize_script('bis-script', 'bisRevenueData', $revenue);
     }
 }
 add_action('wp_enqueue_scripts', 'bis_theme_scripts');
@@ -1020,4 +1043,311 @@ function bis_requests_admin_scripts($hook) {
     wp_enqueue_style('bis-requests-style', get_template_directory_uri() . '/assets/css/admin-requests.css', array(), '1.0');
 }
 add_action('admin_enqueue_scripts', 'bis_requests_admin_scripts');
+
+/**
+ * Revenue chart settings
+ */
+function bis_get_revenue_settings() {
+    $defaults = array(
+        'title'          => 'Динамика выручки за 10 лет',
+        'currency_label' => 'млрд ₽',
+        'cta_label'      => 'Узнать больше',
+        'cta_link'       => '#contact',
+        'points'         => array(
+            array('label' => '2014', 'value' => 1.1),
+            array('label' => '2015', 'value' => 3.8),
+            array('label' => '2016', 'value' => 5.2),
+            array('label' => '2017', 'value' => 8.0),
+            array('label' => '2018', 'value' => 10.2),
+            array('label' => '2019', 'value' => 11.4),
+            array('label' => '2020', 'value' => 18.0),
+            array('label' => '2021', 'value' => 19.1),
+            array('label' => '2022', 'value' => 54.5),
+            array('label' => '2023', 'value' => 51.7),
+        ),
+    );
+
+    $settings = get_option('bis_revenue_chart', array());
+    if (empty($settings) || !is_array($settings)) {
+        return $defaults;
+    }
+
+    return wp_parse_args($settings, $defaults);
+}
+
+function bis_revenue_menu() {
+    add_menu_page(
+        'Динамика выручки',
+        'Динамика выручки',
+        'manage_options',
+        'bis-revenue',
+        'bis_revenue_page',
+        'dashicons-chart-line',
+        22
+    );
+}
+add_action('admin_menu', 'bis_revenue_menu');
+
+function bis_revenue_page() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    if (isset($_POST['bis_revenue_save']) && check_admin_referer('bis_revenue_nonce')) {
+        $title          = isset($_POST['bis_revenue_title']) ? sanitize_text_field(wp_unslash($_POST['bis_revenue_title'])) : '';
+        $currency_label = isset($_POST['bis_revenue_currency']) ? sanitize_text_field(wp_unslash($_POST['bis_revenue_currency'])) : '';
+        $cta_label      = isset($_POST['bis_revenue_cta_label']) ? sanitize_text_field(wp_unslash($_POST['bis_revenue_cta_label'])) : '';
+        $cta_link       = isset($_POST['bis_revenue_cta_link']) ? esc_url_raw(wp_unslash($_POST['bis_revenue_cta_link'])) : '';
+
+        $years  = isset($_POST['bis_revenue_year']) ? (array) $_POST['bis_revenue_year'] : array();
+        $values = isset($_POST['bis_revenue_value']) ? (array) $_POST['bis_revenue_value'] : array();
+
+        $points = array();
+        foreach ($years as $index => $year) {
+            $year_label = sanitize_text_field(wp_unslash($year));
+            $value_raw  = isset($values[$index]) ? wp_unslash($values[$index]) : '';
+            if ($year_label === '' && $value_raw === '') {
+                continue;
+            }
+            $value = floatval(str_replace(',', '.', $value_raw));
+            $points[] = array(
+                'label' => $year_label,
+                'value' => $value,
+            );
+        }
+
+        $settings = array(
+            'title'          => $title !== '' ? $title : 'Динамика выручки за 10 лет',
+            'currency_label' => $currency_label !== '' ? $currency_label : 'млрд ₽',
+            'cta_label'      => $cta_label !== '' ? $cta_label : 'Узнать больше',
+            'cta_link'       => $cta_link,
+            'points'         => $points,
+        );
+
+        update_option('bis_revenue_chart', $settings);
+        echo '<div class="updated"><p>Настройки сохранены.</p></div>';
+    }
+
+    $settings = bis_get_revenue_settings();
+    $points   = !empty($settings['points']) && is_array($settings['points']) ? $settings['points'] : array();
+    ?>
+    <div class="wrap">
+        <h1>Динамика выручки</h1>
+        <p class="description">Управляйте данными для блока графика на главной странице. Добавьте значения по годам и ссылку для CTA.</p>
+
+        <form method="post">
+            <?php wp_nonce_field('bis_revenue_nonce'); ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row"><label for="bis_revenue_title">Заголовок</label></th>
+                    <td><input type="text" id="bis_revenue_title" name="bis_revenue_title" class="regular-text" value="<?php echo esc_attr($settings['title']); ?>" placeholder="Динамика выручки за 10 лет"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_revenue_currency">Единица (подпись)</label></th>
+                    <td><input type="text" id="bis_revenue_currency" name="bis_revenue_currency" class="regular-text" value="<?php echo esc_attr($settings['currency_label']); ?>" placeholder="млрд ₽"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_revenue_cta_label">Текст кнопки</label></th>
+                    <td><input type="text" id="bis_revenue_cta_label" name="bis_revenue_cta_label" class="regular-text" value="<?php echo esc_attr($settings['cta_label']); ?>" placeholder="Узнать больше"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_revenue_cta_link">Ссылка кнопки</label></th>
+                    <td><input type="url" id="bis_revenue_cta_link" name="bis_revenue_cta_link" class="regular-text" value="<?php echo esc_url($settings['cta_link']); ?>" placeholder="#contact"></td>
+                </tr>
+            </table>
+
+            <h2 style="margin-top:30px;">Точки графика</h2>
+            <p class="description">Укажите подпись (обычно год) и значение. Для дробных значений можно использовать запятую или точку.</p>
+
+            <table class="widefat fixed striped" id="bis-revenue-table" style="max-width:800px; margin-top:10px;">
+                <thead>
+                    <tr>
+                        <th style="width:40%;">Подпись</th>
+                        <th style="width:40%;">Значение</th>
+                        <th style="width:20%;">Действие</th>
+                    </tr>
+                </thead>
+                <tbody id="bis-revenue-rows">
+                    <?php if (!empty($points)) : ?>
+                        <?php foreach ($points as $point) : ?>
+                            <tr>
+                                <td><input type="text" name="bis_revenue_year[]" value="<?php echo esc_attr($point['label']); ?>" placeholder="2024" class="widefat"></td>
+                                <td><input type="text" name="bis_revenue_value[]" value="<?php echo esc_attr($point['value']); ?>" placeholder="12.5" class="widefat"></td>
+                                <td><button type="button" class="button bis-revenue-remove">Удалить</button></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr>
+                            <td><input type="text" name="bis_revenue_year[]" value="" placeholder="2024" class="widefat"></td>
+                            <td><input type="text" name="bis_revenue_value[]" value="" placeholder="12.5" class="widefat"></td>
+                            <td><button type="button" class="button bis-revenue-remove">Удалить</button></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+            <p style="margin-top:12px;">
+                <button type="button" class="button" id="bis-revenue-add">Добавить точку</button>
+            </p>
+
+            <p class="submit" style="margin-top:20px;">
+                <input type="submit" name="bis_revenue_save" class="button button-primary" value="Сохранить изменения">
+            </p>
+        </form>
+    </div>
+    <script type="text/html" id="bis-revenue-row-template">
+        <tr>
+            <td><input type="text" name="bis_revenue_year[]" value="" placeholder="2024" class="widefat"></td>
+            <td><input type="text" name="bis_revenue_value[]" value="" placeholder="12.5" class="widefat"></td>
+            <td><button type="button" class="button bis-revenue-remove">Удалить</button></td>
+        </tr>
+    </script>
+    <script>
+        (function() {
+            const addBtn = document.getElementById('bis-revenue-add');
+            const rows = document.getElementById('bis-revenue-rows');
+            const template = document.getElementById('bis-revenue-row-template').textContent.trim();
+
+            if (addBtn && rows) {
+                addBtn.addEventListener('click', function() {
+                    rows.insertAdjacentHTML('beforeend', template);
+                });
+
+                rows.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('bis-revenue-remove')) {
+                        const tr = e.target.closest('tr');
+                        if (tr && rows.children.length > 1) {
+                            tr.remove();
+                        } else if (tr) {
+                            tr.querySelectorAll('input').forEach(input => input.value = '');
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+    <?php
+}
+
+/**
+ * Maintenance mode settings
+ */
+function bis_get_maintenance_settings() {
+    $defaults = array(
+        'enabled' => '0',
+        'badge'   => 'Технические работы',
+        'title'   => 'Сайт временно недоступен',
+        'message' => 'Сейчас на сайте идут технические работы. Мы скоро вернёмся. Спасибо за понимание!',
+        'phone'   => '+7 (926) 438-07-70',
+        'email'   => 'office@bis-rf.ru',
+    );
+
+    $settings = get_option('bis_maintenance_settings', array());
+    if (!is_array($settings)) {
+        return $defaults;
+    }
+
+    return wp_parse_args($settings, $defaults);
+}
+
+function bis_maintenance_menu() {
+    add_menu_page(
+        'Технические работы',
+        'Тех. работы',
+        'manage_options',
+        'bis-maintenance',
+        'bis_maintenance_page',
+        'dashicons-shield-alt',
+        23
+    );
+}
+add_action('admin_menu', 'bis_maintenance_menu');
+
+function bis_maintenance_page() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    if (isset($_POST['bis_maintenance_save']) && check_admin_referer('bis_maintenance_nonce')) {
+        $settings = array(
+            'enabled' => isset($_POST['bis_maintenance_enabled']) ? '1' : '0',
+            'badge'   => isset($_POST['bis_maintenance_badge']) ? sanitize_text_field(wp_unslash($_POST['bis_maintenance_badge'])) : '',
+            'title'   => isset($_POST['bis_maintenance_title']) ? sanitize_text_field(wp_unslash($_POST['bis_maintenance_title'])) : '',
+            'message' => isset($_POST['bis_maintenance_message']) ? sanitize_textarea_field(wp_unslash($_POST['bis_maintenance_message'])) : '',
+            'phone'   => isset($_POST['bis_maintenance_phone']) ? sanitize_text_field(wp_unslash($_POST['bis_maintenance_phone'])) : '',
+            'email'   => isset($_POST['bis_maintenance_email']) ? sanitize_email(wp_unslash($_POST['bis_maintenance_email'])) : '',
+        );
+
+        update_option('bis_maintenance_settings', $settings);
+        echo '<div class="updated"><p>Настройки сохранены.</p></div>';
+    }
+
+    $settings = bis_get_maintenance_settings();
+    ?>
+    <div class="wrap">
+        <h1>Технические работы</h1>
+        <p class="description">Включите заглушку, чтобы скрыть сайт для гостей. Администраторы продолжают видеть сайт.</p>
+        <form method="post">
+            <?php wp_nonce_field('bis_maintenance_nonce'); ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">Статус</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bis_maintenance_enabled" value="1" <?php checked($settings['enabled'], '1'); ?>>
+                            Включить заглушку
+                        </label>
+                        <p class="description">Незалогиненные посетители увидят страницу технических работ.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_maintenance_badge">Бейдж</label></th>
+                    <td><input type="text" id="bis_maintenance_badge" name="bis_maintenance_badge" class="regular-text" value="<?php echo esc_attr($settings['badge']); ?>" placeholder="Технические работы"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_maintenance_title">Заголовок</label></th>
+                    <td><input type="text" id="bis_maintenance_title" name="bis_maintenance_title" class="regular-text" value="<?php echo esc_attr($settings['title']); ?>" placeholder="Сайт временно недоступен"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_maintenance_message">Сообщение</label></th>
+                    <td><textarea id="bis_maintenance_message" name="bis_maintenance_message" rows="3" class="large-text" placeholder="Сейчас на сайте идут технические работы."><?php echo esc_textarea($settings['message']); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_maintenance_phone">Телефон</label></th>
+                    <td><input type="text" id="bis_maintenance_phone" name="bis_maintenance_phone" class="regular-text" value="<?php echo esc_attr($settings['phone']); ?>" placeholder="+7 (000) 000-00-00"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bis_maintenance_email">Email</label></th>
+                    <td><input type="email" id="bis_maintenance_email" name="bis_maintenance_email" class="regular-text" value="<?php echo esc_attr($settings['email']); ?>" placeholder="office@example.com"></td>
+                </tr>
+            </table>
+            <p class="submit">
+                <input type="submit" name="bis_maintenance_save" class="button button-primary" value="Сохранить изменения">
+            </p>
+        </form>
+    </div>
+    <?php
+}
+
+function bis_handle_maintenance_mode() {
+    $settings = bis_get_maintenance_settings();
+    $enabled  = isset($settings['enabled']) && '1' === $settings['enabled'];
+
+    if (!$enabled) {
+        return;
+    }
+
+    if (is_user_logged_in() && current_user_can('manage_options')) {
+        return;
+    }
+
+    if (is_admin() || wp_doing_ajax() || wp_doing_cron() || (defined('REST_REQUEST') && REST_REQUEST)) {
+        return;
+    }
+
+    status_header(503);
+    nocache_headers();
+    include get_template_directory() . '/maintenance.php';
+    exit;
+}
+add_action('template_redirect', 'bis_handle_maintenance_mode');
 ?>

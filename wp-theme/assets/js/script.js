@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   initCallbackModal(); // Добавьте эту строку
   initScrollEffects();
+  initHeroParallax();
   //initStatsCounter();
   initFormValidation();
   initPopupForm();
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFAQ();
   initServicesSlider();
   initEstimateModal();
+  initRevenueChart();
 });
 
 function applyBisCondensedStyling(root = document.body) {
@@ -109,32 +111,27 @@ function initTypingEffect() {
 
 // Callback Modal Functionality
 function initCallbackModal() {
-  const callbackBtn = document.querySelector('.callback-btn');
+  const callbackButtons = document.querySelectorAll('.callback-btn');
   const callbackBtnMobile = document.querySelector('.callback-btn-mobile');
   const callbackOverlay = document.getElementById('callbackOverlay');
   const callbackClose = document.getElementById('callbackClose');
   const callbackForm = document.getElementById('callbackForm');
 
-  if ((!callbackBtn && !callbackBtnMobile) || !callbackOverlay) return;
+  if ((callbackButtons.length === 0 && !callbackBtnMobile) || !callbackOverlay) return;
 
-  // Обработчик для десктопной кнопки
-  if (callbackBtn) {
-    callbackBtn.addEventListener('click', () => {
+  // Обработчик для всех кнопок с обратным звонком
+  if (callbackButtons.length) {
+    callbackButtons.forEach(btn => btn.addEventListener('click', () => {
       callbackOverlay.classList.add('active');
-    });
+      closeMenuDrawer();
+    }));
   }
 
   // Обработчик для мобильной кнопки
   if (callbackBtnMobile) {
     callbackBtnMobile.addEventListener('click', () => {
       callbackOverlay.classList.add('active');
-      // Закрываем мобильное меню после клика
-      const menuToggle = document.getElementById('menuToggle');
-      const nav = document.getElementById('nav');
-      if (menuToggle && nav) {
-        menuToggle.classList.remove('active');
-        nav.classList.remove('active');
-      }
+      closeMenuDrawer();
     });
   }
 
@@ -192,6 +189,159 @@ function initCallbackModal() {
   }
 }
 
+// Revenue chart rendering
+function initRevenueChart() {
+  const chart = document.querySelector('.revenue-chart');
+  if (!chart) return;
+
+  const svg = chart.querySelector('.revenue-chart__svg');
+  const linePath = svg?.querySelector('.revenue-chart__line');
+  const areaPath = svg?.querySelector('.revenue-chart__area');
+  const lastBadge = chart.querySelector('[data-revenue-last] .revenue-chip');
+  const tooltip = document.createElement('div');
+  tooltip.className = 'revenue-tooltip';
+  chart.appendChild(tooltip);
+
+  let points = [];
+  try {
+    const dataAttr = chart.dataset.revenuePoints ? JSON.parse(chart.dataset.revenuePoints) : [];
+    if (Array.isArray(dataAttr)) points = dataAttr;
+  } catch (e) {
+    points = [];
+  }
+
+  if (!points.length && typeof bisRevenueData !== 'undefined' && Array.isArray(bisRevenueData.points)) {
+    points = bisRevenueData.points;
+  }
+
+  if (!points.length || !svg || !linePath || !areaPath) return;
+
+  const cleanPoints = points
+    .map(point => ({
+      label: point.label || '',
+      value: parseFloat(point.value) || 0,
+    }))
+    .filter(point => point.label !== '');
+
+  if (cleanPoints.length < 2) return;
+
+  const width = 100;
+  const height = 60;
+  const paddingTop = 6;
+  const paddingBottom = 6;
+  const maxValue = Math.max(...cleanPoints.map(p => p.value), 1);
+  const lastValue = cleanPoints[cleanPoints.length - 1]?.value || 0;
+  const currencyLabel = chart.dataset.currency || (bisRevenueData?.currency_label || '');
+
+  const coords = cleanPoints.map((point, index) => {
+    const x = (index / (cleanPoints.length - 1)) * width;
+    const y = height - paddingBottom - (point.value / maxValue) * (height - paddingTop - paddingBottom);
+    return { x, y, value: point.value, label: point.label };
+  });
+
+  const smoothing = 0.2;
+
+  function controlPoint(current, previous, next, reverse) {
+    const p = previous || current;
+    const n = next || current;
+    const o = {
+      length: Math.hypot(n.x - p.x, n.y - p.y) * smoothing,
+      angle: Math.atan2(n.y - p.y, n.x - p.x),
+    };
+    const angle = o.angle + (reverse ? Math.PI : 0);
+    return {
+      x: current.x + Math.cos(angle) * o.length,
+      y: current.y + Math.sin(angle) * o.length,
+    };
+  }
+
+  const lineD = coords.reduce((path, point, i, arr) => {
+    if (i === 0) {
+      return `M ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+    }
+    const cp1 = controlPoint(arr[i - 1], arr[i - 2], point, false);
+    const cp2 = controlPoint(point, arr[i - 1], arr[i + 1], true);
+    return `${path} C ${cp1.x.toFixed(2)} ${cp1.y.toFixed(2)} ${cp2.x.toFixed(2)} ${cp2.y.toFixed(2)} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+  }, '');
+
+  const areaStart = `M ${coords[0].x.toFixed(2)} ${height - paddingBottom}`;
+  const areaCurve = coords.reduce((path, point, i, arr) => {
+    if (i === 0) {
+      return `${path} L ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+    }
+    const cp1 = controlPoint(arr[i - 1], arr[i - 2], point, false);
+    const cp2 = controlPoint(point, arr[i - 1], arr[i + 1], true);
+    return `${path} C ${cp1.x.toFixed(2)} ${cp1.y.toFixed(2)} ${cp2.x.toFixed(2)} ${cp2.y.toFixed(2)} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+  }, areaStart);
+  const areaD = `${areaCurve} L ${coords[coords.length - 1].x.toFixed(2)} ${height - paddingBottom} Z`;
+
+  linePath.setAttribute('d', lineD);
+  areaPath.setAttribute('d', areaD);
+
+  // Animate stroke drawing
+  const totalLength = linePath.getTotalLength();
+  linePath.style.strokeDasharray = totalLength;
+  linePath.style.strokeDashoffset = totalLength;
+  areaPath.style.opacity = 0;
+
+  requestAnimationFrame(() => {
+    linePath.style.transition = 'stroke-dashoffset 1.2s ease, opacity 0.6s ease';
+    areaPath.style.transition = 'opacity 1s ease';
+    linePath.style.strokeDashoffset = '0';
+    linePath.style.opacity = 1;
+    areaPath.style.opacity = 1;
+  });
+
+  // Points with hover tooltip (SVG circles to stay on path)
+  const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  pointsGroup.setAttribute('class', 'revenue-points');
+  svg.appendChild(pointsGroup);
+
+  function showTooltip(xPercent, yPercent, text) {
+    const clampedX = Math.min(92, Math.max(8, xPercent));
+    const desiredTop = yPercent - 8;
+    const placeBelow = desiredTop < 10;
+    const finalY = placeBelow ? Math.min(90, yPercent + 10) : Math.max(10, desiredTop);
+    tooltip.textContent = text;
+    tooltip.style.left = `${clampedX}%`;
+    tooltip.style.top = `${finalY}%`;
+    tooltip.style.opacity = '1';
+    tooltip.style.transform = placeBelow ? 'translate(-50%, 20%)' : 'translate(-50%, -130%)';
+  }
+
+  function hideTooltip() {
+    tooltip.style.opacity = '0';
+    tooltip.style.transform = 'translate(-50%, -90%)';
+  }
+
+  const chartRect = chart.getBoundingClientRect();
+  const svgRect = svg.getBoundingClientRect();
+
+  coords.forEach(coord => {
+    const cx = coord.x;
+    const cy = coord.y;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('class', 'revenue-point');
+    circle.setAttribute('cx', cx.toFixed(2));
+    circle.setAttribute('cy', cy.toFixed(2));
+    circle.setAttribute('r', '0.5');
+    circle.setAttribute('stroke-width', '0.35');
+
+    circle.addEventListener('mouseenter', () => {
+      const xPercent = (cx / width) * 100;
+      const yPercent = (cy / height) * 100;
+      const text = `${coord.value}${currencyLabel ? ' ' + currencyLabel : ''}`;
+      showTooltip(xPercent, yPercent, text);
+    });
+    circle.addEventListener('mouseleave', hideTooltip);
+    pointsGroup.appendChild(circle);
+  });
+
+  if (lastBadge) {
+    lastBadge.textContent = `${lastValue}${currencyLabel ? ' ' + currencyLabel : ''}`;
+  }
+}
+
 // Функция отправки формы обратного звонка
 function submitCallbackForm(data, form) {
   const submitBtn = form.querySelector('button[type="submit"]');
@@ -219,32 +369,78 @@ function submitCallbackForm(data, form) {
   }, 1500);
 }
 
+function openMenuDrawer() {
+  const navDrawer = document.getElementById('navDrawer');
+  const menuToggle = document.getElementById('menuToggle');
+
+  if (navDrawer) {
+    navDrawer.classList.add('active');
+    navDrawer.setAttribute('aria-hidden', 'false');
+  }
+
+  if (menuToggle) {
+    menuToggle.classList.add('active');
+  }
+
+  document.body.classList.add('nav-open');
+}
+
+function closeMenuDrawer() {
+  const navDrawer = document.getElementById('navDrawer');
+  const menuToggle = document.getElementById('menuToggle');
+
+  if (navDrawer) {
+    navDrawer.classList.remove('active');
+    navDrawer.setAttribute('aria-hidden', 'true');
+  }
+
+  if (menuToggle) {
+    menuToggle.classList.remove('active');
+  }
+
+  document.body.classList.remove('nav-open');
+}
+
 
 // Мобильное меню
 function initMobileMenu() {
   const menuToggle = document.getElementById('menuToggle');
-  const nav = document.getElementById('nav');
+  const navDrawer = document.getElementById('navDrawer');
+  const navBackdrop = document.getElementById('navBackdrop');
+  const drawerClose = document.getElementById('drawerClose');
+  const drawerLinks = document.querySelectorAll('.drawer-nav a');
+  const primaryLinks = document.querySelectorAll('.nav a');
 
-  if (menuToggle && nav) {
-    menuToggle.addEventListener('click', () => {
-      menuToggle.classList.toggle('active');
-      nav.classList.toggle('active');
-    });
+  if (!menuToggle || !navDrawer) return;
 
-    nav.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        menuToggle.classList.remove('active');
-        nav.classList.remove('active');
-      });
-    });
+  menuToggle.addEventListener('click', () => {
+    const isOpen = navDrawer.classList.contains('active');
+    if (isOpen) {
+      closeMenuDrawer();
+    } else {
+      openMenuDrawer();
+    }
+  });
 
-    document.addEventListener('click', (e) => {
-      if (!nav.contains(e.target) && !menuToggle.contains(e.target)) {
-        menuToggle.classList.remove('active');
-        nav.classList.remove('active');
-      }
+  [navBackdrop, drawerClose].forEach(el => {
+    if (el) el.addEventListener('click', closeMenuDrawer);
+  });
+
+  [...drawerLinks, ...primaryLinks].forEach(link => {
+    link.addEventListener('click', () => {
+      closeMenuDrawer();
     });
-  }
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) {
+      closeMenuDrawer();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenuDrawer();
+  });
 }
 
 // Эффекты при скролле
@@ -273,6 +469,47 @@ function initScrollEffects() {
   document.querySelectorAll(
     '.service-card, .case-card, .why-card, .task-item, .pnr-content, .pnr-why-content, .equipment-card, .brand-card'
   ).forEach(el => observer.observe(el));
+}
+
+// Параллакс в hero по умолчанию
+function initHeroParallax() {
+  const parallax = document.querySelector('.hero-parallax');
+  if (!parallax) return;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) return;
+
+  const hero = document.querySelector('.hero');
+  const layers = Array.from(parallax.querySelectorAll('[data-speed]'));
+  if (!layers.length) return;
+
+  let ticking = false;
+  let heroOffset = 0;
+
+  const recalc = () => {
+    heroOffset = hero ? hero.offsetTop : 0;
+    update();
+  };
+
+  const update = () => {
+    const relativeScroll = Math.max(window.scrollY - heroOffset, 0);
+    layers.forEach(layer => {
+      const speed = parseFloat(layer.dataset.speed) || 0;
+      layer.style.transform = `translate3d(0, ${relativeScroll * speed}px, 0)`;
+    });
+    ticking = false;
+  };
+
+  const onScroll = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  };
+
+  recalc();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', recalc);
 }
 
 // Анимация счетчиков статистики
@@ -491,18 +728,13 @@ function initSmoothScroll() {
         const headerHeight = document.getElementById('header').offsetHeight;
         const targetPosition = targetElement.offsetTop - headerHeight;
 
-        window.scrollTo({
-          top: targetPosition,
-          behavior: 'smooth'
-        });
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth'
+      });
 
-        // Закрываем мобильное меню если оно открыто
-        const menuToggle = document.getElementById('menuToggle');
-        const nav = document.getElementById('nav');
-        if (menuToggle && nav) {
-          menuToggle.classList.remove('active');
-          nav.classList.remove('active');
-        }
+        // Закрываем меню если оно открыто
+        closeMenuDrawer();
       }
     });
   });
@@ -517,13 +749,8 @@ function initSmoothScroll() {
         behavior: 'smooth'
       });
 
-      // Закрываем мобильное меню если оно открыто
-      const menuToggle = document.getElementById('menuToggle');
-      const nav = document.getElementById('nav');
-      if (menuToggle && nav) {
-        menuToggle.classList.remove('active');
-        nav.classList.remove('active');
-      }
+      // Закрываем меню если оно открыто
+      closeMenuDrawer();
     });
   }
 }

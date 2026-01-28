@@ -1,14 +1,20 @@
-<?php get_header(); ?>
+<?php
+get_header();
+$hero_images = get_option('bis_hero_slider_images', array());
+$has_hero_slider = !empty($hero_images);
+?>
   <!-- Hero Section -->
-  <section class="hero" id="home">
-    <?php
-    $hero_images = get_option('bis_hero_slider_images', array());
-    if (!empty($hero_images)) :
-    ?>
+  <section class="hero <?php echo $has_hero_slider ? 'hero--with-slider' : 'hero--parallax'; ?>" id="home">
+    <?php if ($has_hero_slider) : ?>
       <div class="hero-slider">
         <?php foreach ($hero_images as $index => $image) : ?>
           <div class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?>" style="background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)), url('<?php echo esc_url($image); ?>') center/cover no-repeat;"></div>
         <?php endforeach; ?>
+      </div>
+    <?php else : ?>
+      <div class="hero-parallax" aria-hidden="true">
+        <div class="parallax-layer parallax-layer--back" data-speed="0.12" style="background-image: url('<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer2.png');"></div>
+        <div class="parallax-layer parallax-layer--front" data-speed="0.2" style="background-image: url('<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer1.png');"></div>
       </div>
     <?php endif; ?>
     <div class="grid-pattern"></div>
@@ -23,6 +29,16 @@
         <button class="btn btn-primary open-estimate-modal">Рассчитать смету и сроки</button>
       </div>
       </div>
+    </div>
+    <div class="hero-nav-rail">
+      <ul class="hero-nav">
+        <li><a href="#services">Специализация</a></li>
+        <li><a href="#equipment">Оборудование</a></li>
+        <li><a href="#experience">Опыт</a></li>
+        <li><a href="#why">О нас</a></li>
+        <li><a href="#contact">Контакты</a></li>
+        <li><a href="#faq">F.A.Q</a></li>
+      </ul>
     </div>
   </section>
 <!-- Tasks Section -->
@@ -51,6 +67,32 @@
     </div>
 </section>
 
+
+<!-- Objects Section -->
+<section class="objects-section" id="objects">
+  <div class="objects-container">
+    <div class="section-header">
+      <span class="section-badge">Типы объектов</span>
+      <h2 class="section-title">Объекты, которые мы налаживаем</h2>
+      <p class="section-subtitle">Работаем с инженерными системами на разных типах площадок — от производственных комплексов до жилых объектов.</p>
+    </div>
+
+    <div class="objects-grid">
+      <div class="object-card">
+        <h3>Промышленные</h3>
+        <p>Пусконаладка производственных зданий, складов и чистых помещений.</p>
+      </div>
+      <div class="object-card">
+        <h3>Административные</h3>
+        <p>Офисы, общественные пространства и коммерческие здания.</p>
+      </div>
+      <div class="object-card">
+        <h3>Жилые</h3>
+        <p>Многоквартирные дома, апартаменты и частные резиденции.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 
 
@@ -922,6 +964,69 @@ $news_query = new WP_Query(array(
       </div>
     </div>
   </section>
+
+<?php $revenue = bis_get_revenue_settings(); ?>
+<section class="revenue-section" id="revenue">
+  <div class="revenue-container">
+    <div class="revenue-heading">
+      <div>
+        <span class="section-badge section-badge--ghost">Динамика</span>
+        <h2 class="section-title"><?php echo esc_html($revenue['title']); ?></h2>
+      </div>
+      <div class="revenue-meta-chip">
+        <span class="revenue-meta-label">Единицы</span>
+        <span class="revenue-meta-value"><?php echo esc_html($revenue['currency_label']); ?></span>
+      </div>
+    </div>
+
+    <div class="revenue-card">
+      <div class="revenue-card__gradient"></div>
+      <div class="revenue-card__header">
+        <div class="revenue-card__title">Рост компании в динамике</div>
+      </div>
+
+      <div class="revenue-chart" data-currency="<?php echo esc_attr($revenue['currency_label']); ?>" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
+        <svg class="revenue-chart__svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="rgba(132, 139, 153, 0.25)"/>
+              <stop offset="100%" stop-color="rgba(132, 139, 153, 0.08)"/>
+            </linearGradient>
+            <linearGradient id="revenueLine" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#848b99"/>
+              <stop offset="100%" stop-color="#848b99"/>
+            </linearGradient>
+            <filter id="revenueGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.8" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <path class="revenue-chart__area" fill="url(#revenueGradient)" d=""></path>
+          <path class="revenue-chart__line" stroke="url(#revenueLine)" stroke-width="1.8" fill="none" filter="url(#revenueGlow)" d=""></path>
+        </svg>
+        <div class="revenue-chart__grid"></div>
+        <div class="revenue-chart__labels" data-revenue-labels></div>
+        <div class="revenue-chart__last" data-revenue-last>
+          <div class="revenue-chip">—</div>
+          <span class="revenue-chip__caption">текущий показатель</span>
+        </div>
+      </div>
+
+      <div class="revenue-footer">
+        <?php if (!empty($revenue['cta_link'])) : ?>
+          <a class="btn btn-outline btn-outline--bold" href="<?php echo esc_url($revenue['cta_link']); ?>">
+            <?php echo esc_html($revenue['cta_label']); ?>
+          </a>
+        <?php else : ?>
+          <span class="btn btn-outline btn-outline--bold btn-disabled"><?php echo esc_html($revenue['cta_label']); ?></span>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- FAQ Section -->
 <section class="faq-section" id="faq">
