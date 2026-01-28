@@ -29,11 +29,6 @@ services:
       - "./.env.wordpress"
     networks:
       - bisnet
-    watch:
-      action: rebuild
-      path: ./wp-theme
-      target: /var/www/html/wp-content/themes/bis-theme
-      
     volumes:
       - ./wp-theme:/var/www/html/wp-content/themes/bis-theme
       - ./uploads:/var/www/html/wp-content/uploads/
