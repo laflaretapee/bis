@@ -20,10 +20,10 @@ $has_hero_slider = !empty($hero_images);
     <div class="grid-pattern"></div>
     <div class="hero-content">
       <h1 class="typing-title">
-        <span class="typing-text"><span class="bis-condensed">БИС</span> - </span><span class="cursor">|</span>
+        <span class="typing-text">«БИС — </span><span class="cursor">|</span>
       </h1>
       <p class="hero-subtitle">
-        Компания «<span class="bis-condensed">БИС</span> — Баланс Инженерных Систем» специализируется на комплексных пусконаладочных работах инженерных систем, техническом обслуживании и сопровождении
+        Компания «БИС — Баланс Инженерных Систем» специализируется на комплексных пусконаладочных работах инженерных систем, техническом обслуживании и сопровождении
       </p>
       <div class="hero-cta">
         <button class="btn btn-primary open-estimate-modal">Рассчитать смету и сроки</button>
@@ -105,7 +105,7 @@ $has_hero_slider = !empty($hero_images);
   <div class="services-grid">
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec1.jpg');"></div>
-      <h3>Комплексная наладка и испытания</h3>
+      <h5>Комплексная наладка и испытания</h5>
       <ul>
         <li>Общеобменной вентиляции</li>
         <li>Противодымной вентиляции</li>
@@ -118,7 +118,7 @@ $has_hero_slider = !empty($hero_images);
 
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec2.jpg');"></div>
-      <h3>Обслуживание вентиляционных установок</h3>
+      <h5>Обслуживание вентиляционных установок</h5>
       <ul>
         <li>Проверка
 состояния электродвигателей, вентиляторов, теплообменных
@@ -130,10 +130,10 @@ $has_hero_slider = !empty($hero_images);
 
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec3.jpg');"></div>
-      <h3>Комплексная очистка и дезинфекция системы вентиляции,
-удаление жировых отложений</h3>
+      <h5>Комплексная чистка и дезинфекция системы вентиляции,
+удаление жировых отложений</h5>
       <ul>
-        <li>истка вентиляционных сетей
+        <li>чистка вентиляционных сетей
 механическим способом, с применением специальных средств для
 расщепления жировых отложений и аппаратов высокого давления </li>
       </ul>
@@ -142,7 +142,7 @@ $has_hero_slider = !empty($hero_images);
 
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec4.jpg');"></div>
-      <h3>Замеры параметров микроклимата</h3>
+      <h5>Замеры параметров микроклимата</h5>
       <p>На соответствие СанПин, ГОСТ:</p>
       <ul>
         <li>Скорость воздуха</li>
@@ -155,14 +155,14 @@ $has_hero_slider = !empty($hero_images);
 
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec5.jpg');"></div>
-      <h3>Проведение испытаний воздуховодов на плотность и
-видеоинспекция вентиляционных каналов и трубопроводов</h3>
+      <h5>Проведение испытаний воздуховодов на плотность и
+видеоинспекция вентиляционных каналов и трубопроводов</h5>
       <button class="btn btn-primary order-btn" data-service="Испытания воздуховодов">Заказать</button>
     </div>
 
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec6.jpg');"></div>
-      <h3>Испытания чистых помещений</h3>
+      <h5>Испытания чистых помещений</h5>
       <p>На соответствие требованиям ГОСТ:</p>
       <ul>
         <li>Классы чистоты</li>
@@ -175,8 +175,8 @@ $has_hero_slider = !empty($hero_images);
 
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec7.jpg');"></div>
-      <h3>Проведение предпроектного и технического
-обследования</h3>
+      <h5>Проведение предпроектного и технического
+обследования</h5>
       <ul>
         <li>Обследование систем на дефекты монтажа,
 проверка соответствия параметром микроклимата и
@@ -211,7 +211,7 @@ $has_hero_slider = !empty($hero_images);
         </svg>
       </button>
       <h2>Заявка на услугу</h2>
-      <p>Заполните контакты, и команда <span class="bis-condensed">БИС</span> — Баланс Инженерных Систем свяжется с вами для уточнения деталей.</p>
+      <p>Заполните контакты, и команда БИС — Баланс Инженерных Систем свяжется с вами для уточнения деталей.</p>
       <form class="contact-form" id="orderForm">
         <input type="hidden" id="orderService" name="service" value="">
         <div class="form-group">
@@ -235,7 +235,7 @@ $has_hero_slider = !empty($hero_images);
 <section class="pnr-why-section">
   <div class="grid-pattern"></div>
   <div class="pnr-why-content">
-    <h3>Почему <span class="bis-condensed">БИС</span> — Баланс Инженерных Систем?</h3>
+    <h3>Почему «БИС — Баланс Инженерных Систем»?</h3>
     <ul class="pnr-why">
       <li>Комплексный подход</li>
       <li>Честность и ответственность</li>
@@ -294,7 +294,7 @@ $has_hero_slider = !empty($hero_images);
 <section class="equipment-section" id="equipment">
   <div class="section-header">
     <!-- <span class="section-badge">Оборудование</span> -->
-    <h2 class="section-title">Оборудование <span class="bis-condensed">БИС</span> — Баланс Инженерных Систем</h2>
+    <h2 class="section-title">Оборудование «БИС — Баланс Инженерных Систем»</h2>
     <p class="section-subtitle">Собственные решения для очистки вентиляции и полный парк измерительных приборов для ПНР, сервиса и метрологического контроля</p>
   </div>
 
@@ -305,7 +305,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob3.jpg');"></div>
       <div class="equipment-content">
-        <h3>Комплект для вентиляции Testo 440</h3>
+        <h5>Комплект для вентиляции Testo 440</h5>
         <p>Профессиональный набор с Bluetooth крыльчаткой 100 мм и зондом с обогреваемой струной для точных измерений воздушных потоков.</p>
       </div>
     </div>
@@ -313,7 +313,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob2.jpg');"></div>
       <div class="equipment-content">
-        <h3>Электронный балометр Testo 420</h3>
+        <h5>Электронный балометр Testo 420</h5>
         <p>Замер объемного расхода воздуха с решёток размером до 600×600 мм и 1200×300 мм для систем вентиляции и кондиционирования.</p>
       </div>
     </div>
@@ -321,7 +321,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob7.jpg');"></div>
       <div class="equipment-content">
-        <h3>Набор воронок Testo</h3>
+        <h5>Набор воронок Testo</h5>
         <p>Специализированные воронки с выпрямителем потока для диффузоров ДУ200 и решёток 350×350 мм.</p>
       </div>
     </div>
@@ -329,7 +329,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob4.jpg');"></div>
       <div class="equipment-content">
-        <h3>Комплект смарт-зондов Testo</h3>
+        <h5>Комплект смарт-зондов Testo</h5>
         <p>Универсальный набор для диагностики систем вентиляции: анемометр с обогреваемой струйной, зонд-крыльчатка ду15, пирометр лазерный, зонд замера качества воздуха,
 термогигрометр.</p>
       </div>
@@ -338,7 +338,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob5.jpg');"></div>
       <div class="equipment-content">
-        <h3>Октавный шумомер Октава 110А</h3>
+        <h5>Октавный шумомер Октава 110А</h5>
         <p>Точные измерения уровня шума и вибраций оборудования для соответствия санитарным нормам и стандартам.</p>
       </div>
     </div>
@@ -346,7 +346,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob6.jpg');"></div>
       <div class="equipment-content">
-        <h3>СУВ-1</h3>
+        <h5>СУВ-1</h5>
         <p>Прибор для проведения испытаний на герметичность вентиляционной сети. Данный прибор наша собственная разработка, позволяющая быстро и качественно проводить испытания и определять величину утечек.</p>
       </div>
     </div>
@@ -362,7 +362,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob8.jpg');"></div>
       <div class="equipment-content">
-        <h3>Измерительный прибор Danfoss PFM 1000</h3>
+        <h5>Измерительный прибор Danfoss PFM 1000</h5>
         <p>Многофункциональный прибор для диагностики и наладки систем отопления, вентиляции и кондиционирования.</p>
       </div>
     </div>
@@ -370,7 +370,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob9.jpg');"></div>
       <div class="equipment-content">
-        <h3>Измерительный прибор TA Scope</h3>
+        <h5>Измерительный прибор TA Scope</h5>
         <p>Современный диагностический комплекс для комплексного анализа параметров инженерных систем.</p>
       </div>
     </div>
@@ -380,8 +380,8 @@ $has_hero_slider = !empty($hero_images);
     <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob1.jpg');"></div>
       <div class="equipment-content">
-        <h3>Комплекс для очистки и герметичности</h3>
-        <p>Собственный комплекс <span class="bis-condensed">БИС</span> — Баланс Инженерных Систем: механическая очистка, химическая обработка и проверка герметичности воздуховодов с фото- и видеофиксацией каждого этапа.</p>
+        <h5>Комплекс для очистки и герметичности</h5>
+        <p>Собственный комплекс «БИС — Баланс Инженерных Систем»: механическая очистка, химическая обработка и проверка герметичности воздуховодов с фото- и видеофиксацией каждого этапа.</p>
       </div>
     </div>
 
@@ -831,7 +831,7 @@ endif;
 <section class="why-us" id="why">
   <div class="section-header">
     <span class="section-badge">Почему выбирают нас</span>
-    <p class="section-subtitle"><span class="bis-condensed">БИС</span> — Баланс Инженерных Систем — это команда молодых и трудолюбивых специалистов. Для нас нет неразрешимых задач, поэтому если в Вашей деятельности возник вопрос по пусконаладке или замерам, то мы обязательно постараемся помочь.</p>
+    <p class="section-subtitle">«БИС — Баланс Инженерных Систем» — это команда молодых и трудолюбивых специалистов. Для нас нет неразрешимых задач, поэтому если в Вашей деятельности возник вопрос по пусконаладке или замерам, то мы обязательно постараемся помочь.</p>
   </div>
   
 
@@ -884,7 +884,7 @@ $news_query = new WP_Query(array(
               <?php the_post_thumbnail('large'); ?>
             <?php else : ?>
               <div class="news-card__image-placeholder">
-                <span><span class="bis-condensed">БИС</span></span>
+                <span>«БИС»</span>
               </div>
             <?php endif; ?>
           </a>

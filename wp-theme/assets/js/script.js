@@ -1,6 +1,6 @@
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-  applyBisCondensedStyling();
+  // applyBisCondensedStyling();
   initTypingEffect();
   initMobileMenu();
   initCallbackModal(); // Добавьте эту строку
@@ -70,14 +70,47 @@ function initTypingEffect() {
   const textParts = [
     { text: 'Баланс ', isGradient: false },
     { text: 'Инженерных ', isGradient: true },
-    { text: 'Систем', isGradient: false }
+    { text: 'Систем»', isGradient: false }
   ];
+
+  // Установим ширину контейнера до начала анимации, чтобы избежать смещения
+  const fullText = '«БИС — ' + textParts.map(part => part.text).join('');
+  const tempSpan = document.createElement('span');
+  tempSpan.style.visibility = 'hidden';
+  tempSpan.style.position = 'absolute';
+  tempSpan.style.whiteSpace = 'pre-wrap';
+  tempSpan.style.font = getComputedStyle(typingText).font;
+  tempSpan.textContent = fullText;
+  document.body.appendChild(tempSpan);
+
+  // Учитываем размер экрана при установке ширины
+  const textWidth = tempSpan.offsetWidth;
+  const screenWidth = window.innerWidth;
+
+  // Для мобильных устройств используем меньшую ширину
+  if (screenWidth <= 768) {
+    // На мобильных устройствах ограничиваем ширину для лучшего отображения
+    typingText.style.minWidth = '100%';
+    typingText.style.display = 'inline-block';
+    typingText.style.width = '100%';
+  } else {
+    // На десктопе устанавливаем рассчитанную ширину
+    typingText.style.minWidth = (textWidth + 20) + 'px'; // Добавляем немного места для курсора
+  }
+
+  // Также устанавливаем максимальную ширину для предотвращения переполнения
+  typingText.style.maxWidth = '100%';
+
+  // Убедимся, что элемент занимает всю доступную ширину для корректного позиционирования курсора
+  typingText.style.flex = '1 1 auto';
+
+  document.body.removeChild(tempSpan);
 
   let partIndex = 0;
   let charIndex = 0;
   const typingSpeed = 70; // Скорость печати в мс
   const pauseAfterWord = 150; // Пауза после слова
-
+  cursor.style.display = 'inline-block';
   function type() {
     if (partIndex < textParts.length) {
       const currentPart = textParts[partIndex];
@@ -92,6 +125,13 @@ function initTypingEffect() {
           typingText.appendChild(currentSpan);
         }
         currentSpan.textContent += char;
+
+        // Перемещаем курсор после добавленного текста
+        if (cursor && currentSpan.parentNode) {
+          // Перемещаем курсор после текущего span
+          currentSpan.parentNode.insertBefore(cursor, currentSpan.nextSibling);
+        }
+
         charIndex++;
         setTimeout(type, typingSpeed);
       } else {
@@ -101,11 +141,14 @@ function initTypingEffect() {
       }
     } else {
       setTimeout(() => {
-        if (cursor) cursor.style.display = 'none';
-      }, 2000);
+        if (cursor) {
+          // Останавливаем анимацию курсора и делаем его менее заметным
+          cursor.style.animation = 'none';
+          cursor.style.opacity = '0';
+        }
+      }, 1000);
     }
   }
-
   setTimeout(type, 500);
 }
 
@@ -827,10 +870,17 @@ function initServicesSlider() {
     if (servicesGrid.scrollTo) {
       const targetCard = serviceCards[currentSlide];
       const targetLeft = targetCard.offsetLeft - 10; // частично компенсируем margin
-      servicesGrid.scrollTo({ left: targetLeft, behavior: 'smooth' });
-    }
+      servicesGrid.scrollTo({ left: targetLeft, behavior: 'instant' }); // используем instant для более плавной прокрутки
 
-    updateNavigation();
+      // После прокрутки с небольшой задержкой обновляем навигацию
+      setTimeout(() => {
+        updateNavigation();
+      }, 100);
+    } else {
+      // Альтернативный метод прокрутки
+      servicesGrid.scrollLeft = targetCard.offsetLeft - 10;
+      updateNavigation();
+    }
   }
 
   // Кнопки навигации
@@ -888,14 +938,176 @@ function initServicesSlider() {
 
   // Определяем текущий слайд при скролле
   servicesGrid.addEventListener('scroll', () => {
-    const scrollLeft = servicesGrid.scrollLeft;
-    const cardWidth = serviceCards[0].offsetWidth;
-    const newSlide = Math.round(scrollLeft / cardWidth);
+    // Добавляем небольшую задержку для предотвращения тряски
+    clearTimeout(this.scrollTimer);
+    this.scrollTimer = setTimeout(() => {
+      const scrollLeft = servicesGrid.scrollLeft;
+      const cardWidth = serviceCards[0].offsetWidth;
+      const newSlide = Math.round(scrollLeft / cardWidth);
 
-    if (newSlide !== currentSlide && newSlide >= 0 && newSlide < totalSlides) {
-      currentSlide = newSlide;
+      if (newSlide !== currentSlide && newSlide >= 0 && newSlide < totalSlides) {
+        currentSlide = newSlide;
+        updateNavigation();
+      }
+    }, 50); // Задержка в 50мс для предотвращения тряски
+  });
+
+  // Инициализация
+  goToSlide(0);
+}
+
+// Slider for Equipment
+function initEquipmentSlider() {
+  const equipmentGrid = document.querySelector('.equipment-grid');
+  const equipmentCards = document.querySelectorAll('.equipment-card');
+  const prevBtn = document.querySelector('.equipment-slider-nav .slider-prev');
+  const nextBtn = document.querySelector('.equipment-slider-nav .slider-next');
+  const dotsContainer = document.querySelector('.equipment-slider-nav .slider-dots');
+
+  if (!equipmentGrid || equipmentCards.length === 0) {
+    return;
+  }
+
+  const isMobile = window.innerWidth <= 768;
+
+  if (!isMobile) {
+    equipmentGrid.removeAttribute('data-slider-initialized');
+    if (dotsContainer) dotsContainer.innerHTML = '';
+    if (prevBtn) {
+      const clone = prevBtn.cloneNode(true);
+      prevBtn.parentNode.replaceChild(clone, prevBtn);
+    }
+    if (nextBtn) {
+      const clone = nextBtn.cloneNode(true);
+      nextBtn.parentNode.replaceChild(clone, nextBtn);
+    }
+    return;
+  }
+
+  if (equipmentGrid.dataset.sliderInitialized === 'true') {
+    return;
+  }
+  equipmentGrid.dataset.sliderInitialized = 'true';
+
+  let currentSlide = 0;
+  const totalSlides = equipmentCards.length;
+
+  // Очищаем контейнер точек
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+  }
+
+  // Создаем точки навигации
+  equipmentCards.forEach((_, index) => {
+    if (dotsContainer) {
+      const dot = document.createElement('div');
+      dot.className = 'slider-dot';
+      if (index === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(index));
+      dotsContainer.appendChild(dot);
+    }
+  });
+
+  const dots = document.querySelectorAll('.equipment-slider-nav .slider-dot');
+
+  function updateNavigation() {
+    // Обновляем состояние кнопок
+    if (prevBtn) prevBtn.disabled = currentSlide === 0;
+    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
+
+    // Обновляем точки
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentSlide);
+    });
+  }
+
+  function goToSlide(slideIndex) {
+    currentSlide = slideIndex;
+
+    // Прокрутка к активной карточке
+    if (equipmentGrid.scrollTo) {
+      const targetCard = equipmentCards[currentSlide];
+      const targetLeft = targetCard.offsetLeft - 10; // частично компенсируем margin
+      equipmentGrid.scrollTo({ left: targetLeft, behavior: 'instant' }); // используем instant для более плавной прокрутки
+
+      // После прокрутки с небольшой задержкой обновляем навигацию
+      setTimeout(() => {
+        updateNavigation();
+      }, 100);
+    } else {
+      // Альтернативный метод прокрутки
+      equipmentGrid.scrollLeft = targetCard.offsetLeft - 10;
       updateNavigation();
     }
+  }
+
+  // Кнопки навигации
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (currentSlide < totalSlides - 1) {
+        goToSlide(currentSlide + 1);
+      }
+    });
+  }
+
+  // Swipe для мобильных
+  let startX = 0;
+  let endX = 0;
+  let isScrolling = false;
+
+  equipmentGrid.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    isScrolling = false;
+  });
+
+  equipmentGrid.addEventListener('touchmove', () => {
+    isScrolling = true;
+  });
+
+  equipmentGrid.addEventListener('touchend', (e) => {
+    if (!isScrolling) return;
+
+    endX = e.changedTouches[0].clientX;
+    handleSwipe();
+  });
+
+  function handleSwipe() {
+    const swipeThreshold = 50;
+    const diff = startX - endX;
+
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0 && currentSlide < totalSlides - 1) {
+        // Swipe left - next
+        goToSlide(currentSlide + 1);
+      } else if (diff < 0 && currentSlide > 0) {
+        // Swipe right - prev
+        goToSlide(currentSlide - 1);
+      }
+    }
+  }
+
+  // Определяем текущий слайд при скролле
+  equipmentGrid.addEventListener('scroll', () => {
+    // Добавляем небольшую задержку для предотвращения тряски
+    clearTimeout(this.scrollTimer);
+    this.scrollTimer = setTimeout(() => {
+      const scrollLeft = equipmentGrid.scrollLeft;
+      const cardWidth = equipmentCards[0].offsetWidth;
+      const newSlide = Math.round(scrollLeft / cardWidth);
+
+      if (newSlide !== currentSlide && newSlide >= 0 && newSlide < totalSlides) {
+        currentSlide = newSlide;
+        updateNavigation();
+      }
+    }, 50); // Задержка в 50мс для предотвращения тряски
   });
 
   // Инициализация
@@ -1307,13 +1519,13 @@ function initExperienceModal() {
   const casesModal = document.getElementById('casesModal');
 
   const openModal = (card) => {
-    let title = (card.querySelector('h3') || card.querySelector('h4'))?.innerHTML.trim() || 'Проект <span class="bis-condensed">БИС</span> — Баланс Инженерных Систем';
+    let title = (card.querySelector('h3') || card.querySelector('h4'))?.innerHTML.trim() || 'Проект БИС — Баланс Инженерных Систем';
 
     // Ensure BIZ is styled in description if it comes from data attribute as plain text
-    title = title.replace(/БИС/g, '<span class="bis-condensed">БИС</span>');
+    title = title.replace(/БИС/g, 'БИС');
 
     // Clean up nested spans if any
-    title = title.replace(/<span class="bis-condensed"><span class="bis-condensed">БИС<\/span><\/span>/g, '<span class="bis-condensed">БИС</span>');
+    title = title.replace(/<span class="bis-condensed"><span class="bis-condensed">БИС<\/span><\/span>/g, 'БИС');
 
     const image = card.dataset.image || '';
     const address = card.dataset.address || '';

@@ -5,7 +5,7 @@ get_header();
 <main class="news-archive">
     <div class="news-archive__container news-archive__intro">
         <p class="news-archive__badge">Новости</p>
-        <h1 class="news-archive__title">Новости компании <span class="bis-condensed">БИС</span></h1>
+        <h1 class="news-archive__title">Новости компании «БИС»</h1>
         <p class="news-archive__description">
             Свежие проекты, экспертные материалы и важные обновления о нашей работе.
         </p>
@@ -21,7 +21,7 @@ get_header();
                                 <?php the_post_thumbnail('large'); ?>
                             <?php else : ?>
                                 <div class="news-card__image-placeholder">
-                                    <span><span class="bis-condensed">БИС</span></span>
+                                    <span>«БИС»</span>
                                 </div>
                             <?php endif; ?>
                         </a>

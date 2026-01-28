@@ -30,9 +30,9 @@
     ?>
     <div class="footer-content">
       <div class="footer-section">
-        <h3><span class="bis-condensed">БИС</span> — Баланс Инженерных Систем</h3>
-        <p>Баланс Инженерных Систем</p>
-        <p>ООО «<span class="bis-condensed">БИС</span> — БАЛАНС ИНЖЕНЕРНЫХ СИСТЕМ»</p>
+        <h3>«БИС — Баланс Инженерных Систем»</h3>
+        <p>«Баланс Инженерных Систем»</p>
+        <p>ООО «БИС — БАЛАНС ИНЖЕНЕРНЫХ СИСТЕМ»</p>
         <p>ИНН 7722323589</p>
       </div>
       <div class="footer-section">

@@ -16,7 +16,7 @@
           <img src="<?php echo get_template_directory_uri(); ?>/assets/img/LOGOLOGO11.png" alt="БИС — Баланс Инженерных Систем" class="brand-mark">
         </a>
         <div class="brand-text">
-          <span class="brand-title"><span class="bis-condensed">БИС</span> — Баланс</span>
+          <span class="brand-title">«БИС» — Баланс</span>
           <span class="brand-subtitle">Инженерные системы</span>
         </div>
       </div>
