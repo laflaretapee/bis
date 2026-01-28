@@ -801,317 +801,188 @@ function initSmoothScroll() {
 // Slider for Services
 function initServicesSlider() {
   const servicesGrid = document.querySelector('.services-grid');
-  const serviceCards = document.querySelectorAll('.service-card');
+  if (!servicesGrid) return;
+
+  const serviceCards = servicesGrid.querySelectorAll('.service-card');
   const prevBtn = document.querySelector('.services-slider-nav .slider-prev');
   const nextBtn = document.querySelector('.services-slider-nav .slider-next');
   const dotsContainer = document.querySelector('.services-slider-nav .slider-dots');
 
-  if (!servicesGrid || serviceCards.length === 0) {
-    return;
-  }
+  if (serviceCards.length === 0) return;
+
+  const resetButton = (selector) => {
+    const btn = document.querySelector(selector);
+    if (btn) {
+      const clone = btn.cloneNode(true);
+      btn.parentNode.replaceChild(clone, btn);
+    }
+  };
 
   const isMobile = window.innerWidth <= 768;
 
   if (!isMobile) {
+    if (servicesGrid.dataset.sliderInitialized === 'true') {
+      if (servicesGrid._touchStartHandler) {
+        servicesGrid.removeEventListener('touchstart', servicesGrid._touchStartHandler);
+        servicesGrid._touchStartHandler = null;
+      }
+      if (servicesGrid._touchEndHandler) {
+        servicesGrid.removeEventListener('touchend', servicesGrid._touchEndHandler);
+        servicesGrid._touchEndHandler = null;
+      }
+      if (servicesGrid._scrollHandler) {
+        servicesGrid.removeEventListener('scroll', servicesGrid._scrollHandler);
+        servicesGrid._scrollHandler = null;
+      }
+      if (servicesGrid._resizeObserver) {
+        servicesGrid._resizeObserver.disconnect();
+        servicesGrid._resizeObserver = null;
+      }
+      if (servicesGrid._scrollEndTimer) {
+        clearTimeout(servicesGrid._scrollEndTimer);
+        servicesGrid._scrollEndTimer = null;
+      }
+    }
+
     servicesGrid.removeAttribute('data-slider-initialized');
     if (dotsContainer) dotsContainer.innerHTML = '';
-    if (prevBtn) {
-      const clone = prevBtn.cloneNode(true);
-      prevBtn.parentNode.replaceChild(clone, prevBtn);
-    }
-    if (nextBtn) {
-      const clone = nextBtn.cloneNode(true);
-      nextBtn.parentNode.replaceChild(clone, nextBtn);
-    }
+    resetButton('.services-slider-nav .slider-prev');
+    resetButton('.services-slider-nav .slider-next');
     return;
   }
 
-  if (servicesGrid.dataset.sliderInitialized === 'true') {
-    return;
-  }
+  if (servicesGrid.dataset.sliderInitialized === 'true') return;
+
   servicesGrid.dataset.sliderInitialized = 'true';
 
   let currentSlide = 0;
   const totalSlides = serviceCards.length;
 
-  // Очищаем контейнер точек
   if (dotsContainer) {
     dotsContainer.innerHTML = '';
-  }
-
-  // Создаем точки навигации
-  serviceCards.forEach((_, index) => {
-    if (dotsContainer) {
+    serviceCards.forEach((_, index) => {
       const dot = document.createElement('div');
       dot.className = 'slider-dot';
       if (index === 0) dot.classList.add('active');
       dot.addEventListener('click', () => goToSlide(index));
       dotsContainer.appendChild(dot);
-    }
-  });
-
-  const dots = document.querySelectorAll('.services-slider-nav .slider-dot');
-
-  function updateNavigation() {
-    // Обновляем состояние кнопок
-    if (prevBtn) prevBtn.disabled = currentSlide === 0;
-    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
-
-    // Обновляем точки
-    dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === currentSlide);
     });
   }
 
-  function goToSlide(slideIndex) {
-    currentSlide = slideIndex;
+  const dots = dotsContainer ? dotsContainer.querySelectorAll('.slider-dot') : [];
 
-    // Прокрутка к активной карточке
+  function updateNavigation() {
+    if (prevBtn) prevBtn.disabled = currentSlide === 0;
+    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
+    dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
+  }
+
+  function getTargetLeft(index) {
+    const targetCard = serviceCards[index];
+    const maxScrollLeft = servicesGrid.scrollWidth - servicesGrid.clientWidth;
+    const offset = targetCard.offsetLeft - (servicesGrid.clientWidth - targetCard.offsetWidth) / 2;
+    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
+  }
+
+  function goToSlide(slideIndex, behavior = 'smooth') {
+    currentSlide = Math.max(0, Math.min(slideIndex, totalSlides - 1));
     if (servicesGrid.scrollTo) {
-      const targetCard = serviceCards[currentSlide];
-      const targetLeft = targetCard.offsetLeft - 10; // частично компенсируем margin
-      servicesGrid.scrollTo({ left: targetLeft, behavior: 'instant' }); // используем instant для более плавной прокрутки
-
-      // После прокрутки с небольшой задержкой обновляем навигацию
-      setTimeout(() => {
-        updateNavigation();
-      }, 100);
+      servicesGrid.scrollTo({ left: getTargetLeft(currentSlide), behavior });
     } else {
-      // Альтернативный метод прокрутки
-      servicesGrid.scrollLeft = targetCard.offsetLeft - 10;
-      updateNavigation();
+      servicesGrid.scrollLeft = getTargetLeft(currentSlide);
     }
+    updateNavigation();
   }
 
-  // Кнопки навигации
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      if (currentSlide > 0) {
-        goToSlide(currentSlide - 1);
-      }
-    });
-  }
+  const goPrev = () => {
+    if (currentSlide > 0) {
+      goToSlide(currentSlide - 1);
+    }
+  };
 
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      if (currentSlide < totalSlides - 1) {
-        goToSlide(currentSlide + 1);
-      }
-    });
-  }
+  const goNext = () => {
+    if (currentSlide < totalSlides - 1) {
+      goToSlide(currentSlide + 1);
+    }
+  };
 
-  // Swipe для мобильных
+  if (prevBtn) prevBtn.addEventListener('click', goPrev);
+  if (nextBtn) nextBtn.addEventListener('click', goNext);
+
   let startX = 0;
-  let endX = 0;
-  let isScrolling = false;
+  let startY = 0;
 
-  servicesGrid.addEventListener('touchstart', (e) => {
+  const handleTouchStart = (e) => {
     startX = e.touches[0].clientX;
-    isScrolling = false;
-  });
+    startY = e.touches[0].clientY;
+  };
 
-  servicesGrid.addEventListener('touchmove', () => {
-    isScrolling = true;
-  });
-
-  servicesGrid.addEventListener('touchend', (e) => {
-    if (!isScrolling) return;
-
-    endX = e.changedTouches[0].clientX;
-    handleSwipe();
-  });
-
-  function handleSwipe() {
+  const handleTouchEnd = (e) => {
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const diffX = startX - endX;
+    const diffY = startY - endY;
     const swipeThreshold = 50;
-    const diff = startX - endX;
 
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0 && currentSlide < totalSlides - 1) {
-        // Swipe left - next
-        goToSlide(currentSlide + 1);
-      } else if (diff < 0 && currentSlide > 0) {
-        // Swipe right - prev
-        goToSlide(currentSlide - 1);
+    if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        goNext();
+      } else {
+        goPrev();
       }
     }
-  }
+  };
 
-  // Определяем текущий слайд при скролле
-  servicesGrid.addEventListener('scroll', () => {
-    // Добавляем небольшую задержку для предотвращения тряски
-    clearTimeout(this.scrollTimer);
-    this.scrollTimer = setTimeout(() => {
-      const scrollLeft = servicesGrid.scrollLeft;
-      const cardWidth = serviceCards[0].offsetWidth;
-      const newSlide = Math.round(scrollLeft / cardWidth);
+  const getClosestSlideIndex = () => {
+    const center = servicesGrid.scrollLeft + servicesGrid.clientWidth / 2;
+    let closestIndex = 0;
+    let minDiff = Number.POSITIVE_INFINITY;
 
-      if (newSlide !== currentSlide && newSlide >= 0 && newSlide < totalSlides) {
-        currentSlide = newSlide;
-        updateNavigation();
-      }
-    }, 50); // Задержка в 50мс для предотвращения тряски
-  });
-
-  // Инициализация
-  goToSlide(0);
-}
-
-// Slider for Equipment
-function initEquipmentSlider() {
-  const equipmentGrid = document.querySelector('.equipment-grid');
-  const equipmentCards = document.querySelectorAll('.equipment-card');
-  const prevBtn = document.querySelector('.equipment-slider-nav .slider-prev');
-  const nextBtn = document.querySelector('.equipment-slider-nav .slider-next');
-  const dotsContainer = document.querySelector('.equipment-slider-nav .slider-dots');
-
-  if (!equipmentGrid || equipmentCards.length === 0) {
-    return;
-  }
-
-  const isMobile = window.innerWidth <= 768;
-
-  if (!isMobile) {
-    equipmentGrid.removeAttribute('data-slider-initialized');
-    if (dotsContainer) dotsContainer.innerHTML = '';
-    if (prevBtn) {
-      const clone = prevBtn.cloneNode(true);
-      prevBtn.parentNode.replaceChild(clone, prevBtn);
-    }
-    if (nextBtn) {
-      const clone = nextBtn.cloneNode(true);
-      nextBtn.parentNode.replaceChild(clone, nextBtn);
-    }
-    return;
-  }
-
-  if (equipmentGrid.dataset.sliderInitialized === 'true') {
-    return;
-  }
-  equipmentGrid.dataset.sliderInitialized = 'true';
-
-  let currentSlide = 0;
-  const totalSlides = equipmentCards.length;
-
-  // Очищаем контейнер точек
-  if (dotsContainer) {
-    dotsContainer.innerHTML = '';
-  }
-
-  // Создаем точки навигации
-  equipmentCards.forEach((_, index) => {
-    if (dotsContainer) {
-      const dot = document.createElement('div');
-      dot.className = 'slider-dot';
-      if (index === 0) dot.classList.add('active');
-      dot.addEventListener('click', () => goToSlide(index));
-      dotsContainer.appendChild(dot);
-    }
-  });
-
-  const dots = document.querySelectorAll('.equipment-slider-nav .slider-dot');
-
-  function updateNavigation() {
-    // Обновляем состояние кнопок
-    if (prevBtn) prevBtn.disabled = currentSlide === 0;
-    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
-
-    // Обновляем точки
-    dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === currentSlide);
-    });
-  }
-
-  function goToSlide(slideIndex) {
-    currentSlide = slideIndex;
-
-    // Прокрутка к активной карточке
-    if (equipmentGrid.scrollTo) {
-      const targetCard = equipmentCards[currentSlide];
-      const targetLeft = targetCard.offsetLeft - 10; // частично компенсируем margin
-      equipmentGrid.scrollTo({ left: targetLeft, behavior: 'instant' }); // используем instant для более плавной прокрутки
-
-      // После прокрутки с небольшой задержкой обновляем навигацию
-      setTimeout(() => {
-        updateNavigation();
-      }, 100);
-    } else {
-      // Альтернативный метод прокрутки
-      equipmentGrid.scrollLeft = targetCard.offsetLeft - 10;
-      updateNavigation();
-    }
-  }
-
-  // Кнопки навигации
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      if (currentSlide > 0) {
-        goToSlide(currentSlide - 1);
+    serviceCards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const diff = Math.abs(cardCenter - center);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = index;
       }
     });
-  }
 
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      if (currentSlide < totalSlides - 1) {
-        goToSlide(currentSlide + 1);
-      }
-    });
-  }
+    return closestIndex;
+  };
 
-  // Swipe для мобильных
-  let startX = 0;
-  let endX = 0;
-  let isScrolling = false;
-
-  equipmentGrid.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-    isScrolling = false;
-  });
-
-  equipmentGrid.addEventListener('touchmove', () => {
-    isScrolling = true;
-  });
-
-  equipmentGrid.addEventListener('touchend', (e) => {
-    if (!isScrolling) return;
-
-    endX = e.changedTouches[0].clientX;
-    handleSwipe();
-  });
-
-  function handleSwipe() {
-    const swipeThreshold = 50;
-    const diff = startX - endX;
-
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0 && currentSlide < totalSlides - 1) {
-        // Swipe left - next
-        goToSlide(currentSlide + 1);
-      } else if (diff < 0 && currentSlide > 0) {
-        // Swipe right - prev
-        goToSlide(currentSlide - 1);
-      }
+  const handleScroll = () => {
+    if (servicesGrid._scrollEndTimer) {
+      clearTimeout(servicesGrid._scrollEndTimer);
     }
-  }
 
-  // Определяем текущий слайд при скролле
-  equipmentGrid.addEventListener('scroll', () => {
-    // Добавляем небольшую задержку для предотвращения тряски
-    clearTimeout(this.scrollTimer);
-    this.scrollTimer = setTimeout(() => {
-      const scrollLeft = equipmentGrid.scrollLeft;
-      const cardWidth = equipmentCards[0].offsetWidth;
-      const newSlide = Math.round(scrollLeft / cardWidth);
-
-      if (newSlide !== currentSlide && newSlide >= 0 && newSlide < totalSlides) {
-        currentSlide = newSlide;
+    servicesGrid._scrollEndTimer = setTimeout(() => {
+      const newIndex = getClosestSlideIndex();
+      if (newIndex !== currentSlide) {
+        currentSlide = newIndex;
         updateNavigation();
       }
-    }, 50); // Задержка в 50мс для предотвращения тряски
-  });
+    }, 120);
+  };
 
-  // Инициализация
-  goToSlide(0);
+  servicesGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
+  servicesGrid.addEventListener('touchend', handleTouchEnd, { passive: true });
+  servicesGrid.addEventListener('scroll', handleScroll, { passive: true });
+
+  servicesGrid._touchStartHandler = handleTouchStart;
+  servicesGrid._touchEndHandler = handleTouchEnd;
+  servicesGrid._scrollHandler = handleScroll;
+
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      if (window.innerWidth <= 768) {
+        goToSlide(currentSlide, 'auto');
+      }
+    });
+    resizeObserver.observe(servicesGrid);
+    servicesGrid._resizeObserver = resizeObserver;
+  }
+
+  goToSlide(0, 'auto');
 }
 
 // Slider for gratitude letters
@@ -1372,6 +1243,10 @@ function initEquipmentSlider() {
         equipmentGrid._resizeObserver.disconnect();
         equipmentGrid._resizeObserver = null;
       }
+      if (equipmentGrid._scrollEndTimer) {
+        clearTimeout(equipmentGrid._scrollEndTimer);
+        equipmentGrid._scrollEndTimer = null;
+      }
     }
 
     equipmentGrid.removeAttribute('data-slider-initialized');
@@ -1412,13 +1287,23 @@ function initEquipmentSlider() {
     dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
   }
 
-  function goToSlide(slideIndex) {
+  function getTargetLeft(index) {
+    const targetCard = equipmentCards[index];
+    const maxScrollLeft = equipmentGrid.scrollWidth - equipmentGrid.clientWidth;
+    const offset = targetCard.offsetLeft - (equipmentGrid.clientWidth - targetCard.offsetWidth) / 2;
+    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
+  }
+
+  function goToSlide(slideIndex, behavior = 'smooth') {
     currentSlide = Math.max(0, Math.min(slideIndex, totalSlides - 1));
-    const targetCard = equipmentCards[currentSlide];
-    equipmentGrid.scrollTo({
-      left: targetCard.offsetLeft,
-      behavior: 'smooth'
-    });
+    if (equipmentGrid.scrollTo) {
+      equipmentGrid.scrollTo({
+        left: getTargetLeft(currentSlide),
+        behavior
+      });
+    } else {
+      equipmentGrid.scrollLeft = getTargetLeft(currentSlide);
+    }
     updateNavigation();
   }
 
@@ -1441,49 +1326,55 @@ function initEquipmentSlider() {
 
   // Swipe для мобильных
   let startX = 0;
-  let endX = 0;
+  let startY = 0;
 
   const handleTouchStart = (e) => {
     startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e) => {
-    endX = e.changedTouches[0].clientX;
-    handleSwipe();
-  };
-
-  function handleSwipe() {
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const diffX = startX - endX;
+    const diffY = startY - endY;
     const swipeThreshold = 50;
-    const diff = startX - endX;
 
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0 && currentSlide < totalSlides - 1) {
-        // Swipe left - next
-        goToSlide(currentSlide + 1);
-      } else if (diff < 0 && currentSlide > 0) {
-        // Swipe right - prev
+    if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        if (currentSlide < totalSlides - 1) {
+          goToSlide(currentSlide + 1);
+        }
+      } else if (currentSlide > 0) {
         goToSlide(currentSlide - 1);
       }
     }
-  }
+  };
 
   const handleScroll = () => {
-    const scrollLeft = equipmentGrid.scrollLeft;
-    let closestIndex = currentSlide;
-    let minDiff = Math.abs(equipmentCards[currentSlide].offsetLeft - scrollLeft);
-
-    equipmentCards.forEach((card, index) => {
-      const diff = Math.abs(card.offsetLeft - scrollLeft);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = index;
-      }
-    });
-
-    if (closestIndex !== currentSlide) {
-      currentSlide = closestIndex;
-      updateNavigation();
+    if (equipmentGrid._scrollEndTimer) {
+      clearTimeout(equipmentGrid._scrollEndTimer);
     }
+
+    equipmentGrid._scrollEndTimer = setTimeout(() => {
+      const center = equipmentGrid.scrollLeft + equipmentGrid.clientWidth / 2;
+      let closestIndex = 0;
+      let minDiff = Number.POSITIVE_INFINITY;
+
+      equipmentCards.forEach((card, index) => {
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const diff = Math.abs(cardCenter - center);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIndex = index;
+        }
+      });
+
+      if (closestIndex !== currentSlide) {
+        currentSlide = closestIndex;
+        updateNavigation();
+      }
+    }, 120);
   };
 
   equipmentGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -1494,15 +1385,17 @@ function initEquipmentSlider() {
   equipmentGrid._touchEndHandler = handleTouchEnd;
   equipmentGrid._scrollHandler = handleScroll;
 
-  const resizeObserver = new ResizeObserver(() => {
-    if (window.innerWidth <= 768) {
-      goToSlide(currentSlide);
-    }
-  });
-  resizeObserver.observe(equipmentGrid);
-  equipmentGrid._resizeObserver = resizeObserver;
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      if (window.innerWidth <= 768) {
+        goToSlide(currentSlide, 'auto');
+      }
+    });
+    resizeObserver.observe(equipmentGrid);
+    equipmentGrid._resizeObserver = resizeObserver;
+  }
 
-  goToSlide(0);
+  goToSlide(0, 'auto');
 }
 
 function initExperienceModal() {

@@ -3576,17 +3576,6 @@ select {
   }
 }
 
-/* Equipment Section - Слайдер для мобильных */
-.equipment-slider-nav {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 40px;
-  position: relative;
-  z-index: 2;
-}
-
 .slider-prev,
 .slider-next {
   width: 48px;
@@ -3665,6 +3654,7 @@ select {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    scroll-snap-stop: always;
     gap: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -4899,8 +4889,9 @@ select {
   }
 }
 
-/* Services Slider Navigation */
-.services-slider-nav {
+/* Slider Navigation */
+.services-slider-nav,
+.equipment-slider-nav {
   display: none;
   align-items: center;
   justify-content: center;
@@ -4928,6 +4919,7 @@ select {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    scroll-snap-stop: always;
     gap: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;

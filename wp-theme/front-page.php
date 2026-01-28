@@ -386,6 +386,7 @@ $has_hero_slider = !empty($hero_images);
     </div>
 
 
+    </div>
     <div class="equipment-slider-nav">
       <button class="slider-prev" aria-label="Предыдущий прибор">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
