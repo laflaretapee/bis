@@ -300,11 +300,13 @@ $has_hero_slider = !empty($hero_images);
 
   <div class="equipment-park">
     <div class="equipment-grid">
+
+    
     <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob1.jpg');"></div>
+      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob3.jpg');"></div>
       <div class="equipment-content">
-        <h3>Комплекс для очистки и герметичности</h3>
-        <p>Собственный комплекс <span class="bis-condensed">БИС</span> — Баланс Инженерных Систем: механическая очистка, химическая обработка и проверка герметичности воздуховодов с фото- и видеофиксацией каждого этапа.</p>
+        <h3>Комплект для вентиляции Testo 440</h3>
+        <p>Профессиональный набор с Bluetooth крыльчаткой 100 мм и зондом с обогреваемой струной для точных измерений воздушных потоков.</p>
       </div>
     </div>
 
@@ -317,10 +319,10 @@ $has_hero_slider = !empty($hero_images);
     </div>
 
     <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob3.jpg');"></div>
+      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob7.jpg');"></div>
       <div class="equipment-content">
-        <h3>Комплект для вентиляции Testo 440</h3>
-        <p>Профессиональный набор с Bluetooth крыльчаткой 100 мм и зондом с обогреваемой струной для точных измерений воздушных потоков.</p>
+        <h3>Набор воронок Testo</h3>
+        <p>Специализированные воронки с выпрямителем потока для диффузоров ДУ200 и решёток 350×350 мм.</p>
       </div>
     </div>
 
@@ -358,14 +360,6 @@ $has_hero_slider = !empty($hero_images);
     </div> -->
 
     <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob7.jpg');"></div>
-      <div class="equipment-content">
-        <h3>Набор воронок Testo</h3>
-        <p>Специализированные воронки с выпрямителем потока для диффузоров ДУ200 и решёток 350×350 мм.</p>
-      </div>
-    </div>
-
-    <div class="equipment-card">
       <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob8.jpg');"></div>
       <div class="equipment-content">
         <h3>Измерительный прибор Danfoss PFM 1000</h3>
@@ -381,7 +375,16 @@ $has_hero_slider = !empty($hero_images);
       </div>
     </div>
 
+
+
+    <div class="equipment-card">
+      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob1.jpg');"></div>
+      <div class="equipment-content">
+        <h3>Комплекс для очистки и герметичности</h3>
+        <p>Собственный комплекс <span class="bis-condensed">БИС</span> — Баланс Инженерных Систем: механическая очистка, химическая обработка и проверка герметичности воздуховодов с фото- и видеофиксацией каждого этапа.</p>
+      </div>
     </div>
+
 
     <div class="equipment-slider-nav">
       <button class="slider-prev" aria-label="Предыдущий прибор">
