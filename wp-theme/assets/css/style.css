@@ -6910,6 +6910,7 @@ body.post-type-archive-bis_news {
 
 .team-story p {
   margin: 0;
+  overflow: hidden;
 }
 
 .team-meta {
@@ -6932,12 +6933,19 @@ body.post-type-archive-bis_news {
 
 .team-more {
   position: relative;
+  width: fit-content;
   /* left: 56px;
   bottom: 32px; */
   background: transparent;
   color: var(--primary);
   border: 1px solid var(--primary);
   box-shadow: none;
+}
+
+.team-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .team-more:hover {

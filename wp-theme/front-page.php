@@ -668,31 +668,30 @@ endif;
             ?>
             <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
               <div class="team-slide__content">
-                <span class="team-label">Команда</span>
+              <div class="team-header">
+                  <span class="team-label">Команда</span>
+                  <div class="team-controls" style="
+                    display: flex;
+                    gap: 10px;
+                  ">
+                    <button class="team-nav team-prev" aria-label="Предыдущий сотрудник">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                    <button class="team-nav team-next" aria-label="Следующий сотрудник">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
                 <div class="team-story"><?php echo wp_kses_post(wpautop($short)); ?></div>
                 <div class="team-meta">
                   <span class="team-name"><?php echo esc_html($name); ?></span>
                   <span class="team-role"><?php echo esc_html($role); ?></span>
                 </div>
-                <div class="team-controls-wrap" style="
-                  display: flex;
-                  width: 100%;
-                  justify-content: space-between;
-                  height: fit-content;">
-                  <button class="btn btn-primary team-more" type="button" data-team-more>Подробнее</button>
-                  <div class="team-controls">
-                  <button class="team-nav team-prev" aria-label="Предыдущий сотрудник">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </button>
-                  <button class="team-nav team-next" aria-label="Следующий сотрудник">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-                </div>
+                <button class="btn btn-primary team-more" type="button" data-team-more>Подробнее</button>
               </div>
               <div class="team-slide__photo" style="background-image: url('<?php echo esc_url($photo); ?>');"></div>
               <div class="team-slide__long" hidden>
