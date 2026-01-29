@@ -508,6 +508,7 @@ endif;
            data-address="<?php echo esc_attr($details['address']); ?>"
            data-area="<?php echo esc_attr($details['area']); ?>"
            data-year="<?php echo esc_attr($details['year']); ?>"
+           data-link="<?php echo esc_url(get_permalink($project_id)); ?>"
            data-featured="1">
         <div class="experience-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
         <div class="experience-content">
@@ -550,6 +551,7 @@ endif;
       <h2 class="experience-modal-title"></h2>
       <div class="experience-modal-meta"></div>
       <a href="#contact" class="btn btn-primary experience-modal-cta">Обсудить проект</a>
+      <a href="#" class="btn btn-outline btn-outline--bold experience-modal-link">Страница проекта</a>
     </div>
   </div>
 </div>
@@ -590,6 +592,7 @@ endif;
                data-address="<?php echo esc_attr($details['address']); ?>"
                data-area="<?php echo esc_attr($details['area']); ?>"
                data-year="<?php echo esc_attr($details['year']); ?>"
+               data-link="<?php echo esc_url(get_permalink($project_id)); ?>"
                data-featured="<?php echo $is_featured ? '1' : '0'; ?>">
             <div class="all-case-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
             <h4><?php the_title(); ?></h4>

@@ -110,7 +110,7 @@ function bis_register_projects_cpt() {
         'has_archive'   => false,
         'menu_icon'     => 'dashicons-portfolio',
         'show_in_rest'  => true,
-        'supports'      => array('title', 'thumbnail'),
+        'supports'      => array('title', 'thumbnail', 'editor', 'excerpt'),
     ));
 }
 add_action('init', 'bis_register_projects_cpt');
@@ -138,6 +138,20 @@ function bis_project_details_metabox($post) {
     $year      = get_post_meta($post->ID, 'bis_project_year', true);
     $is_key    = get_post_meta($post->ID, 'bis_project_is_featured', true);
     $image_url = get_post_meta($post->ID, 'bis_project_image', true);
+    $banner_image = get_post_meta($post->ID, 'bis_project_banner_image', true);
+    $banner_layers = get_post_meta($post->ID, 'bis_project_banner_layers', true);
+    $gallery = get_post_meta($post->ID, 'bis_project_gallery', true);
+
+    if (!is_array($banner_layers)) {
+        $banner_layers = array();
+    }
+
+    if (!is_array($gallery)) {
+        $gallery = array();
+    }
+
+    $thumbnail_url = get_the_post_thumbnail_url($post->ID, 'full');
+    $banner_preview = $banner_image ? $banner_image : ($image_url ? $image_url : $thumbnail_url);
     ?>
     <div class="bis-project-box">
         <div class="bis-project-box__header">
@@ -180,12 +194,214 @@ function bis_project_details_metabox($post) {
                 <label for="bis_project_image">Фото проекта</label>
                 <input type="text" id="bis_project_image" name="bis_project_image" value="<?php echo esc_url($image_url); ?>" placeholder="https://">
                 <div class="bis-project-media__buttons">
-                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_image">Выбрать в медиабиблиотеке</button>
-                    <button type="button" class="button bis-project-image-clear">Убрать фото</button>
+                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_image" data-preview="project">Выбрать в медиабиблиотеке</button>
+                    <button type="button" class="button bis-project-image-clear" data-target="bis_project_image" data-preview="project">Убрать фото</button>
                 </div>
                 <p class="bis-field__hint">Лучше использовать горизонтальные изображения 1200px+ для четкой обложки.</p>
             </div>
         </div>
+
+        <div class="bis-project-section">
+            <div class="bis-project-section__header">
+                <h4>Страница проекта</h4>
+                <p class="bis-field__hint">Задайте баннер и тексты, которые будут показаны на странице проекта. Перетаскивайте текст прямо в превью.</p>
+            </div>
+
+            <div class="bis-project-media bis-project-media--banner">
+                <div class="bis-project-media__preview <?php echo $banner_preview ? '' : 'is-empty'; ?>" data-banner-image-preview style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
+                    <?php if (!$banner_preview) : ?>
+                        <span class="bis-project-media__placeholder">Нет изображения</span>
+                    <?php endif; ?>
+                </div>
+                <div class="bis-project-media__controls">
+                    <label for="bis_project_banner_image">Баннер проекта</label>
+                    <input type="text" id="bis_project_banner_image" name="bis_project_banner_image" value="<?php echo esc_url($banner_image); ?>" placeholder="https://">
+                    <div class="bis-project-media__buttons">
+                        <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_banner_image" data-preview="banner">Выбрать баннер</button>
+                        <button type="button" class="button bis-project-image-clear" data-target="bis_project_banner_image" data-preview="banner">Убрать фото</button>
+                    </div>
+                    <p class="bis-field__hint">Если баннер не выбран, используется фото проекта или миниатюра записи.</p>
+                </div>
+            </div>
+
+            <div class="bis-project-banner-builder">
+                <div class="bis-project-banner-previews">
+                    <div class="bis-banner-preview" data-banner-preview="desktop" style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
+                        <?php foreach ($banner_layers as $index => $layer) :
+                            $text = isset($layer['text']) ? $layer['text'] : '';
+                            $size = isset($layer['size']) ? $layer['size'] : 'md';
+                            $align = isset($layer['align']) ? $layer['align'] : 'left';
+                            $dx = isset($layer['desktop_x']) ? $layer['desktop_x'] : 50;
+                            $dy = isset($layer['desktop_y']) ? $layer['desktop_y'] : 50;
+                            $mx = isset($layer['mobile_x']) ? $layer['mobile_x'] : $dx;
+                            $my = isset($layer['mobile_y']) ? $layer['mobile_y'] : $dy;
+                            ?>
+                            <div class="bis-banner-preview__layer is-<?php echo esc_attr($size); ?> is-align-<?php echo esc_attr($align); ?>" data-layer-index="<?php echo esc_attr($index); ?>" style="left: <?php echo esc_attr($dx); ?>%; top: <?php echo esc_attr($dy); ?>%;">
+                                <?php echo esc_html($text); ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="bis-banner-preview bis-banner-preview--mobile" data-banner-preview="mobile" style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
+                        <?php foreach ($banner_layers as $index => $layer) :
+                            $text = isset($layer['text']) ? $layer['text'] : '';
+                            $size = isset($layer['size']) ? $layer['size'] : 'md';
+                            $align = isset($layer['align']) ? $layer['align'] : 'left';
+                            $dx = isset($layer['desktop_x']) ? $layer['desktop_x'] : 50;
+                            $dy = isset($layer['desktop_y']) ? $layer['desktop_y'] : 50;
+                            $mx = isset($layer['mobile_x']) ? $layer['mobile_x'] : $dx;
+                            $my = isset($layer['mobile_y']) ? $layer['mobile_y'] : $dy;
+                            ?>
+                            <div class="bis-banner-preview__layer is-<?php echo esc_attr($size); ?> is-align-<?php echo esc_attr($align); ?>" data-layer-index="<?php echo esc_attr($index); ?>" style="left: <?php echo esc_attr($mx); ?>%; top: <?php echo esc_attr($my); ?>%;">
+                                <?php echo esc_html($text); ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div class="bis-project-banner-list">
+                    <ul id="bis-project-banner-layers" class="bis-banner-layer-list">
+                        <?php foreach ($banner_layers as $index => $layer) :
+                            $text = isset($layer['text']) ? $layer['text'] : '';
+                            $size = isset($layer['size']) ? $layer['size'] : 'md';
+                            $align = isset($layer['align']) ? $layer['align'] : 'left';
+                            $dx = isset($layer['desktop_x']) ? $layer['desktop_x'] : 50;
+                            $dy = isset($layer['desktop_y']) ? $layer['desktop_y'] : 50;
+                            $mx = isset($layer['mobile_x']) ? $layer['mobile_x'] : $dx;
+                            $my = isset($layer['mobile_y']) ? $layer['mobile_y'] : $dy;
+                            ?>
+                            <li class="bis-banner-layer-item" data-index="<?php echo esc_attr($index); ?>">
+                                <div class="bis-banner-layer-item__header">
+                                    <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
+                                    <strong>Текст <?php echo esc_html($index + 1); ?></strong>
+                                    <button type="button" class="button-link-delete bis-banner-layer-remove">Удалить</button>
+                                </div>
+                                <div class="bis-banner-layer-fields">
+                                    <label>Текст</label>
+                                    <textarea rows="2" data-field="text" name="bis_project_banner_layers[<?php echo esc_attr($index); ?>][text]" placeholder="Введите текст"><?php echo esc_textarea($text); ?></textarea>
+                                    <div class="bis-banner-layer-row">
+                                        <div class="bis-banner-layer-field">
+                                            <label>Размер</label>
+                                            <select data-field="size" name="bis_project_banner_layers[<?php echo esc_attr($index); ?>][size]">
+                                                <option value="xl" <?php selected($size, 'xl'); ?>>XL</option>
+                                                <option value="lg" <?php selected($size, 'lg'); ?>>L</option>
+                                                <option value="md" <?php selected($size, 'md'); ?>>M</option>
+                                                <option value="sm" <?php selected($size, 'sm'); ?>>S</option>
+                                            </select>
+                                        </div>
+                                        <div class="bis-banner-layer-field">
+                                            <label>Выравнивание</label>
+                                            <select data-field="align" name="bis_project_banner_layers[<?php echo esc_attr($index); ?>][align]">
+                                                <option value="left" <?php selected($align, 'left'); ?>>Слева</option>
+                                                <option value="center" <?php selected($align, 'center'); ?>>По центру</option>
+                                                <option value="right" <?php selected($align, 'right'); ?>>Справа</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="bis-banner-layer-row">
+                                        <div class="bis-banner-layer-field">
+                                            <label>Desktop X (%)</label>
+                                            <input type="number" step="0.1" min="0" max="100" data-field="desktop_x" name="bis_project_banner_layers[<?php echo esc_attr($index); ?>][desktop_x]" value="<?php echo esc_attr($dx); ?>">
+                                        </div>
+                                        <div class="bis-banner-layer-field">
+                                            <label>Desktop Y (%)</label>
+                                            <input type="number" step="0.1" min="0" max="100" data-field="desktop_y" name="bis_project_banner_layers[<?php echo esc_attr($index); ?>][desktop_y]" value="<?php echo esc_attr($dy); ?>">
+                                        </div>
+                                        <div class="bis-banner-layer-field">
+                                            <label>Mobile X (%)</label>
+                                            <input type="number" step="0.1" min="0" max="100" data-field="mobile_x" name="bis_project_banner_layers[<?php echo esc_attr($index); ?>][mobile_x]" value="<?php echo esc_attr($mx); ?>">
+                                        </div>
+                                        <div class="bis-banner-layer-field">
+                                            <label>Mobile Y (%)</label>
+                                            <input type="number" step="0.1" min="0" max="100" data-field="mobile_y" name="bis_project_banner_layers[<?php echo esc_attr($index); ?>][mobile_y]" value="<?php echo esc_attr($my); ?>">
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <button type="button" class="button" id="bis-add-banner-layer">Добавить текст</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bis-project-section">
+            <div class="bis-project-section__header">
+                <h4>Галерея проекта</h4>
+                <p class="bis-field__hint">Фото для слайдера на странице проекта. Можно менять порядок перетаскиванием.</p>
+            </div>
+            <div class="bis-project-gallery-admin">
+                <ul id="bis-project-gallery-list" class="bis-project-gallery-list">
+                    <?php foreach ($gallery as $image) : ?>
+                        <li class="bis-project-gallery-item">
+                            <div class="bis-project-gallery-thumb" style="background-image: url('<?php echo esc_url($image); ?>');"></div>
+                            <input type="hidden" name="bis_project_gallery[]" value="<?php echo esc_url($image); ?>">
+                            <button type="button" class="button-link-delete bis-project-gallery-remove">Удалить</button>
+                            <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <button type="button" class="button" id="bis-project-gallery-add">Добавить фото</button>
+            </div>
+        </div>
+
+        <script type="text/template" id="bis-project-banner-layer-template">
+            <li class="bis-banner-layer-item" data-index="">
+                <div class="bis-banner-layer-item__header">
+                    <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
+                    <strong>Текст</strong>
+                    <button type="button" class="button-link-delete bis-banner-layer-remove">Удалить</button>
+                </div>
+                <div class="bis-banner-layer-fields">
+                    <label>Текст</label>
+                    <textarea rows="2" data-field="text" placeholder="Введите текст"></textarea>
+                    <div class="bis-banner-layer-row">
+                        <div class="bis-banner-layer-field">
+                            <label>Размер</label>
+                            <select data-field="size">
+                                <option value="xl">XL</option>
+                                <option value="lg">L</option>
+                                <option value="md" selected>M</option>
+                                <option value="sm">S</option>
+                            </select>
+                        </div>
+                        <div class="bis-banner-layer-field">
+                            <label>Выравнивание</label>
+                            <select data-field="align">
+                                <option value="left" selected>Слева</option>
+                                <option value="center">По центру</option>
+                                <option value="right">Справа</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="bis-banner-layer-row">
+                        <div class="bis-banner-layer-field">
+                            <label>Desktop X (%)</label>
+                            <input type="number" step="0.1" min="0" max="100" data-field="desktop_x" value="20">
+                        </div>
+                        <div class="bis-banner-layer-field">
+                            <label>Desktop Y (%)</label>
+                            <input type="number" step="0.1" min="0" max="100" data-field="desktop_y" value="30">
+                        </div>
+                        <div class="bis-banner-layer-field">
+                            <label>Mobile X (%)</label>
+                            <input type="number" step="0.1" min="0" max="100" data-field="mobile_x" value="20">
+                        </div>
+                        <div class="bis-banner-layer-field">
+                            <label>Mobile Y (%)</label>
+                            <input type="number" step="0.1" min="0" max="100" data-field="mobile_y" value="30">
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </script>
+        <script type="text/template" id="bis-project-gallery-item-template">
+            <li class="bis-project-gallery-item">
+                <div class="bis-project-gallery-thumb"></div>
+                <input type="hidden" value="">
+                <button type="button" class="button-link-delete bis-project-gallery-remove">Удалить</button>
+                <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
+            </li>
+        </script>
 
         <div class="bis-project-toggle">
             <label class="bis-switch">
@@ -215,13 +431,72 @@ function bis_save_project_details($post_id) {
     $address = isset($_POST['bis_project_address']) ? sanitize_text_field($_POST['bis_project_address']) : '';
     $area = isset($_POST['bis_project_area']) ? sanitize_text_field($_POST['bis_project_area']) : '';
     $year = isset($_POST['bis_project_year']) ? sanitize_text_field($_POST['bis_project_year']) : '';
-    $image_url = isset($_POST['bis_project_image']) ? esc_url_raw($_POST['bis_project_image']) : '';
+    $image_url = isset($_POST['bis_project_image']) ? esc_url_raw(wp_unslash($_POST['bis_project_image'])) : '';
+    $banner_image = isset($_POST['bis_project_banner_image']) ? esc_url_raw(wp_unslash($_POST['bis_project_banner_image'])) : '';
     $is_key = isset($_POST['bis_project_is_featured']) ? '1' : '0';
+
+    $sanitize_percent = function ($value) {
+        $value = str_replace(',', '.', $value);
+        $number = floatval($value);
+        if ($number < 0) {
+            $number = 0;
+        }
+        if ($number > 100) {
+            $number = 100;
+        }
+        return $number;
+    };
+
+    $banner_layers = array();
+    if (isset($_POST['bis_project_banner_layers']) && is_array($_POST['bis_project_banner_layers'])) {
+        foreach ($_POST['bis_project_banner_layers'] as $layer) {
+            $text = isset($layer['text']) ? sanitize_textarea_field(wp_unslash($layer['text'])) : '';
+            if ($text === '') {
+                continue;
+            }
+            $size = isset($layer['size']) ? sanitize_text_field(wp_unslash($layer['size'])) : 'md';
+            $align = isset($layer['align']) ? sanitize_text_field(wp_unslash($layer['align'])) : 'left';
+            if (!in_array($size, array('xl', 'lg', 'md', 'sm'), true)) {
+                $size = 'md';
+            }
+            if (!in_array($align, array('left', 'center', 'right'), true)) {
+                $align = 'left';
+            }
+
+            $dx = isset($layer['desktop_x']) ? $sanitize_percent($layer['desktop_x']) : 50;
+            $dy = isset($layer['desktop_y']) ? $sanitize_percent($layer['desktop_y']) : 50;
+            $mx = isset($layer['mobile_x']) ? $sanitize_percent($layer['mobile_x']) : $dx;
+            $my = isset($layer['mobile_y']) ? $sanitize_percent($layer['mobile_y']) : $dy;
+
+            $banner_layers[] = array(
+                'text' => $text,
+                'size' => $size,
+                'align' => $align,
+                'desktop_x' => $dx,
+                'desktop_y' => $dy,
+                'mobile_x' => $mx,
+                'mobile_y' => $my,
+            );
+        }
+    }
+
+    $gallery = array();
+    if (isset($_POST['bis_project_gallery']) && is_array($_POST['bis_project_gallery'])) {
+        foreach ($_POST['bis_project_gallery'] as $image) {
+            $url = esc_url_raw(wp_unslash($image));
+            if ($url) {
+                $gallery[] = $url;
+            }
+        }
+    }
 
     update_post_meta($post_id, 'bis_project_address', $address);
     update_post_meta($post_id, 'bis_project_area', $area);
     update_post_meta($post_id, 'bis_project_year', $year);
     update_post_meta($post_id, 'bis_project_image', $image_url);
+    update_post_meta($post_id, 'bis_project_banner_image', $banner_image);
+    update_post_meta($post_id, 'bis_project_banner_layers', $banner_layers);
+    update_post_meta($post_id, 'bis_project_gallery', $gallery);
     update_post_meta($post_id, 'bis_project_is_featured', $is_key);
 }
 add_action('save_post', 'bis_save_project_details');
@@ -565,6 +840,26 @@ function bis_get_project_details($post_id) {
     );
 }
 
+function bis_get_project_banner_image($post_id) {
+    $banner = get_post_meta($post_id, 'bis_project_banner_image', true);
+    if ($banner) {
+        return esc_url($banner);
+    }
+
+    $image = bis_get_project_image_url($post_id);
+    return $image ? $image : '';
+}
+
+function bis_get_project_banner_layers($post_id) {
+    $layers = get_post_meta($post_id, 'bis_project_banner_layers', true);
+    return is_array($layers) ? $layers : array();
+}
+
+function bis_get_project_gallery($post_id) {
+    $gallery = get_post_meta($post_id, 'bis_project_gallery', true);
+    return is_array($gallery) ? $gallery : array();
+}
+
 function bis_get_team_members() {
     $members = get_option('bis_team_members', array());
     if (!is_array($members)) {
@@ -715,7 +1010,8 @@ function bis_admin_scripts($hook) {
         $screen = get_current_screen();
         if ($screen && 'bis_project' === $screen->post_type) {
             wp_enqueue_media();
-            wp_enqueue_script('bis-projects-admin', get_template_directory_uri() . '/assets/js/admin-projects.js', array('jquery'), '1.0', true);
+            wp_enqueue_script('jquery-ui-sortable');
+            wp_enqueue_script('bis-projects-admin', get_template_directory_uri() . '/assets/js/admin-projects.js', array('jquery', 'jquery-ui-sortable'), '1.0', true);
             wp_enqueue_style('bis-projects-admin', get_template_directory_uri() . '/assets/css/admin-projects.css', array(), '1.0');
         }
     }
@@ -1118,6 +1414,7 @@ function bis_submit_estimate() {
             'bis_email' => $email,
             'bis_messenger' => $messenger,
             'bis_comment' => $comment,
+            'bis_request_type' => 'estimate',
             'bis_status' => 'new',
             'bis_date' => current_time('mysql'),
         ),
@@ -1147,6 +1444,58 @@ function bis_submit_estimate() {
 }
 add_action('wp_ajax_bis_submit_estimate', 'bis_submit_estimate');
 add_action('wp_ajax_nopriv_bis_submit_estimate', 'bis_submit_estimate');
+
+// AJAX Handler for Project Consultation Form
+function bis_submit_project_consultation() {
+    $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+    $phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
+    $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+    $company = isset($_POST['company']) ? sanitize_text_field(wp_unslash($_POST['company'])) : '';
+    $position = isset($_POST['position']) ? sanitize_text_field(wp_unslash($_POST['position'])) : '';
+    $topic = isset($_POST['topic']) ? sanitize_text_field(wp_unslash($_POST['topic'])) : '';
+    $details = isset($_POST['details']) ? sanitize_textarea_field(wp_unslash($_POST['details'])) : '';
+    $project_id = isset($_POST['project_id']) ? intval($_POST['project_id']) : 0;
+    $privacy = isset($_POST['privacy']) ? '1' : '0';
+    $marketing = isset($_POST['marketing']) ? '1' : '0';
+
+    if (empty($name) || empty($phone) || empty($email)) {
+        wp_send_json_error(array('message' => 'Required fields missing'));
+    }
+
+    $project_title = $project_id ? get_the_title($project_id) : '';
+    $title_suffix = $project_title ? ' - ' . $project_title : '';
+
+    $post_id = wp_insert_post(array(
+        'post_title' => $name . $title_suffix,
+        'post_type' => 'bis_request',
+        'post_status' => 'publish',
+        'meta_input' => array(
+            'bis_name' => $name,
+            'bis_phone' => $phone,
+            'bis_email' => $email,
+            'bis_company' => $company,
+            'bis_position' => $position,
+            'bis_topic' => $topic,
+            'bis_details' => $details,
+            'bis_project_id' => $project_id,
+            'bis_project_title' => $project_title,
+            'bis_request_type' => 'consultation',
+            'bis_comment' => $details,
+            'bis_privacy' => $privacy,
+            'bis_marketing' => $marketing,
+            'bis_status' => 'new',
+            'bis_date' => current_time('mysql'),
+        ),
+    ));
+
+    if ($post_id) {
+        wp_send_json_success(array('message' => 'Request saved'));
+    }
+
+    wp_send_json_error(array('message' => 'Error saving request'));
+}
+add_action('wp_ajax_bis_submit_project_consultation', 'bis_submit_project_consultation');
+add_action('wp_ajax_nopriv_bis_submit_project_consultation', 'bis_submit_project_consultation');
 
 function bis_get_new_requests_count() {
     $args = array(
@@ -1223,13 +1572,24 @@ function bis_get_requests() {
             $file_url = $file_id ? wp_get_attachment_url($file_id) : '';
             $file_name = $file_id ? basename(get_attached_file($file_id)) : '';
 
+            $comment = get_post_meta(get_the_ID(), 'bis_comment', true);
+            if (!$comment) {
+                $comment = get_post_meta(get_the_ID(), 'bis_details', true);
+            }
+
             $requests[] = array(
                 'id' => get_the_ID(),
                 'name' => get_post_meta(get_the_ID(), 'bis_name', true),
                 'phone' => get_post_meta(get_the_ID(), 'bis_phone', true),
                 'email' => get_post_meta(get_the_ID(), 'bis_email', true),
                 'messenger' => get_post_meta(get_the_ID(), 'bis_messenger', true),
-                'comment' => get_post_meta(get_the_ID(), 'bis_comment', true),
+                'comment' => $comment,
+                'company' => get_post_meta(get_the_ID(), 'bis_company', true),
+                'position' => get_post_meta(get_the_ID(), 'bis_position', true),
+                'topic' => get_post_meta(get_the_ID(), 'bis_topic', true),
+                'details' => get_post_meta(get_the_ID(), 'bis_details', true),
+                'project' => get_post_meta(get_the_ID(), 'bis_project_title', true),
+                'type' => get_post_meta(get_the_ID(), 'bis_request_type', true),
                 'file_url' => $file_url,
                 'file_name' => $file_name,
                 'status' => get_post_meta(get_the_ID(), 'bis_status', true),

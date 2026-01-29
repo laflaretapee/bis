@@ -47,6 +47,25 @@ jQuery(document).ready(function ($) {
             const statusClass = req.status === 'new' ? 'status-new' : 'status-read';
             const statusLabel = req.status === 'new' ? '<span class="bis-badge new">Новая</span>' : '<span class="bis-badge read">Просмотрено</span>';
             const messengerIcon = getMessengerIcon(req.messenger);
+            const messengerValue = req.messenger ? `${messengerIcon} ${req.messenger}` : '-';
+            const extraItems = [];
+
+            const pushDetail = (label, value) => {
+                if (!value) return;
+                extraItems.push(`
+                    <div class="bis-detail-item">
+                        <span class="label">${label}:</span>
+                        <span class="value">${value}</span>
+                    </div>
+                `);
+            };
+
+            const typeLabel = req.type === 'consultation' ? 'Консультация' : (req.type === 'estimate' ? 'Смета' : req.type);
+            pushDetail('Тип', typeLabel);
+            pushDetail('Проект', req.project);
+            pushDetail('Компания', req.company);
+            pushDetail('Должность', req.position);
+            pushDetail('Тема', req.topic);
 
             html += `
                 <tr class="bis-request-row ${statusClass}" data-id="${req.id}">
@@ -66,16 +85,17 @@ jQuery(document).ready(function ($) {
                             <div class="bis-detail-grid">
                                 <div class="bis-detail-item">
                                     <span class="label">Email:</span>
-                                    <span class="value">${req.email ? `<a href="mailto:${req.email}">${req.email}</a>` : '—'}</span>
+                                    <span class="value">${req.email ? `<a href="mailto:${req.email}">${req.email}</a>` : '-'}</span>
                                 </div>
                                 <div class="bis-detail-item">
                                     <span class="label">Мессенджер:</span>
-                                    <span class="value">${messengerIcon} ${req.messenger}</span>
+                                    <span class="value">${messengerValue}</span>
                                 </div>
                                 <div class="bis-detail-item">
                                     <span class="label">Файл:</span>
-                                    <span class="value">${req.file_url ? `<a href="${req.file_url}" download target="_blank"><span class="dashicons dashicons-media-document"></span> ${req.file_name || 'Скачать'}</a>` : '—'}</span>
+                                    <span class="value">${req.file_url ? `<a href="${req.file_url}" download target="_blank"><span class="dashicons dashicons-media-document"></span> ${req.file_name || 'Скачать'}</a>` : '-'}</span>
                                 </div>
+                                ${extraItems.join('')}
                             </div>
                             
                             ${req.comment ? `

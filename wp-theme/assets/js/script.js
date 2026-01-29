@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initServicesSlider();
   initEstimateModal();
   initRevenueChart();
+  initProjectGallery();
+  initProjectConsultationForm();
 });
 
 function applyBisCondensedStyling(root = document.body) {
@@ -1642,6 +1644,7 @@ function initExperienceModal() {
   const modalMeta = modal.querySelector('.experience-modal-meta');
   const modalClose = document.getElementById('experienceModalClose');
   const discussButton = modal.querySelector('.experience-modal-cta');
+  const pageButton = modal.querySelector('.experience-modal-link');
   const casesModal = document.getElementById('casesModal');
 
   const openModal = (card) => {
@@ -1658,6 +1661,7 @@ function initExperienceModal() {
     const area = card.dataset.area || '';
     const year = card.dataset.year || '';
     const featured = card.dataset.featured === '1';
+    const link = card.dataset.link || '';
 
     modalTitle.innerHTML = title;
     modalMeta.innerHTML = '';
@@ -1701,6 +1705,15 @@ function initExperienceModal() {
       modalImage.style.backgroundImage = `url('${image}')`;
     } else {
       modalImage.style.backgroundImage = '';
+    }
+
+    if (pageButton) {
+      if (link) {
+        pageButton.href = link;
+        pageButton.style.display = '';
+      } else {
+        pageButton.style.display = 'none';
+      }
     }
 
     modal.classList.add('active');
@@ -2018,4 +2031,230 @@ function initEstimateModal() {
       document.body.style.overflow = '';
     }, ANIMATION_DURATION);
   }
+}
+
+function initProjectGallery() {
+  const gallery = document.querySelector('[data-project-gallery]');
+  if (!gallery) return;
+
+  const track = gallery.querySelector('[data-gallery-track]');
+  const slides = Array.from(gallery.querySelectorAll('[data-gallery-slide]'));
+  const prevBtn = gallery.querySelector('[data-gallery-prev]');
+  const nextBtn = gallery.querySelector('[data-gallery-next]');
+  const dotsContainer = gallery.querySelector('[data-gallery-dots]');
+
+  if (!track || slides.length === 0) return;
+
+  let activeIndex = 0;
+  let slideStep = 0;
+
+  const computeSlideStep = () => {
+    const first = slides[0];
+    if (!first) return 0;
+    const rect = first.getBoundingClientRect();
+    const styles = window.getComputedStyle(track);
+    const gap = parseFloat(styles.columnGap) || parseFloat(styles.gap) || 0;
+    return rect.width + gap;
+  };
+
+  const updateNav = () => {
+    if (prevBtn) {
+      prevBtn.disabled = activeIndex <= 0;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = activeIndex >= slides.length - 1;
+    }
+  };
+
+  const updateDots = () => {
+    if (!dotsContainer) return;
+    const dots = dotsContainer.querySelectorAll('.slider-dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === activeIndex);
+    });
+  };
+
+  const scrollToIndex = (index) => {
+    if (!slideStep || Number.isNaN(slideStep)) {
+      slideStep = computeSlideStep();
+    }
+    if (!slideStep || Number.isNaN(slideStep)) {
+      return;
+    }
+    activeIndex = Math.max(0, Math.min(index, slides.length - 1));
+    track.scrollTo({
+      left: activeIndex * slideStep,
+      behavior: 'smooth'
+    });
+    updateNav();
+    updateDots();
+  };
+
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+    slides.forEach((_, index) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'slider-dot';
+      dot.addEventListener('click', () => scrollToIndex(index));
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => scrollToIndex(activeIndex - 1));
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => scrollToIndex(activeIndex + 1));
+  }
+
+  track.addEventListener('scroll', () => {
+    if (!slideStep || Number.isNaN(slideStep)) {
+      slideStep = computeSlideStep();
+    }
+    if (!slideStep || Number.isNaN(slideStep)) {
+      return;
+    }
+    const index = Math.round(track.scrollLeft / slideStep);
+    if (index !== activeIndex) {
+      activeIndex = Math.max(0, Math.min(index, slides.length - 1));
+      updateNav();
+      updateDots();
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    slideStep = computeSlideStep();
+    scrollToIndex(activeIndex);
+  });
+
+  slideStep = computeSlideStep();
+  updateNav();
+  updateDots();
+
+  const lightbox = document.getElementById('projectLightbox');
+  if (!lightbox) return;
+
+  const lightboxImage = lightbox.querySelector('[data-lightbox-image]');
+  const lightboxCaption = lightbox.querySelector('[data-lightbox-caption]');
+  const lightboxPrev = lightbox.querySelector('[data-lightbox-prev]');
+  const lightboxNext = lightbox.querySelector('[data-lightbox-next]');
+  const closeButtons = lightbox.querySelectorAll('[data-lightbox-close]');
+
+  let lightboxIndex = 0;
+
+  const updateLightbox = () => {
+    const slide = slides[lightboxIndex];
+    const src = slide ? slide.dataset.full || slide.querySelector('img')?.src : '';
+    if (lightboxImage) {
+      lightboxImage.src = src || '';
+      lightboxImage.alt = slide ? slide.getAttribute('aria-label') || '' : '';
+    }
+    if (lightboxCaption) {
+      lightboxCaption.textContent = `${lightboxIndex + 1} / ${slides.length}`;
+    }
+    if (lightboxPrev) {
+      lightboxPrev.disabled = lightboxIndex <= 0;
+    }
+    if (lightboxNext) {
+      lightboxNext.disabled = lightboxIndex >= slides.length - 1;
+    }
+  };
+
+  const openLightbox = (index) => {
+    lightboxIndex = Math.max(0, Math.min(index, slides.length - 1));
+    updateLightbox();
+    lightbox.classList.add('active');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeLightbox = () => {
+    lightbox.classList.remove('active');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (lightboxImage) {
+      lightboxImage.src = '';
+    }
+  };
+
+  slides.forEach((slide, index) => {
+    slide.addEventListener('click', () => openLightbox(index));
+  });
+
+  if (lightboxPrev) {
+    lightboxPrev.addEventListener('click', () => {
+      if (lightboxIndex > 0) {
+        lightboxIndex -= 1;
+        updateLightbox();
+      }
+    });
+  }
+
+  if (lightboxNext) {
+    lightboxNext.addEventListener('click', () => {
+      if (lightboxIndex < slides.length - 1) {
+        lightboxIndex += 1;
+        updateLightbox();
+      }
+    });
+  }
+
+  closeButtons.forEach(button => {
+    button.addEventListener('click', closeLightbox);
+  });
+
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && lightbox.classList.contains('active')) {
+      closeLightbox();
+    }
+  });
+}
+
+function initProjectConsultationForm() {
+  const form = document.getElementById('projectConsultationForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.textContent : '';
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправка...';
+    }
+
+    const formData = new FormData(form);
+    formData.append('action', 'bis_submit_project_consultation');
+
+    fetch('/wp-admin/admin-ajax.php', {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showNotification('Спасибо! Мы свяжемся с вами в ближайшее время.', 'success');
+          form.reset();
+        } else {
+          showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+        }
+      })
+      .catch(() => {
+        showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+      })
+      .finally(() => {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+  });
 }
