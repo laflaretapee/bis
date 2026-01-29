@@ -3763,7 +3763,7 @@ select {
 /* Experience Section */
 .experience {
   padding: 120px 32px;
-  background: var(--bg-alt);
+  background: var(--bg);
 }
 
 .experience-grid {
@@ -6849,7 +6849,7 @@ body.post-type-archive-bis_news {
 
 /* Team Slider Section */
 .structure-section.team-section {
-  padding: 64px 32px;
+  padding: 0px 32px;
   background: #f5f7fb;
   position: relative;
 }
@@ -6968,9 +6968,9 @@ body.post-type-archive-bis_news {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid rgba(15, 23, 42, 0.2);
+  border: 1px solid var(--primary);
   background: transparent;
-  color: var(--dark);
+  color: var(--primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6979,7 +6979,7 @@ body.post-type-archive-bis_news {
 }
 
 .team-nav:hover {
-  background: var(--dark);
+  background: var(--primary);
   color: #fff;
 }
 
@@ -7127,7 +7127,7 @@ body.post-type-archive-bis_news {
 
 @media (max-width: 768px) {
   .structure-section.team-section {
-    padding: 48px 20px;
+    padding: 0px 20px;
   }
 
   /* .team-track-wrap {
