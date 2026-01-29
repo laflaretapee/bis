@@ -431,6 +431,7 @@ function bis_project_details_metabox($post) {
     $banner_image = get_post_meta($post->ID, 'bis_project_banner_image', true);
     $banner_title = get_post_meta($post->ID, 'bis_project_banner_title', true);
     $banner_blocks = get_post_meta($post->ID, 'bis_project_banner_blocks', true);
+    $project_description = get_post_meta($post->ID, 'bis_project_description', true);
     $gallery = get_post_meta($post->ID, 'bis_project_gallery', true);
 
     if (!is_array($banner_blocks)) {
@@ -521,6 +522,11 @@ function bis_project_details_metabox($post) {
                     <input type="text" id="bis_project_banner_title" name="bis_project_banner_title" value="<?php echo esc_attr($banner_title); ?>" placeholder="<?php echo esc_attr(get_the_title($post->ID)); ?>">
                     <p class="bis-field__hint">Если оставить пустым, будет использовано название записи.</p>
                 </div>
+                <div class="bis-field">
+                    <label for="bis_project_description">Описание проекта</label>
+                    <textarea id="bis_project_description" name="bis_project_description" rows="4" placeholder="Краткое описание проекта для карточек и страницы"><?php echo esc_textarea($project_description); ?></textarea>
+                    <p class="bis-field__hint">Краткий текст для карточек и страницы проекта. Если оставить пустым, блоки описания не отображаются.</p>
+                </div>
             </div>
 
             <div class="bis-project-banner-blocks">
@@ -607,6 +613,7 @@ function bis_save_project_details($post_id) {
 
     $banner_image = isset($_POST['bis_project_banner_image']) ? esc_url_raw(wp_unslash($_POST['bis_project_banner_image'])) : '';
     $banner_title = isset($_POST['bis_project_banner_title']) ? sanitize_text_field(wp_unslash($_POST['bis_project_banner_title'])) : '';
+    $project_description = isset($_POST['bis_project_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_project_description'])) : '';
     $is_key = isset($_POST['bis_project_is_featured']) ? '1' : '0';
 
     $positions = array('top_left', 'bottom_left', 'top_right', 'bottom_right');
@@ -651,6 +658,7 @@ function bis_save_project_details($post_id) {
     update_post_meta($post_id, 'bis_project_banner_blocks', $banner_blocks);
     update_post_meta($post_id, 'bis_project_gallery', $gallery);
     update_post_meta($post_id, 'bis_project_is_featured', $is_key);
+    update_post_meta($post_id, 'bis_project_description', $project_description);
 }
 add_action('save_post', 'bis_save_project_details');
 
@@ -1021,6 +1029,11 @@ function bis_get_project_banner_title($post_id) {
 function bis_get_project_banner_blocks($post_id) {
     $blocks = get_post_meta($post_id, 'bis_project_banner_blocks', true);
     return is_array($blocks) ? $blocks : array();
+}
+
+function bis_get_project_description($post_id) {
+    $description = get_post_meta($post_id, 'bis_project_description', true);
+    return is_string($description) ? trim($description) : '';
 }
 
 function bis_get_project_gallery($post_id) {

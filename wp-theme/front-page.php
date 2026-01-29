@@ -501,30 +501,21 @@ endif;
       <?php
       $project_id = get_the_ID();
       $image_url = bis_get_project_image_url($project_id);
-      $details = bis_get_project_details($project_id);
+      $description = bis_get_project_description($project_id);
+      $description_excerpt = $description ? wp_trim_words($description, 22, '…') : '';
       ?>
       <div class="experience-card"
            data-image="<?php echo esc_url($image_url); ?>"
-           data-address="<?php echo esc_attr($details['address']); ?>"
-           data-area="<?php echo esc_attr($details['area']); ?>"
-           data-year="<?php echo esc_attr($details['year']); ?>"
            data-link="<?php echo esc_url(get_permalink($project_id)); ?>"
            data-featured="1">
         <div class="experience-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
         <div class="experience-content">
+          <span class="experience-badge">Ключевой проект</span>
           <h3><?php the_title(); ?></h3>
-          <div class="experience-meta">
-            <?php if (!empty($details['address'])) : ?>
-              <span class="experience-meta__item">Адрес: <?php echo esc_html($details['address']); ?></span>
-            <?php endif; ?>
-            <?php if (!empty($details['area'])) : ?>
-              <span class="experience-meta__item">Площадь: <?php echo esc_html($details['area']); ?> м²</span>
-            <?php endif; ?>
-            <?php if (!empty($details['year'])) : ?>
-              <span class="experience-meta__item">Год: <?php echo esc_html($details['year']); ?></span>
-            <?php endif; ?>
-          </div>
-          <button type="button" class="experience-more">Подробнее<span aria-hidden="true">→</span></button>
+          <?php if ($description_excerpt) : ?>
+            <p class="experience-description"><?php echo esc_html($description_excerpt); ?></p>
+          <?php endif; ?>
+          <a class="experience-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
         </div>
       </div>
     <?php endwhile; ?>
@@ -535,7 +526,7 @@ endif;
   <?php endif; ?>
   
   <div class="experience-cta">
-    <button class="btn btn-primary show-all-cases">Смотреть все проекты</button>
+    <a class="btn btn-outline" href="<?php echo esc_url(home_url('/projects/')); ?>">Смотреть все проекты</a>
   </div>
 </section>
 
@@ -550,8 +541,10 @@ endif;
     <div class="experience-modal-content">
       <h2 class="experience-modal-title"></h2>
       <div class="experience-modal-meta"></div>
-      <a href="#contact" class="btn btn-primary experience-modal-cta">Обсудить проект</a>
-      <a href="#" class="btn btn-outline experience-modal-link">Страница проекта</a>
+      <div class="experience-modal-actions">
+        <a href="#contact" class="btn btn-primary experience-modal-cta">Обсудить проект</a>
+        <a href="#" class="btn btn-outline experience-modal-link">Страница проекта</a>
+      </div>
     </div>
   </div>
 </div>
@@ -584,33 +577,25 @@ endif;
           <?php
           $project_id = get_the_ID();
           $image_url = bis_get_project_image_url($project_id);
-          $details = bis_get_project_details($project_id);
+          $description = bis_get_project_description($project_id);
+          $description_excerpt = $description ? wp_trim_words($description, 18, '…') : '';
           $is_featured = get_post_meta($project_id, 'bis_project_is_featured', true) === '1';
           ?>
           <div class="all-case-card"
                data-image="<?php echo esc_url($image_url); ?>"
-               data-address="<?php echo esc_attr($details['address']); ?>"
-               data-area="<?php echo esc_attr($details['area']); ?>"
-               data-year="<?php echo esc_attr($details['year']); ?>"
                data-link="<?php echo esc_url(get_the_permalink($project_id)); ?>"
                data-featured="<?php echo $is_featured ? '1' : '0'; ?>">
             <div class="all-case-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
-            <h4><?php the_title(); ?></h4>
-            <div class="experience-meta experience-meta--compact">
-              <?php if (!empty($details['address'])) : ?>
-                <span class="experience-meta__item">Адрес: <?php echo esc_html($details['address']); ?></span>
-              <?php endif; ?>
-              <?php if (!empty($details['area'])) : ?>
-                <span class="experience-meta__item">Площадь: <?php echo esc_html($details['area']); ?> м²</span>
-              <?php endif; ?>
-              <?php if (!empty($details['year'])) : ?>
-                <span class="experience-meta__item">Год: <?php echo esc_html($details['year']); ?></span>
-              <?php endif; ?>
+            <div class="experience-content">
               <?php if ($is_featured) : ?>
-                <span class="experience-meta__item experience-meta__item--featured">Ключевой проект</span>
+                <span class="experience-badge">Ключевой проект</span>
               <?php endif; ?>
+              <h4><?php the_title(); ?></h4>
+              <?php if ($description_excerpt) : ?>
+                <p class="experience-description"><?php echo esc_html($description_excerpt); ?></p>
+              <?php endif; ?>
+              <a class="case-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
             </div>
-            <button type="button" class="case-more">Подробнее<span aria-hidden="true">→</span></button>
           </div>
         <?php endwhile; ?>
         <?php wp_reset_postdata(); ?>

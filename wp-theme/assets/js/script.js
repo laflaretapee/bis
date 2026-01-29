@@ -1634,7 +1634,7 @@ function initTeamModal() {
 }
 
 function initExperienceModal() {
-  const cardSelector = '.experience-card, .all-case-card';
+  const cardSelector = '.experience-card[data-modal="1"], .all-case-card[data-modal="1"]';
   const cards = document.querySelectorAll(cardSelector);
   const modal = document.getElementById('experienceModal');
   if (!cards.length || !modal) return;

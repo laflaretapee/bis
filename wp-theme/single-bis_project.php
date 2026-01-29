@@ -11,6 +11,7 @@ get_header();
             $banner_image = bis_get_project_banner_image($project_id);
             $banner_title = bis_get_project_banner_title($project_id);
             $banner_blocks = bis_get_project_banner_blocks($project_id);
+            $project_description = bis_get_project_description($project_id);
             $gallery = bis_get_project_gallery($project_id);
 
             $positions = array('top_left', 'top_right', 'bottom_left', 'bottom_right');
@@ -45,7 +46,7 @@ get_header();
             }
 
             $all_projects = get_posts(array(
-                'post_type' => 'bis_project',
+                'post_type' => 'bis_projects',
                 'posts_per_page' => -1,
                 'orderby' => array('menu_order' => 'ASC', 'title' => 'ASC'),
                 'fields' => 'ids',
@@ -99,11 +100,18 @@ get_header();
             <nav class="project-breadcrumbs">
                         <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
                         <span class="breadcrumbs-delimiter">/</span>
-                        <a href="<?php echo esc_url(home_url('/#experience')); ?>">Проекты</a>
+                        <a href="<?php echo esc_url(home_url('/projects/')); ?>">Проекты</a>
                         <span class="breadcrumbs-delimiter">/</span>
                         <span><?php the_title(); ?></span>
                     </nav>
             </section>
+            <?php if (!empty($project_description)) : ?>
+                <section class="project-description">
+                    <div class="project-description__body">
+                        <?php echo wpautop(esc_html($project_description)); ?>
+                    </div>
+                </section>
+            <?php endif; ?>
             <?php if (!empty($gallery)) : ?>
                 <section class="project-gallery" data-project-gallery>
                     <div class="project-gallery__header">
