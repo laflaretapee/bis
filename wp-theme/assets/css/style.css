@@ -1851,6 +1851,10 @@ select {
     width: 100%;
   }
 
+  .team-controls-wrap .team-controls {
+    display: none;
+  }
+
   .btn {
     width: 100%;
     justify-content: center !important;
@@ -6845,7 +6849,7 @@ body.post-type-archive-bis_news {
 
 /* Team Slider Section */
 .structure-section.team-section {
-  padding: 120px 32px;
+  padding: 64px 32px;
   background: #f5f7fb;
   position: relative;
 }
@@ -6876,6 +6880,7 @@ body.post-type-archive-bis_news {
 }
 
 .team-slide {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   min-height: 520px;
@@ -6883,7 +6888,8 @@ body.post-type-archive-bis_news {
 }
 
 .team-slide__content {
-  padding: 56px 56px 60px;
+  position: relative;
+  padding: 56px 56px 96px;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -6910,7 +6916,7 @@ body.post-type-archive-bis_news {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .team-name {
@@ -6925,8 +6931,18 @@ body.post-type-archive-bis_news {
 }
 
 .team-more {
-  align-self: flex-start;
-  margin-top: 8px;
+  position: relative;
+  /* left: 56px;
+  bottom: 32px; */
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  box-shadow: none;
+}
+
+.team-more:hover {
+  background: var(--primary);
+  color: #fff;
 }
 
 .team-slide__photo {
@@ -6938,11 +6954,13 @@ body.post-type-archive-bis_news {
 }
 
 .team-controls {
-  position: absolute;
+  /* position: absolute;
   left: 56px;
+  right: calc(50% + 56px); */
   bottom: 32px;
   display: flex;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 10px;
   z-index: 2;
 }
 
@@ -7049,6 +7067,7 @@ body.post-type-archive-bis_news {
 .team-modal__image {
   width: 100%;
   background: #f1f5f9;
+  overflow: hidden;
 }
 
 .team-modal__image img {
@@ -7108,7 +7127,7 @@ body.post-type-archive-bis_news {
 
 @media (max-width: 768px) {
   .structure-section.team-section {
-    padding: 80px 20px;
+    padding: 48px 20px;
   }
 
   /* .team-track-wrap {
@@ -7137,11 +7156,21 @@ body.post-type-archive-bis_news {
 
 @media (max-width: 480px) {
   .team-slide__content {
-    padding: 24px 18px 28px;
+    padding: 24px 18px 72px;
   }
+
+  /* .team-more {
+    left: 18px;
+    bottom: 20px;
+  } */
 
   .team-nav {
     width: 38px;
     height: 38px;
   }
+}
+
+.team-modal__close svg {
+  width: 22px;
+  height: 22px;
 }

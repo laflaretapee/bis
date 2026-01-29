@@ -1409,7 +1409,7 @@ function initTeamSlider() {
   const wrap = slider.querySelector('.team-track-wrap');
   const prevBtn = slider.querySelector('.team-prev');
   const nextBtn = slider.querySelector('.team-next');
-
+  
   if (!track || !wrap) return;
 
   if (slider.dataset.teamSliderInitialized === 'true') {
