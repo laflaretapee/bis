@@ -9,56 +9,39 @@ get_header();
             $project_id = get_the_ID();
             $details = bis_get_project_details($project_id);
             $banner_image = bis_get_project_banner_image($project_id);
-            $layers = bis_get_project_banner_layers($project_id);
+            $banner_title = bis_get_project_banner_title($project_id);
+            $banner_blocks = bis_get_project_banner_blocks($project_id);
             $gallery = bis_get_project_gallery($project_id);
 
-            if (empty($layers)) {
-                $layers = array();
-                $layers[] = array(
-                    'text' => get_the_title(),
-                    'size' => 'xl',
-                    'align' => 'left',
-                    'desktop_x' => 22,
-                    'desktop_y' => 30,
-                    'mobile_x' => 28,
-                    'mobile_y' => 18,
+            $positions = array('top_left', 'top_right', 'bottom_left', 'bottom_right');
+            $resolved_blocks = array();
+            $has_blocks = false;
+
+            foreach ($positions as $position) {
+                $block = isset($banner_blocks[$position]) && is_array($banner_blocks[$position]) ? $banner_blocks[$position] : array();
+                $label = isset($block['label']) ? trim($block['label']) : '';
+                $value = isset($block['value']) ? trim($block['value']) : '';
+                if ($label !== '' || $value !== '') {
+                    $has_blocks = true;
+                }
+                $resolved_blocks[$position] = array(
+                    'label' => $label,
+                    'value' => $value,
                 );
+            }
 
-                if (!empty($details['year'])) {
-                    $layers[] = array(
-                        'text' => $details['year'] . "\nГод реализации",
-                        'size' => 'sm',
-                        'align' => 'left',
-                        'desktop_x' => 22,
-                        'desktop_y' => 58,
-                        'mobile_x' => 26,
-                        'mobile_y' => 55,
-                    );
+            if (!$has_blocks) {
+                $area_value = $details['area'];
+                if ($area_value && !preg_match('/\b(м2|м²|m2|m²)\b/iu', $area_value)) {
+                    $area_value .= ' м²';
                 }
 
-                if (!empty($details['address'])) {
-                    $layers[] = array(
-                        'text' => $details['address'] . "\nАдрес",
-                        'size' => 'md',
-                        'align' => 'left',
-                        'desktop_x' => 22,
-                        'desktop_y' => 72,
-                        'mobile_x' => 26,
-                        'mobile_y' => 68,
-                    );
-                }
-
-                if (!empty($details['area'])) {
-                    $layers[] = array(
-                        'text' => $details['area'] . " м²\nПлощадь",
-                        'size' => 'lg',
-                        'align' => 'center',
-                        'desktop_x' => 72,
-                        'desktop_y' => 52,
-                        'mobile_x' => 70,
-                        'mobile_y' => 40,
-                    );
-                }
+                $resolved_blocks = array(
+                    'top_left' => array('label' => 'Год реализации', 'value' => $details['year']),
+                    'bottom_left' => array('label' => 'Адрес', 'value' => $details['address']),
+                    'top_right' => array('label' => 'Площадь', 'value' => $area_value),
+                    'bottom_right' => array('label' => '', 'value' => ''),
+                );
             }
 
             $all_projects = get_posts(array(
@@ -79,34 +62,39 @@ get_header();
             <section class="project-hero">
                 <div class="project-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
                 <div class="project-hero__overlay">
-                    
-                    <div class="project-hero__layers">
-                        <?php foreach ($layers as $layer) :
-                            $text = isset($layer['text']) ? $layer['text'] : '';
-                            if ($text === '') {
-                                continue;
-                            }
-                            $size = isset($layer['size']) ? $layer['size'] : 'md';
-                            $align = isset($layer['align']) ? $layer['align'] : 'left';
-                            $dx = isset($layer['desktop_x']) ? $layer['desktop_x'] : 50;
-                            $dy = isset($layer['desktop_y']) ? $layer['desktop_y'] : 50;
-                            $mx = isset($layer['mobile_x']) ? $layer['mobile_x'] : $dx;
-                            $my = isset($layer['mobile_y']) ? $layer['mobile_y'] : $dy;
-                            $style = sprintf('--x:%s%%; --y:%s%%; --mx:%s%%; --my:%s%%;', $dx, $dy, $mx, $my);
-                            ?>
-                            <div class="project-hero__layer is-<?php echo esc_attr($size); ?> is-align-<?php echo esc_attr($align); ?>" style="<?php echo esc_attr($style); ?>">
-                                <?php echo esc_html($text); ?>
-                            </div>
-                        <?php endforeach; ?>
+                    <div class="project-hero__inner">
+                        <h1 class="project-hero__title"><?php echo esc_html($banner_title); ?></h1>
+                        <div class="project-hero__info">
+                            <?php
+                            $labels = array(
+                                'top_left' => 'top-left',
+                                'top_right' => 'top-right',
+                                'bottom_left' => 'bottom-left',
+                                'bottom_right' => 'bottom-right',
+                            );
+                            foreach ($labels as $key => $class_suffix) :
+                                $block = isset($resolved_blocks[$key]) ? $resolved_blocks[$key] : array('label' => '', 'value' => '');
+                                $label = isset($block['label']) ? trim($block['label']) : '';
+                                $value = isset($block['value']) ? trim($block['value']) : '';
+                                if ($label === '' && $value === '') {
+                                    continue;
+                                }
+                                ?>
+                                <div class="project-hero__block project-hero__block--<?php echo esc_attr($class_suffix); ?>">
+                                    <?php if ($label !== '') : ?>
+                                        <span class="project-hero__label"><?php echo esc_html($label); ?></span>
+                                    <?php endif; ?>
+                                    <?php if ($value !== '') : ?>
+                                        <span class="project-hero__value"><?php echo nl2br(esc_html($value)); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
+                    <div class="project-hero__accent" aria-hidden="true"></div>
                 </div>
             </section>
 
-            <?php if (trim(get_the_content())) : ?>
-                <?php the_content(); ?>
-            <?php endif; ?>
-            
-            
             <section class="breadcrumbs-section">
             <nav class="project-breadcrumbs">
                         <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
