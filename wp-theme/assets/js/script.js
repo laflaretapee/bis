@@ -911,6 +911,20 @@ function initServicesSlider() {
   if (prevBtn) prevBtn.addEventListener('click', goPrev);
   if (nextBtn) nextBtn.addEventListener('click', goNext);
 
+  slider.addEventListener('click', (event) => {
+    const prev = event.target.closest('.team-prev');
+    const next = event.target.closest('.team-next');
+    if (prev) {
+      event.preventDefault();
+      goPrev();
+      return;
+    }
+    if (next) {
+      event.preventDefault();
+      goNext();
+    }
+  });
+
   let startX = 0;
   let startY = 0;
 
@@ -1469,6 +1483,20 @@ function initTeamSlider() {
 
   if (prevBtn) prevBtn.addEventListener('click', goPrev);
   if (nextBtn) nextBtn.addEventListener('click', goNext);
+
+  slider.addEventListener('click', (event) => {
+    const prev = event.target.closest('.team-prev');
+    const next = event.target.closest('.team-next');
+    if (prev) {
+      event.preventDefault();
+      goPrev();
+      return;
+    }
+    if (next) {
+      event.preventDefault();
+      goNext();
+    }
+  });
 
   track.addEventListener('transitionend', () => {
     if (!isAnimating || slides.length <= 1) return;

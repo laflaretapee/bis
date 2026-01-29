@@ -6910,6 +6910,7 @@ body.post-type-archive-bis_news {
 
 .team-story p {
   margin: 0;
+  font-size: var(--font-size-h5);
   overflow: hidden;
 }
 

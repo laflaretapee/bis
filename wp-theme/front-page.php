@@ -652,7 +652,11 @@ endif;
 </div>
 
 <?php $team_members = bis_get_team_members(); ?>
-<section class="structure-section team-section" id="structure">
+<section class="structure-section team-section" id="structure" 
+  <?php if (empty($team_members)) : ?>
+    style="padding: 60px 0;"
+  <?php endif; ?>
+style>
   <?php if (!empty($team_members)) : ?>
     <div class="team-slider" data-team-slider>
       <div class="team-track-wrap">
