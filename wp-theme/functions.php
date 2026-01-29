@@ -565,6 +565,23 @@ function bis_get_project_details($post_id) {
     );
 }
 
+function bis_get_team_members() {
+    $members = get_option('bis_team_members', array());
+    if (!is_array($members)) {
+        return array();
+    }
+
+    $filtered = array();
+    foreach ($members as $member) {
+        if (!is_array($member)) {
+            continue;
+        }
+        $filtered[] = $member;
+    }
+
+    return $filtered;
+}
+
 /**
  * Registers gratitude letters custom post type for thank-you scans.
  */
@@ -657,12 +674,33 @@ function bis_hero_slider_menu() {
 }
 add_action('admin_menu', 'bis_hero_slider_menu');
 
+function bis_team_menu() {
+    add_menu_page(
+        'Команда',
+        'Команда',
+        'manage_options',
+        'bis-team',
+        'bis_team_page',
+        'dashicons-groups',
+        22
+    );
+}
+add_action('admin_menu', 'bis_team_menu');
+
 function bis_admin_scripts($hook) {
     if ('toplevel_page_bis-hero-slider' === $hook) {
         wp_enqueue_media();
         wp_enqueue_script('jquery-ui-sortable');
         wp_enqueue_script('bis-admin-script', get_template_directory_uri() . '/assets/js/admin-script.js', array('jquery', 'jquery-ui-sortable'), '1.0', true);
         wp_enqueue_style('bis-admin-style', get_template_directory_uri() . '/assets/css/admin-style.css', array(), '1.0');
+        return;
+    }
+
+    if ('toplevel_page_bis-team' === $hook) {
+        wp_enqueue_media();
+        wp_enqueue_script('jquery-ui-sortable');
+        wp_enqueue_script('bis-team-admin', get_template_directory_uri() . '/assets/js/admin-team.js', array('jquery', 'jquery-ui-sortable'), '1.0', true);
+        wp_enqueue_style('bis-team-admin', get_template_directory_uri() . '/assets/css/admin-team.css', array(), '1.0');
         return;
     }
 
@@ -718,6 +756,194 @@ function bis_hero_slider_page() {
                 <input type="submit" name="bis_hero_slider_save" class="button button-primary" value="Сохранить изменения">
             </p>
         </form>
+    </div>
+    <?php
+}
+
+function bis_team_page() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    if (isset($_POST['bis_team_save']) && check_admin_referer('bis_team_nonce')) {
+        $members = array();
+        $raw_members = isset($_POST['team_members']) && is_array($_POST['team_members']) ? $_POST['team_members'] : array();
+
+        foreach ($raw_members as $member) {
+            $name = isset($member['name']) ? sanitize_text_field($member['name']) : '';
+            $role = isset($member['role']) ? sanitize_text_field($member['role']) : '';
+            $short = isset($member['short']) ? wp_kses_post($member['short']) : '';
+            $long = isset($member['long']) ? wp_kses_post($member['long']) : '';
+            $photo = isset($member['photo']) ? esc_url_raw($member['photo']) : '';
+            $modal_photo = isset($member['modal_photo']) ? esc_url_raw($member['modal_photo']) : '';
+
+            if ($name === '' && $role === '' && $short === '' && $long === '' && $photo === '' && $modal_photo === '') {
+                continue;
+            }
+
+            $members[] = array(
+                'name' => $name,
+                'role' => $role,
+                'short' => $short,
+                'long' => $long,
+                'photo' => $photo,
+                'modal_photo' => $modal_photo,
+            );
+        }
+
+        update_option('bis_team_members', $members);
+        echo '<div class="updated"><p>Команда сохранена.</p></div>';
+    }
+
+    $members = get_option('bis_team_members', array());
+    if (!is_array($members)) {
+        $members = array();
+    }
+    ?>
+    <div class="wrap bis-team-admin">
+        <h1>Команда</h1>
+        <p class="description">Добавляйте сотрудников для слайдера блока "Команда". Изменения сразу отражаются на главной странице.</p>
+
+        <form method="post">
+            <?php wp_nonce_field('bis_team_nonce'); ?>
+
+            <ul id="team-members-list" class="team-members-list">
+                <?php foreach ($members as $index => $member) :
+                    $name = isset($member['name']) ? $member['name'] : '';
+                    $role = isset($member['role']) ? $member['role'] : '';
+                    $short = isset($member['short']) ? $member['short'] : '';
+                    $long = isset($member['long']) ? $member['long'] : '';
+                    $photo = isset($member['photo']) ? $member['photo'] : '';
+                    $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
+                    ?>
+                    <li class="team-member-item" data-index="<?php echo esc_attr($index); ?>">
+                        <div class="team-member-card">
+                            <div class="team-member-media">
+                                <div class="team-member-preview <?php echo $photo ? '' : 'is-empty'; ?>" data-preview="photo" style="background-image: url('<?php echo esc_url($photo); ?>');">
+                                    <?php if (!$photo) : ?>
+                                        <span class="team-member-placeholder">Нет фото</span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="team-member-controls">
+                                    <label>Фото для слайда</label>
+                                    <input type="text" value="<?php echo esc_url($photo); ?>" data-field="photo" name="team_members[<?php echo esc_attr($index); ?>][photo]" placeholder="https://">
+                                    <div class="team-member-buttons">
+                                        <button type="button" class="button team-photo-upload" data-photo-type="photo">Выбрать</button>
+                                        <button type="button" class="button team-photo-clear" data-photo-type="photo">Убрать</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="team-member-media">
+                                <div class="team-member-preview <?php echo $modal_photo ? '' : 'is-empty'; ?>" data-preview="modal_photo" style="background-image: url('<?php echo esc_url($modal_photo); ?>');">
+                                    <?php if (!$modal_photo) : ?>
+                                        <span class="team-member-placeholder">Нет фото</span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="team-member-controls">
+                                    <label>Фото для модального окна</label>
+                                    <input type="text" value="<?php echo esc_url($modal_photo); ?>" data-field="modal_photo" name="team_members[<?php echo esc_attr($index); ?>][modal_photo]" placeholder="https://">
+                                    <div class="team-member-buttons">
+                                        <button type="button" class="button team-photo-upload" data-photo-type="modal_photo">Выбрать</button>
+                                        <button type="button" class="button team-photo-clear" data-photo-type="modal_photo">Убрать</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="team-member-fields">
+                                <div class="team-field">
+                                    <label>ФИО</label>
+                                    <input type="text" value="<?php echo esc_attr($name); ?>" data-field="name" name="team_members[<?php echo esc_attr($index); ?>][name]" placeholder="Иванов Иван Иванович">
+                                </div>
+                                <div class="team-field">
+                                    <label>Должность</label>
+                                    <input type="text" value="<?php echo esc_attr($role); ?>" data-field="role" name="team_members[<?php echo esc_attr($index); ?>][role]" placeholder="Директор">
+                                </div>
+                                <div class="team-field">
+                                    <label>Короткое описание для слайда</label>
+                                    <textarea rows="4" data-field="short" name="team_members[<?php echo esc_attr($index); ?>][short]" placeholder="Короткая история/резюме"><?php echo esc_textarea($short); ?></textarea>
+                                </div>
+                                <div class="team-field">
+                                    <label>Подробное описание для модального окна</label>
+                                    <textarea rows="6" data-field="long" name="team_members[<?php echo esc_attr($index); ?>][long]" placeholder="Подробный текст"><?php echo esc_textarea($long); ?></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="team-member-actions">
+                            <button type="button" class="button link-delete team-member-remove">Удалить сотрудника</button>
+                            <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <p>
+                <button type="button" class="button" id="add-team-member">Добавить сотрудника</button>
+            </p>
+
+            <p class="submit">
+                <input type="submit" name="bis_team_save" class="button button-primary" value="Сохранить изменения">
+            </p>
+        </form>
+
+        <script type="text/template" id="team-member-template">
+            <li class="team-member-item" data-index="">
+                <div class="team-member-card">
+                    <div class="team-member-media">
+                        <div class="team-member-preview is-empty" data-preview="photo">
+                            <span class="team-member-placeholder">Нет фото</span>
+                        </div>
+                        <div class="team-member-controls">
+                            <label>Фото для слайда</label>
+                            <input type="text" value="" data-field="photo" placeholder="https://">
+                            <div class="team-member-buttons">
+                                <button type="button" class="button team-photo-upload" data-photo-type="photo">Выбрать</button>
+                                <button type="button" class="button team-photo-clear" data-photo-type="photo">Убрать</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="team-member-media">
+                        <div class="team-member-preview is-empty" data-preview="modal_photo">
+                            <span class="team-member-placeholder">Нет фото</span>
+                        </div>
+                        <div class="team-member-controls">
+                            <label>Фото для модального окна</label>
+                            <input type="text" value="" data-field="modal_photo" placeholder="https://">
+                            <div class="team-member-buttons">
+                                <button type="button" class="button team-photo-upload" data-photo-type="modal_photo">Выбрать</button>
+                                <button type="button" class="button team-photo-clear" data-photo-type="modal_photo">Убрать</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="team-member-fields">
+                        <div class="team-field">
+                            <label>ФИО</label>
+                            <input type="text" value="" data-field="name" placeholder="Иванов Иван Иванович">
+                        </div>
+                        <div class="team-field">
+                            <label>Должность</label>
+                            <input type="text" value="" data-field="role" placeholder="Директор">
+                        </div>
+                        <div class="team-field">
+                            <label>Короткое описание для слайда</label>
+                            <textarea rows="4" data-field="short" placeholder="Короткая история/резюме"></textarea>
+                        </div>
+                        <div class="team-field">
+                            <label>Подробное описание для модального окна</label>
+                            <textarea rows="6" data-field="long" placeholder="Подробный текст"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-member-actions">
+                    <button type="button" class="button link-delete team-member-remove">Удалить сотрудника</button>
+                    <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
+                </div>
+            </li>
+        </script>
     </div>
     <?php
 }

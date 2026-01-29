@@ -651,182 +651,82 @@ endif;
   </div>
 </div>
 
-<!-- Structure Section -->
-<section class="structure-section" id="structure">
+<?php $team_members = bis_get_team_members(); ?>
+<section class="structure-section team-section" id="structure">
   <div class="section-header">
-    <!-- <span class="section-badge">Структура</span> -->
-    <h2 class="section-title">Структура компании</h2>
-    <p class="section-subtitle">Четкая организация для эффективного выполнения проектов любой сложности</p>
+    <span class="section-badge">Команда</span>
+    <h2 class="section-title">Люди, которые ведут проекты БИС</h2>
+    <p class="section-subtitle">Представляем ключевых специалистов. На слайде — короткая история, в карточке — подробности.</p>
   </div>
-  <div class="structure-mobile-hint">Свайпните схему, чтобы просмотреть все отделы и проектные команды</div>
 
-  <div class="structure-content">
-  <div class="org-wrapper">
-    <!-- ВЕРХ: Генеральный директор -->
-    <div class="org-top">
-      <div class="org-node org-node--main">
-        <div class="org-node__text">
-          ГЕНЕРАЛЬНЫЙ<br>ДИРЕКТОР
+  <?php if (!empty($team_members)) : ?>
+    <div class="team-slider" data-team-slider>
+      <div class="team-track-wrap">
+        <div class="team-track">
+          <?php foreach ($team_members as $member) :
+            $name = isset($member['name']) ? $member['name'] : '';
+            $role = isset($member['role']) ? $member['role'] : '';
+            $short = isset($member['short']) ? $member['short'] : '';
+            $long = isset($member['long']) ? $member['long'] : '';
+            $photo = isset($member['photo']) ? $member['photo'] : '';
+            $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
+            $modal_photo = $modal_photo ? $modal_photo : $photo;
+            ?>
+            <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
+              <div class="team-slide__content">
+                <span class="team-label">Команда</span>
+                <div class="team-story"><?php echo wp_kses_post(wpautop($short)); ?></div>
+                <div class="team-meta">
+                  <span class="team-name"><?php echo esc_html($name); ?></span>
+                  <span class="team-role"><?php echo esc_html($role); ?></span>
+                </div>
+                <button class="btn btn-primary team-more" type="button" data-team-more>Подробнее</button>
+              </div>
+              <div class="team-slide__photo" style="background-image: url('<?php echo esc_url($photo); ?>');"></div>
+              <div class="team-slide__long" hidden>
+                <?php echo wp_kses_post(wpautop($long)); ?>
+              </div>
+            </article>
+          <?php endforeach; ?>
         </div>
-        <div class="org-node__avatar org-node__avatar--ceo"></div>
-      </div>
-      <span class="org-connector-decor"></span>
-    </div>
-
-    <!-- СЛЕДУЮЩИЙ УРОВЕНЬ -->
-    <div class="org-row org-row--wide">
-      <div class="org-node">
-        <div class="org-node__text">
-          ОТДЕЛ<br>РАЗРАБОТКИ<br>НОВЫХ<br>ПРОДУКТОВ<br>И УСЛУГ
-        </div>
-        <div class="org-node__avatar org-node__avatar--rnd"></div>
-      </div>
-
-      <div class="org-node">
-        <div class="org-node__text">
-          АДМИНИСТРАТОР
-        </div>
-        <div class="org-node__avatar org-node__avatar--admin"></div>
-      </div>
-
-      <div class="org-node org-node--filled">
-        <div class="org-node__text">
-          ДИРЕКТОР<br>ПО РАЗВИТИЮ
-        </div>
-        <div class="org-node__avatar org-node__avatar--growth"></div>
       </div>
 
-      <div class="org-node">
-        <div class="org-node__text">
-          СМЕТНО-<br>ДОГОВОРНОЙ<br>ОТДЕЛ
-        </div>
-        <div class="org-node__avatar org-node__avatar--estimate"></div>
-      </div>
-
-      <div class="org-node">
-        <div class="org-node__text">
-          БУХГАЛТЕРИЯ<br>ОТДЕЛ КАДРОВ
-        </div>
-        <div class="org-node__avatar org-node__avatar--finance"></div>
+      <div class="team-controls">
+        <button class="team-nav team-prev" aria-label="Предыдущий сотрудник">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="team-nav team-next" aria-label="Следующий сотрудник">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
     </div>
+  <?php else : ?>
+    <p class="team-empty">Добавьте сотрудников в админке (раздел "Команда"), чтобы отобразить слайдер.</p>
+  <?php endif; ?>
+</section>
 
-    <!-- РУКОВОДИТЕЛЬ ПРОЕКТОВ -->
-    <div class="org-middle">
-      <div class="org-node org-node--middle">
-        <div class="org-node__text">
-          РУКОВОДИТЕЛЬ<br>ПРОЕКТОВ
-        </div>
-        <div class="org-node__avatar org-node__avatar--pm"></div>
-      </div>
+<div class="team-modal" id="teamModal" aria-hidden="true" role="dialog">
+  <div class="team-modal__backdrop" data-team-close></div>
+  <div class="team-modal__dialog" aria-modal="true" aria-labelledby="teamModalTitle">
+    <button class="team-modal__close" type="button" aria-label="Закрыть" data-team-close>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="team-modal__image">
+      <img src="" alt="" loading="lazy" data-team-modal-image>
     </div>
-
-    <!-- Бэйджи IF и команда -->
-    <!-- <div class="org-badges">
-      <div class="org-badge org-badge--if">IF</div>
-      <div class="org-badge org-badge--team">
-        <span class="team-dot"></span>
-        <span class="team-dot"></span>
-        <span class="team-dot"></span>
-      </div>
-    </div> -->
-
-    <div class="org-divider"></div>
-
-    <!-- БЛОКИ ПРОЕКТОВ -->
-    <div class="org-projects">
-      <div class="org-project">
-        <div class="org-project__header">
-          <div class="org-node org-node--project-head">
-            <div class="org-node__text">
-              РУКОВОДИТЕЛЬ<br>ПРОЕКТА
-            </div>
-            <div class="org-node__avatar org-node__avatar--pm"></div>
-          </div>
-        </div>
-        <div class="org-project__team">
-          <div class="org-team-icons">
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-          </div>
-          <div class="org-team-caption">
-            ИНЖЕНЕРЫ<br>И СПЕЦИАЛИСТЫ ПНР
-          </div>
-        </div>
-      </div>
-
-      <div class="org-project">
-        <div class="org-project__header">
-          <div class="org-node org-node--project-head">
-            <div class="org-node__text">
-              РУКОВОДИТЕЛЬ<br>ПРОЕКТА
-            </div>
-            <div class="org-node__avatar org-node__avatar--pm"></div>
-          </div>
-        </div>
-        <div class="org-project__team">
-          <div class="org-team-icons">
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-          </div>
-          <div class="org-team-caption">
-            ИНЖЕНЕРЫ<br>И СПЕЦИАЛИСТЫ ПНР
-          </div>
-        </div>
-      </div>
-
-      <div class="org-project">
-        <div class="org-project__header">
-          <div class="org-node org-node--project-head">
-            <div class="org-node__text">
-              РУКОВОДИТЕЛЬ<br>ПРОЕКТА
-            </div>
-            <div class="org-node__avatar org-node__avatar--pm"></div>
-          </div>
-        </div>
-        <div class="org-project__team">
-          <div class="org-team-icons">
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-          </div>
-          <div class="org-team-caption">
-            ИНЖЕНЕРЫ<br>И СПЕЦИАЛИСТЫ ПНР
-          </div>
-        </div>
-      </div>
-
-      <div class="org-project">
-        <div class="org-project__header">
-          <div class="org-node org-node--project-head">
-            <div class="org-node__text">
-              РУКОВОДИТЕЛЬ<br>ПРОЕКТА
-            </div>
-            <div class="org-node__avatar org-node__avatar--pm"></div>
-          </div>
-        </div>
-        <div class="org-project__team">
-          <div class="org-team-icons">
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-            <span class="org-team-icon"></span>
-          </div>
-          <div class="org-team-caption">
-            ИНЖЕНЕРЫ<br>И СПЕЦИАЛИСТЫ ПНР
-          </div>
-        </div>
-      </div>
+    <div class="team-modal__body">
+      <h3 class="team-modal__name" id="teamModalTitle" data-team-modal-name></h3>
+      <p class="team-modal__role" data-team-modal-role></p>
+      <div class="team-modal__text" data-team-modal-text></div>
     </div>
   </div>
 </div>
-
-</section>
 
 <!-- Why Us Section -->
 <section class="why-us" id="why">

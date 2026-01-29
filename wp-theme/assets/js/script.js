@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initExperienceModal();
   initCasesModal();
   initFAQ();
+  initTeamSlider();
+  initTeamModal();
   initServicesSlider();
   initEstimateModal();
   initRevenueChart();
@@ -1396,6 +1398,178 @@ function initEquipmentSlider() {
   }
 
   goToSlide(0, 'auto');
+}
+
+// Team Slider
+function initTeamSlider() {
+  const slider = document.querySelector('[data-team-slider]');
+  if (!slider) return;
+
+  const track = slider.querySelector('.team-track');
+  const wrap = slider.querySelector('.team-track-wrap');
+  const prevBtn = slider.querySelector('.team-prev');
+  const nextBtn = slider.querySelector('.team-next');
+
+  if (!track || !wrap) return;
+
+  if (slider.dataset.teamSliderInitialized === 'true') {
+    return;
+  }
+
+  const getSlides = () => Array.from(track.querySelectorAll('.team-slide'));
+  let slides = getSlides();
+
+  if (slides.length === 0) return;
+
+  if (slides.length > 1) {
+    const firstClone = slides[0].cloneNode(true);
+    const lastClone = slides[slides.length - 1].cloneNode(true);
+    firstClone.classList.add('is-clone');
+    lastClone.classList.add('is-clone');
+    track.insertBefore(lastClone, slides[0]);
+    track.appendChild(firstClone);
+  }
+
+  slider.dataset.teamSliderInitialized = 'true';
+  slides = getSlides();
+
+  let currentIndex = slides.length > 1 ? 1 : 0;
+  let slideWidth = 0;
+
+  const moveTo = (index, animate = true) => {
+    currentIndex = index;
+    track.style.transition = animate ? 'transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none';
+    track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+  };
+
+  const setSizes = () => {
+    slideWidth = wrap.getBoundingClientRect().width;
+    slides = getSlides();
+    slides.forEach((slide) => {
+      slide.style.width = `${slideWidth}px`;
+    });
+    track.style.width = `${slideWidth * slides.length}px`;
+    moveTo(currentIndex, false);
+  };
+
+  const goNext = () => {
+    if (slides.length <= 1) return;
+    moveTo(currentIndex + 1, true);
+  };
+
+  const goPrev = () => {
+    if (slides.length <= 1) return;
+    moveTo(currentIndex - 1, true);
+  };
+
+  if (prevBtn) prevBtn.addEventListener('click', goPrev);
+  if (nextBtn) nextBtn.addEventListener('click', goNext);
+
+  track.addEventListener('transitionend', () => {
+    if (slides.length <= 1) return;
+    const currentSlide = slides[currentIndex];
+    if (!currentSlide || !currentSlide.classList.contains('is-clone')) return;
+
+    if (currentIndex === 0) {
+      currentIndex = slides.length - 2;
+      moveTo(currentIndex, false);
+    } else if (currentIndex === slides.length - 1) {
+      currentIndex = 1;
+      moveTo(currentIndex, false);
+    }
+  });
+
+  let startX = 0;
+
+  wrap.addEventListener('touchstart', (event) => {
+    startX = event.touches[0].clientX;
+  }, { passive: true });
+
+  wrap.addEventListener('touchend', (event) => {
+    const endX = event.changedTouches[0].clientX;
+    const diff = startX - endX;
+    if (Math.abs(diff) > 50) {
+      diff > 0 ? goNext() : goPrev();
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    setSizes();
+  });
+
+  if (slides.length <= 1) {
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+  }
+
+  setSizes();
+  moveTo(currentIndex, false);
+}
+
+// Team Modal
+function initTeamModal() {
+  const modal = document.getElementById('teamModal');
+  if (!modal) return;
+
+  const nameEl = modal.querySelector('[data-team-modal-name]');
+  const roleEl = modal.querySelector('[data-team-modal-role]');
+  const textEl = modal.querySelector('[data-team-modal-text]');
+  const imageEl = modal.querySelector('[data-team-modal-image]');
+
+  const openModal = (slide) => {
+    const name = slide.dataset.name || '';
+    const role = slide.dataset.role || '';
+    const modalPhoto = slide.dataset.modalPhoto || slide.dataset.photo || '';
+    const detail = slide.querySelector('.team-slide__long');
+    const summary = slide.querySelector('.team-story');
+    const detailHtml = detail && detail.innerHTML.trim() ? detail.innerHTML : (summary ? summary.innerHTML : '');
+
+    if (nameEl) nameEl.textContent = name;
+    if (roleEl) roleEl.textContent = role;
+    if (textEl) textEl.innerHTML = detailHtml;
+    if (imageEl) {
+      const imageWrap = imageEl.closest('.team-modal__image');
+      if (modalPhoto) {
+        imageEl.src = modalPhoto;
+        imageEl.alt = name ? name : 'Фото сотрудника';
+        if (imageWrap) imageWrap.style.display = '';
+      } else {
+        imageEl.removeAttribute('src');
+        imageEl.alt = '';
+        if (imageWrap) imageWrap.style.display = 'none';
+      }
+    }
+
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeModal = () => {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  };
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-team-more]');
+    if (trigger) {
+      const slide = trigger.closest('.team-slide');
+      if (slide) {
+        openModal(slide);
+      }
+    }
+
+    if (event.target.closest('[data-team-close]')) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('active')) {
+      closeModal();
+    }
+  });
 }
 
 function initExperienceModal() {
