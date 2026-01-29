@@ -653,12 +653,6 @@ endif;
 
 <?php $team_members = bis_get_team_members(); ?>
 <section class="structure-section team-section" id="structure">
-  <div class="section-header">
-    <span class="section-badge">Команда</span>
-    <h2 class="section-title">Люди, которые ведут проекты БИС</h2>
-    <p class="section-subtitle">Представляем ключевых специалистов. На слайде — короткая история, в карточке — подробности.</p>
-  </div>
-
   <?php if (!empty($team_members)) : ?>
     <div class="team-slider" data-team-slider>
       <div class="team-track-wrap">
@@ -689,25 +683,28 @@ endif;
             </article>
           <?php endforeach; ?>
         </div>
-      </div>
-
-      <div class="team-controls">
-        <button class="team-nav team-prev" aria-label="Предыдущий сотрудник">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <button class="team-nav team-next" aria-label="Следующий сотрудник">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+        <div class="team-controls">
+          <button class="team-nav team-prev" aria-label="Предыдущий сотрудник">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="team-nav team-next" aria-label="Следующий сотрудник">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   <?php else : ?>
-    <p class="team-empty">Добавьте сотрудников в админке (раздел "Команда"), чтобы отобразить слайдер.</p>
+    <div class="team-empty">
+      <span class="team-empty__label">Команда</span>
+      <p>Мы готовим презентацию ключевых специалистов.</p>
+    </div>
   <?php endif; ?>
 </section>
+
 
 <div class="team-modal" id="teamModal" aria-hidden="true" role="dialog">
   <div class="team-modal__backdrop" data-team-close></div>

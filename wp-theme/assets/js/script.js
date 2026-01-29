@@ -76,7 +76,7 @@ function initTypingEffect() {
   ];
 
   // Установим ширину контейнера до начала анимации, чтобы избежать смещения
-  const fullText = '«БИС — ' + textParts.map(part => part.text).join('');
+  const fullText = 'БИС — ' + textParts.map(part => part.text).join('');
   const tempSpan = document.createElement('span');
   tempSpan.style.visibility = 'hidden';
   tempSpan.style.position = 'absolute';
@@ -1435,11 +1435,16 @@ function initTeamSlider() {
 
   let currentIndex = slides.length > 1 ? 1 : 0;
   let slideWidth = 0;
+  let isAnimating = false;
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartTranslate = 0;
 
   const moveTo = (index, animate = true) => {
     currentIndex = index;
-    track.style.transition = animate ? 'transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none';
+    track.style.transition = animate ? 'transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none';
     track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+    isAnimating = animate;
   };
 
   const setSizes = () => {
@@ -1453,12 +1458,12 @@ function initTeamSlider() {
   };
 
   const goNext = () => {
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || isAnimating) return;
     moveTo(currentIndex + 1, true);
   };
 
   const goPrev = () => {
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || isAnimating) return;
     moveTo(currentIndex - 1, true);
   };
 
@@ -1466,7 +1471,9 @@ function initTeamSlider() {
   if (nextBtn) nextBtn.addEventListener('click', goNext);
 
   track.addEventListener('transitionend', () => {
-    if (slides.length <= 1) return;
+    if (!isAnimating || slides.length <= 1) return;
+    isAnimating = false;
+
     const currentSlide = slides[currentIndex];
     if (!currentSlide || !currentSlide.classList.contains('is-clone')) return;
 
@@ -1479,34 +1486,50 @@ function initTeamSlider() {
     }
   });
 
-  let startX = 0;
+  const handlePointerDown = (event) => {
+    if (slides.length <= 1 || isAnimating) return;
+    if (event.target.closest('.team-more') || event.target.closest('.team-nav')) return;
+    isDragging = true;
+    dragStartX = event.clientX;
+    dragStartTranslate = -slideWidth * currentIndex;
+    track.style.transition = 'none';
+    wrap.setPointerCapture(event.pointerId);
+  };
 
-  wrap.addEventListener('touchstart', (event) => {
-    startX = event.touches[0].clientX;
-  }, { passive: true });
+  const handlePointerMove = (event) => {
+    if (!isDragging) return;
+    const delta = event.clientX - dragStartX;
+    track.style.transform = `translateX(${dragStartTranslate + delta}px)`;
+  };
 
-  wrap.addEventListener('touchend', (event) => {
-    const endX = event.changedTouches[0].clientX;
-    const diff = startX - endX;
-    if (Math.abs(diff) > 50) {
-      diff > 0 ? goNext() : goPrev();
+  const handlePointerUp = (event) => {
+    if (!isDragging) return;
+    isDragging = false;
+    wrap.releasePointerCapture(event.pointerId);
+    const delta = event.clientX - dragStartX;
+    const threshold = slideWidth * 0.15;
+
+    if (Math.abs(delta) > threshold) {
+      delta < 0 ? goNext() : goPrev();
+    } else {
+      moveTo(currentIndex, true);
     }
-  }, { passive: true });
+  };
+
+  wrap.addEventListener('pointerdown', handlePointerDown);
+  wrap.addEventListener('pointermove', handlePointerMove);
+  wrap.addEventListener('pointerup', handlePointerUp);
+  wrap.addEventListener('pointerleave', handlePointerUp);
+  wrap.addEventListener('dragstart', (event) => event.preventDefault());
 
   window.addEventListener('resize', () => {
     setSizes();
   });
 
-  if (slides.length <= 1) {
-    if (prevBtn) prevBtn.disabled = true;
-    if (nextBtn) nextBtn.disabled = true;
-  }
-
   setSizes();
   moveTo(currentIndex, false);
 }
 
-// Team Modal
 function initTeamModal() {
   const modal = document.getElementById('teamModal');
   if (!modal) return;
