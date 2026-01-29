@@ -1423,31 +1423,38 @@ function initTeamSlider() {
   const wrap = slider.querySelector('.team-track-wrap');
   const prevBtn = slider.querySelector('.team-prev');
   const nextBtn = slider.querySelector('.team-next');
-  
+
   if (!track || !wrap) return;
 
   if (slider.dataset.teamSliderInitialized === 'true') {
     return;
   }
 
-  const getSlides = () => Array.from(track.querySelectorAll('.team-slide'));
-  let slides = getSlides();
+  const getSlides = () => Array.from(track.querySelectorAll('.team-slide:not(.is-clone)'));
+  let originalSlides = getSlides();
 
-  if (slides.length === 0) return;
+  if (originalSlides.length === 0) return;
 
-  if (slides.length > 1) {
-    const firstClone = slides[0].cloneNode(true);
-    const lastClone = slides[slides.length - 1].cloneNode(true);
-    firstClone.classList.add('is-clone');
-    lastClone.classList.add('is-clone');
-    track.insertBefore(lastClone, slides[0]);
-    track.appendChild(firstClone);
+  // Создаем копии слайдов для бесконечного цикла
+  if (originalSlides.length > 1) {
+    // Добавляем копии в начало и конец для бесконечного цикла
+    originalSlides.forEach((slide, index) => {
+      const clone = slide.cloneNode(true);
+      clone.classList.add('is-clone');
+      track.appendChild(clone);
+    });
+
+    originalSlides.forEach((slide, index) => {
+      const clone = slide.cloneNode(true);
+      clone.classList.add('is-clone');
+      track.insertBefore(clone, track.firstChild);
+    });
   }
 
   slider.dataset.teamSliderInitialized = 'true';
-  slides = getSlides();
+  const allSlides = Array.from(track.querySelectorAll('.team-slide'));
 
-  let currentIndex = slides.length > 1 ? 1 : 0;
+  let currentIndex = originalSlides.length > 1 ? originalSlides.length : 0;
   let slideWidth = 0;
   let isAnimating = false;
   let isDragging = false;
@@ -1463,21 +1470,20 @@ function initTeamSlider() {
 
   const setSizes = () => {
     slideWidth = wrap.getBoundingClientRect().width;
-    slides = getSlides();
-    slides.forEach((slide) => {
+    allSlides.forEach((slide) => {
       slide.style.width = `${slideWidth}px`;
     });
-    track.style.width = `${slideWidth * slides.length}px`;
+    track.style.width = `${slideWidth * allSlides.length}px`;
     moveTo(currentIndex, false);
   };
 
   const goNext = () => {
-    if (slides.length <= 1 || isAnimating) return;
+    if (originalSlides.length <= 1 || isAnimating) return;
     moveTo(currentIndex + 1, true);
   };
 
   const goPrev = () => {
-    if (slides.length <= 1 || isAnimating) return;
+    if (originalSlides.length <= 1 || isAnimating) return;
     moveTo(currentIndex - 1, true);
   };
 
@@ -1499,23 +1505,25 @@ function initTeamSlider() {
   });
 
   track.addEventListener('transitionend', () => {
-    if (!isAnimating || slides.length <= 1) return;
+    if (!isAnimating || originalSlides.length <= 1) return;
     isAnimating = false;
 
-    const currentSlide = slides[currentIndex];
-    if (!currentSlide || !currentSlide.classList.contains('is-clone')) return;
-
+    // Если мы закончили анимацию на клонированном слайде, мгновенно перейдем к соответствующему оригинальному
     if (currentIndex === 0) {
-      currentIndex = slides.length - 2;
-      moveTo(currentIndex, false);
-    } else if (currentIndex === slides.length - 1) {
-      currentIndex = 1;
-      moveTo(currentIndex, false);
+      // Находимся на первом клоне, переходим к последнему оригинальному
+      currentIndex = allSlides.length - originalSlides.length - 1;
+      track.style.transition = 'none';
+      track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+    } else if (currentIndex === allSlides.length - 1) {
+      // Находимся на последнем клоне, переходим к первому оригинальному
+      currentIndex = originalSlides.length;
+      track.style.transition = 'none';
+      track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
     }
   });
 
   const handlePointerDown = (event) => {
-    if (slides.length <= 1 || isAnimating) return;
+    if (originalSlides.length <= 1 || isAnimating) return;
     if (event.target.closest('.team-more') || event.target.closest('.team-nav')) return;
     isDragging = true;
     dragStartX = event.clientX;
