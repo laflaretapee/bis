@@ -496,7 +496,7 @@ endif;
   ?>
 
   <?php if ($featured_projects->have_posts()) : ?>
-  <div class="experience-grid">
+  <div class="experience-grid" style="max-width: unset;">
     <?php while ($featured_projects->have_posts()) : $featured_projects->the_post(); ?>
       <?php
       $project_id = get_the_ID();

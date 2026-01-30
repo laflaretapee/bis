@@ -47,6 +47,7 @@
         </button>
       </div>
       <ul class="drawer-nav">
+        <li><a href="<?php echo esc_url(home_url('/about/')); ?>">О компании</a></li>
         <li><a href="#services">Специализация</a></li>
         <li><a href="#equipment">Оборудование</a></li>
         <li><a href="#experience">Опыт</a></li>

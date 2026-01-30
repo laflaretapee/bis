@@ -97,7 +97,7 @@ get_header();
             </section>
 
             <section class="breadcrumbs-section">
-            <nav class="project-breadcrumbs">
+            <nav class="project-breadcrumbs mw-1400px">
                         <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
                         <span class="breadcrumbs-delimiter">/</span>
                         <a href="<?php echo esc_url(home_url('/projects/')); ?>">Проекты</a>
@@ -107,36 +107,38 @@ get_header();
             </section>
             <?php if (!empty($project_description)) : ?>
                 <section class="project-description">
-                    <div class="project-description__body">
+                    <div class="project-description__body mw-1400px">
                         <?php echo wpautop(esc_html($project_description)); ?>
                     </div>
                 </section>
             <?php endif; ?>
             <?php if (!empty($gallery)) : ?>
                 <section class="project-gallery" data-project-gallery>
+                <div class="project-gallery-wrapper mw-1400px">    
                     <div class="project-gallery__header">
-                        <h2 class="project-gallery__title">Галерея проекта</h2>
-                        <div class="project-gallery__nav">
-                            <button type="button" data-gallery-prev aria-label="Предыдущее фото">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
-                            <button type="button" data-gallery-next aria-label="Следующее фото">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
+                            <h2 class="project-gallery__title">Галерея проекта</h2>
+                            <div class="project-gallery__nav">
+                                <button type="button" data-gallery-prev aria-label="Предыдущее фото">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button type="button" data-gallery-next aria-label="Следующее фото">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
+                        <div class="project-gallery__track" data-gallery-track>
+                            <?php foreach ($gallery as $index => $image) : ?>
+                                <button type="button" class="project-gallery__slide" data-gallery-slide data-full="<?php echo esc_url($image); ?>" aria-label="<?php echo esc_attr(get_the_title() . ' — фото ' . ($index + 1)); ?>">
+                                    <img src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr(get_the_title() . ' — фото ' . ($index + 1)); ?>" loading="lazy">
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="project-gallery__dots" data-gallery-dots></div>
                     </div>
-                    <div class="project-gallery__track" data-gallery-track>
-                        <?php foreach ($gallery as $index => $image) : ?>
-                            <button type="button" class="project-gallery__slide" data-gallery-slide data-full="<?php echo esc_url($image); ?>" aria-label="<?php echo esc_attr(get_the_title() . ' — фото ' . ($index + 1)); ?>">
-                                <img src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr(get_the_title() . ' — фото ' . ($index + 1)); ?>" loading="lazy">
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                    <div class="project-gallery__dots" data-gallery-dots></div>
                 </section>
 
                 <div class="project-lightbox" id="projectLightbox" aria-hidden="true">
@@ -163,74 +165,76 @@ get_header();
             <?php endif; ?>
 
             <section class="project-consultation">
-                <?php if ($next_project_id) : ?>
-                    <a class="project-consultation__next" href="<?php echo esc_url(get_permalink($next_project_id)); ?>">Следующий проект -></a>
-                <?php endif; ?>
+                <div class="project-consultation-wrapper mw-1400px">
+                    <?php if ($next_project_id) : ?>
+                        <a class="project-consultation__next" href="<?php echo esc_url(get_permalink($next_project_id)); ?>">Следующий проект -></a>
+                    <?php endif; ?>
 
-                <div class="project-consultation__header">
-                    <h2 class="project-consultation__title">Получить консультацию</h2>
-                    <p class="project-consultation__subtitle">Заполните форму — мы обязательно вам ответим.</p>
+                    <div class="project-consultation__header">
+                        <h2 class="project-consultation__title">Получить консультацию</h2>
+                        <p class="project-consultation__subtitle">Заполните форму — мы обязательно вам ответим.</p>
+                    </div>
+
+                    <form class="project-consultation__form" id="projectConsultationForm">
+                        <input type="hidden" name="project_id" value="<?php echo esc_attr($project_id); ?>">
+
+                        <div class="project-consultation__field">
+                            <label for="projectName">ФИО *</label>
+                            <input type="text" id="projectName" name="name" required>
+                        </div>
+
+                        <div class="project-consultation__field">
+                            <label for="projectPhone">Телефон *</label>
+                            <input type="tel" id="projectPhone" name="phone" required>
+                        </div>
+
+                        <div class="project-consultation__field">
+                            <label for="projectEmail">Рабочий E-mail *</label>
+                            <input type="email" id="projectEmail" name="email" required>
+                        </div>
+
+                        <div class="project-consultation__field">
+                            <label for="projectCompany">Компания *</label>
+                            <input type="text" id="projectCompany" name="company" required>
+                        </div>
+
+                        <div class="project-consultation__field">
+                            <label for="projectPosition">Должность *</label>
+                            <input type="text" id="projectPosition" name="position" required>
+                        </div>
+
+                        <div class="project-consultation__field">
+                            <label for="projectTopic">Тема вопроса *</label>
+                            <select id="projectTopic" name="topic" required>
+                                <option value="">Выберите тему</option>
+                                <option value="Пусконаладка систем">Пусконаладка систем</option>
+                                <option value="Техническое обслуживание">Техническое обслуживание</option>
+                                <option value="Диагностика и аудит">Диагностика и аудит</option>
+                                <option value="Другое">Другое</option>
+                            </select>
+                        </div>
+
+                        <div class="project-consultation__field full">
+                            <label for="projectDetails">Подробнее о задачах</label>
+                            <textarea id="projectDetails" name="details" placeholder="Опишите задачу или оставьте комментарий"></textarea>
+                        </div>
+
+                        <div class="project-consultation__field full project-consultation__consent">
+                            <label>
+                                <input type="checkbox" name="privacy" required>
+                                Я соглашаюсь с обработкой персональных данных, в соответствии с Политикой конфиденциальности.
+                            </label>
+                            <label>
+                                <input type="checkbox" name="marketing">
+                                Я соглашаюсь на получение информационных рассылок и другой коммуникации от БИС.
+                            </label>
+                        </div>
+
+                        <div class="project-consultation__actions full">
+                            <button type="submit" class="btn btn-primary">Отправить</button>
+                        </div>
+                    </form>
                 </div>
-
-                <form class="project-consultation__form" id="projectConsultationForm">
-                    <input type="hidden" name="project_id" value="<?php echo esc_attr($project_id); ?>">
-
-                    <div class="project-consultation__field">
-                        <label for="projectName">ФИО *</label>
-                        <input type="text" id="projectName" name="name" required>
-                    </div>
-
-                    <div class="project-consultation__field">
-                        <label for="projectPhone">Телефон *</label>
-                        <input type="tel" id="projectPhone" name="phone" required>
-                    </div>
-
-                    <div class="project-consultation__field">
-                        <label for="projectEmail">Рабочий E-mail *</label>
-                        <input type="email" id="projectEmail" name="email" required>
-                    </div>
-
-                    <div class="project-consultation__field">
-                        <label for="projectCompany">Компания *</label>
-                        <input type="text" id="projectCompany" name="company" required>
-                    </div>
-
-                    <div class="project-consultation__field">
-                        <label for="projectPosition">Должность *</label>
-                        <input type="text" id="projectPosition" name="position" required>
-                    </div>
-
-                    <div class="project-consultation__field">
-                        <label for="projectTopic">Тема вопроса *</label>
-                        <select id="projectTopic" name="topic" required>
-                            <option value="">Выберите тему</option>
-                            <option value="Пусконаладка систем">Пусконаладка систем</option>
-                            <option value="Техническое обслуживание">Техническое обслуживание</option>
-                            <option value="Диагностика и аудит">Диагностика и аудит</option>
-                            <option value="Другое">Другое</option>
-                        </select>
-                    </div>
-
-                    <div class="project-consultation__field full">
-                        <label for="projectDetails">Подробнее о задачах</label>
-                        <textarea id="projectDetails" name="details" placeholder="Опишите задачу или оставьте комментарий"></textarea>
-                    </div>
-
-                    <div class="project-consultation__field full project-consultation__consent">
-                        <label>
-                            <input type="checkbox" name="privacy" required>
-                            Я соглашаюсь с обработкой персональных данных, в соответствии с Политикой конфиденциальности.
-                        </label>
-                        <label>
-                            <input type="checkbox" name="marketing">
-                            Я соглашаюсь на получение информационных рассылок и другой коммуникации от БИС.
-                        </label>
-                    </div>
-
-                    <div class="project-consultation__actions full">
-                        <button type="submit" class="btn btn-primary">Отправить</button>
-                    </div>
-                </form>
             </section>
         <?php endwhile; ?>
     <?php else : ?>

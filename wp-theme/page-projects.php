@@ -6,17 +6,21 @@ get_header();
 ?>
 
 <main class="projects-page">
-    <section class="projects-hero">
-        <div class="projects-hero__overlay">
+    <section class="projects-hero" style="background-image: url('<?php echo get_the_post_thumbnail_url(get_the_ID(), 'full'); ?>');background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+        height: 95vh;">
+        <div class="projects-hero__overlay" style="height: 100%;">
             <h1 class="projects-hero__title"><?php the_title(); ?></h1>
-            <nav class="project-breadcrumbs">
+        </div>
+    </section>
+    <section class="breadcrumbs-section">
+    <nav class="project-breadcrumbs mw-1400px">
                 <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
                 <span class="breadcrumbs-delimiter">/</span>
                 <span><?php the_title(); ?></span>
             </nav>
-        </div>
-    </section>
-
+            </section>
     <section class="projects-list">
         <div class="experience-grid projects-grid">
             <?php

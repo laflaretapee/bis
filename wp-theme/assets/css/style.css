@@ -7201,6 +7201,240 @@ body.post-type-archive-bis_news {
   margin-bottom: 0;
 }
 
+/* About page */
+.about-page {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.about-hero {
+  position: relative;
+  min-height: 55vh;
+  color: #fff;
+  background: #0f172a;
+  overflow: hidden;
+}
+
+.about-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.5) 55%, rgba(15, 23, 42, 0.15) 100%);
+  z-index: 1;
+}
+
+.about-hero__overlay {
+  position: relative;
+  z-index: 2;
+  padding: 150px 8vw 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.about-hero__title {
+  margin: 0;
+  font-size: clamp(34px, 4.4vw, 60px);
+  font-weight: var(--font-weight-semibold);
+}
+
+.about-hero__subtitle {
+  margin: 0;
+  max-width: 720px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.about-hero .project-breadcrumbs {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.about-hero .breadcrumbs-delimiter {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.about-hero__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.about-hero__nav a {
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.about-hero__nav a:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.about-intro {
+  padding: 80px 8vw;
+  background: var(--bg);
+}
+
+.about-intro__grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.about-intro__content p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.about-intro__cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.about-intro__card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.about-intro__card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--dark);
+}
+
+.about-intro__card p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.about-mission {
+  padding: 70px 8vw;
+  background: var(--bg-alt);
+}
+
+.about-mission__content {
+  max-width: 880px;
+}
+
+.about-mission__content p {
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--text);
+  margin: 0 0 20px;
+}
+
+.about-mission__panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.about-stats {
+  padding: 80px 8vw;
+  background: var(--bg);
+}
+
+.about-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.about-stats .stats {
+  max-width: none;
+  margin-top: 32px;
+}
+
+.about-stats .stat-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.about-stats .stat-value {
+  color: var(--dark);
+}
+
+.about-stats .stat-value::after {
+  content: '';
+}
+
+.about-stats .stat-label {
+  color: var(--text-light);
+}
+
+.about-why {
+  padding: 80px 8vw;
+}
+
+.about-why .why-grid {
+  margin-top: 30px;
+}
+
+@media (max-width: 1024px) {
+  .about-intro__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-intro__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .about-hero__overlay {
+    padding: 120px 6vw 70px;
+  }
+
+  .about-hero__subtitle {
+    font-size: 16px;
+  }
+
+  .about-intro {
+    padding: 60px 6vw;
+  }
+
+  .about-intro__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .about-mission {
+    padding: 60px 6vw;
+  }
+
+  .about-stats,
+  .about-why {
+    padding: 60px 6vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-hero__overlay {
+    padding: 110px 6vw 60px;
+  }
+
+  .about-hero__nav a {
+    font-size: 12px;
+  }
+}
+
 .project-hero {
   position: relative;
   min-height: 90vh;
@@ -7334,12 +7568,16 @@ body.post-type-archive-bis_news {
   color: var(--text);
   font-size: 16px;
   line-height: 1.7;
-  min-width: 100%;
 }
 
 .project-description__body p {
   margin-bottom: 16px;
   color: var(--text-light);
+}
+
+.mw-1400px {
+  max-width: 1400px;
+  margin: auto;
 }
 
 .project-breadcrumbs {
