@@ -116,6 +116,62 @@ function bis_register_projects_cpt() {
 }
 add_action('init', 'bis_register_projects_cpt');
 
+function bis_register_services_cpt() {
+    $labels = array(
+        'name'               => 'Услуги',
+        'singular_name'      => 'Услуга',
+        'menu_name'          => 'Услуги',
+        'name_admin_bar'     => 'Услуга',
+        'add_new'            => 'Добавить',
+        'add_new_item'       => 'Добавить услугу',
+        'edit_item'          => 'Редактировать',
+        'new_item'           => 'Новая услуга',
+        'view_item'          => 'Просмотр',
+        'search_items'       => 'Искать услуги',
+        'not_found'          => 'Не найдено',
+        'not_found_in_trash' => 'В корзине нет услуг',
+        'all_items'          => 'Все услуги',
+    );
+
+    register_post_type('bis_service', array(
+        'labels'       => $labels,
+        'public'       => true,
+        'has_archive'  => false,
+        'menu_icon'    => 'dashicons-admin-tools',
+        'show_in_rest' => true,
+        'supports'     => array('title', 'thumbnail', 'page-attributes'),
+    ));
+}
+add_action('init', 'bis_register_services_cpt');
+
+function bis_register_equipment_cpt() {
+    $labels = array(
+        'name'               => 'Оборудование',
+        'singular_name'      => 'Оборудование',
+        'menu_name'          => 'Оборудование',
+        'name_admin_bar'     => 'Оборудование',
+        'add_new'            => 'Добавить',
+        'add_new_item'       => 'Добавить оборудование',
+        'edit_item'          => 'Редактировать',
+        'new_item'           => 'Новое оборудование',
+        'view_item'          => 'Просмотр',
+        'search_items'       => 'Искать оборудование',
+        'not_found'          => 'Не найдено',
+        'not_found_in_trash' => 'В корзине нет оборудования',
+        'all_items'          => 'Все оборудование',
+    );
+
+    register_post_type('bis_equipment', array(
+        'labels'       => $labels,
+        'public'       => true,
+        'has_archive'  => false,
+        'menu_icon'    => 'dashicons-hammer',
+        'show_in_rest' => true,
+        'supports'     => array('title', 'thumbnail', 'page-attributes'),
+    ));
+}
+add_action('init', 'bis_register_equipment_cpt');
+
 function bis_disable_project_block_editor($use_block_editor, $post_type) {
     if ('bis_project' === $post_type) {
         return false;
@@ -151,6 +207,30 @@ function bis_add_page_banner_meta_boxes() {
     );
 }
 add_action('add_meta_boxes', 'bis_add_page_banner_meta_boxes');
+
+function bis_add_service_meta_boxes() {
+    add_meta_box(
+        'bis_service_details',
+        'Карточка услуги',
+        'bis_service_details_metabox',
+        'bis_service',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'bis_add_service_meta_boxes');
+
+function bis_add_equipment_meta_boxes() {
+    add_meta_box(
+        'bis_equipment_details',
+        'Карточка оборудования',
+        'bis_equipment_details_metabox',
+        'bis_equipment',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'bis_add_equipment_meta_boxes');
 
 function bis_add_gratitude_meta_boxes() {
     add_meta_box(
@@ -207,6 +287,88 @@ function bis_page_banner_metabox($post) {
                 <label for="bis_page_banner_subtitle">Подзаголовок</label>
                 <textarea id="bis_page_banner_subtitle" name="bis_page_banner_subtitle" rows="3" placeholder="Введите подзаголовок"><?php echo esc_textarea($banner_subtitle); ?></textarea>
             </div>
+        </div>
+    </div>
+    <?php
+}
+
+function bis_service_details_metabox($post) {
+    wp_nonce_field('bis_service_details_nonce', 'bis_service_details_nonce_field');
+
+    $description = get_post_meta($post->ID, 'bis_service_description', true);
+    $image = get_post_meta($post->ID, 'bis_service_image', true);
+    $thumbnail = get_the_post_thumbnail_url($post->ID, 'full');
+    $preview = $image ? $image : $thumbnail;
+    ?>
+    <div class="bis-project-box">
+        <div class="bis-project-box__header">
+            <div>
+                <h3>Карточка услуги</h3>
+                <p>Настройте изображение и описание. Заголовок берется из названия записи.</p>
+            </div>
+        </div>
+
+        <div class="bis-project-media bis-project-media--banner">
+            <div class="bis-project-media__preview <?php echo $preview ? '' : 'is-empty'; ?>" data-image-preview="bis_service_image" style="background-image: url('<?php echo esc_url($preview); ?>');">
+                <?php if (!$preview) : ?>
+                    <span class="bis-project-media__placeholder">Нет изображения</span>
+                <?php endif; ?>
+            </div>
+            <div class="bis-project-media__controls">
+                <label for="bis_service_image">Изображение</label>
+                <input type="text" id="bis_service_image" name="bis_service_image" value="<?php echo esc_url($image); ?>" placeholder="https://" data-image-input data-preview-target="bis_service_image">
+                <div class="bis-project-media__buttons">
+                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_service_image">Выбрать в медиабиблиотеке</button>
+                    <button type="button" class="button bis-project-image-clear" data-target="bis_service_image">Убрать фото</button>
+                </div>
+                <p class="bis-field__hint">Можно указать ссылку вручную или выбрать файл. Если поле пустое, используется «Изображение записи».</p>
+            </div>
+        </div>
+
+        <div class="bis-field">
+            <label for="bis_service_description">Описание</label>
+            <textarea id="bis_service_description" name="bis_service_description" rows="4" placeholder="Краткое описание услуги"><?php echo esc_textarea($description); ?></textarea>
+        </div>
+    </div>
+    <?php
+}
+
+function bis_equipment_details_metabox($post) {
+    wp_nonce_field('bis_equipment_details_nonce', 'bis_equipment_details_nonce_field');
+
+    $description = get_post_meta($post->ID, 'bis_equipment_description', true);
+    $image = get_post_meta($post->ID, 'bis_equipment_image', true);
+    $thumbnail = get_the_post_thumbnail_url($post->ID, 'full');
+    $preview = $image ? $image : $thumbnail;
+    ?>
+    <div class="bis-project-box">
+        <div class="bis-project-box__header">
+            <div>
+                <h3>Карточка оборудования</h3>
+                <p>Настройте изображение и описание. Заголовок берется из названия записи.</p>
+            </div>
+        </div>
+
+        <div class="bis-project-media bis-project-media--banner">
+            <div class="bis-project-media__preview <?php echo $preview ? '' : 'is-empty'; ?>" data-image-preview="bis_equipment_image" style="background-image: url('<?php echo esc_url($preview); ?>');">
+                <?php if (!$preview) : ?>
+                    <span class="bis-project-media__placeholder">Нет изображения</span>
+                <?php endif; ?>
+            </div>
+            <div class="bis-project-media__controls">
+                <label for="bis_equipment_image">Изображение</label>
+                <input type="text" id="bis_equipment_image" name="bis_equipment_image" value="<?php echo esc_url($image); ?>" placeholder="https://" data-image-input data-preview-target="bis_equipment_image">
+                <div class="bis-project-media__buttons">
+                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_equipment_image">Выбрать в медиабиблиотеке</button>
+                    <button type="button" class="button bis-project-image-clear" data-target="bis_equipment_image">Убрать фото</button>
+                </div>
+                <p class="bis-field__hint">Можно указать ссылку вручную или выбрать файл. Если поле пустое, используется «Изображение записи».</p>
+            </div>
+        </div>
+
+        <div class="bis-field">
+            <label for="bis_equipment_description">Описание</label>
+            <textarea id="bis_equipment_description" name="bis_equipment_description" rows="4" placeholder="Краткое описание оборудования"><?php echo esc_textarea($description); ?></textarea>
         </div>
     </div>
     <?php
@@ -799,6 +961,48 @@ function bis_save_page_banner($post_id) {
 }
 add_action('save_post', 'bis_save_page_banner');
 
+function bis_save_service_details($post_id) {
+    if (!isset($_POST['bis_service_details_nonce_field']) || !wp_verify_nonce($_POST['bis_service_details_nonce_field'], 'bis_service_details_nonce')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!isset($_POST['post_type']) || 'bis_service' !== $_POST['post_type'] || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $image = isset($_POST['bis_service_image']) ? esc_url_raw(wp_unslash($_POST['bis_service_image'])) : '';
+    $description = isset($_POST['bis_service_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_service_description'])) : '';
+
+    update_post_meta($post_id, 'bis_service_image', $image);
+    update_post_meta($post_id, 'bis_service_description', $description);
+}
+add_action('save_post', 'bis_save_service_details');
+
+function bis_save_equipment_details($post_id) {
+    if (!isset($_POST['bis_equipment_details_nonce_field']) || !wp_verify_nonce($_POST['bis_equipment_details_nonce_field'], 'bis_equipment_details_nonce')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!isset($_POST['post_type']) || 'bis_equipment' !== $_POST['post_type'] || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $image = isset($_POST['bis_equipment_image']) ? esc_url_raw(wp_unslash($_POST['bis_equipment_image'])) : '';
+    $description = isset($_POST['bis_equipment_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_equipment_description'])) : '';
+
+    update_post_meta($post_id, 'bis_equipment_image', $image);
+    update_post_meta($post_id, 'bis_equipment_description', $description);
+}
+add_action('save_post', 'bis_save_equipment_details');
+
 function bis_save_gratitude_image($post_id) {
     if (!isset($_POST['bis_gratitude_image_nonce_field']) || !wp_verify_nonce($_POST['bis_gratitude_image_nonce_field'], 'bis_gratitude_image_nonce')) {
         return;
@@ -1206,6 +1410,26 @@ function bis_get_gratitude_image_url($post_id) {
     return $thumb ? $thumb : '';
 }
 
+function bis_get_service_image_url($post_id) {
+    $custom = get_post_meta($post_id, 'bis_service_image', true);
+    if ($custom) {
+        return esc_url($custom);
+    }
+
+    $thumb = get_the_post_thumbnail_url($post_id, 'full');
+    return $thumb ? $thumb : '';
+}
+
+function bis_get_equipment_image_url($post_id) {
+    $custom = get_post_meta($post_id, 'bis_equipment_image', true);
+    if ($custom) {
+        return esc_url($custom);
+    }
+
+    $thumb = get_the_post_thumbnail_url($post_id, 'full');
+    return $thumb ? $thumb : '';
+}
+
 function bis_get_team_members() {
     $members = get_option('bis_team_members', array());
     if (!is_array($members)) {
@@ -1354,7 +1578,7 @@ function bis_admin_scripts($hook) {
 
     if (in_array($hook, array('post-new.php', 'post.php'), true)) {
         $screen = get_current_screen();
-        if ($screen && in_array($screen->post_type, array('bis_project', 'page', 'bis_gratitude'), true)) {
+        if ($screen && in_array($screen->post_type, array('bis_project', 'page', 'bis_gratitude', 'bis_service', 'bis_equipment'), true)) {
             wp_enqueue_media();
             wp_enqueue_script('jquery-ui-sortable');
             wp_enqueue_script('bis-projects-admin', get_template_directory_uri() . '/assets/js/admin-projects.js', array('jquery', 'jquery-ui-sortable'), '1.0', true);
@@ -2026,11 +2250,6 @@ function bis_revenue_page() {
     }
 
     if (isset($_POST['bis_revenue_save']) && check_admin_referer('bis_revenue_nonce')) {
-        $title          = isset($_POST['bis_revenue_title']) ? sanitize_text_field(wp_unslash($_POST['bis_revenue_title'])) : '';
-        $currency_label = isset($_POST['bis_revenue_currency']) ? sanitize_text_field(wp_unslash($_POST['bis_revenue_currency'])) : '';
-        $cta_label      = isset($_POST['bis_revenue_cta_label']) ? sanitize_text_field(wp_unslash($_POST['bis_revenue_cta_label'])) : '';
-        $cta_link       = isset($_POST['bis_revenue_cta_link']) ? esc_url_raw(wp_unslash($_POST['bis_revenue_cta_link'])) : '';
-
         $years  = isset($_POST['bis_revenue_year']) ? (array) $_POST['bis_revenue_year'] : array();
         $values = isset($_POST['bis_revenue_value']) ? (array) $_POST['bis_revenue_value'] : array();
 
@@ -2048,13 +2267,8 @@ function bis_revenue_page() {
             );
         }
 
-        $settings = array(
-            'title'          => $title !== '' ? $title : 'Динамика выручки за 10 лет',
-            'currency_label' => $currency_label !== '' ? $currency_label : 'млрд ₽',
-            'cta_label'      => $cta_label !== '' ? $cta_label : 'Узнать больше',
-            'cta_link'       => $cta_link,
-            'points'         => $points,
-        );
+        $settings = bis_get_revenue_settings();
+        $settings['points'] = $points;
 
         update_option('bis_revenue_chart', $settings);
         echo '<div class="updated"><p>Настройки сохранены.</p></div>';
@@ -2065,29 +2279,10 @@ function bis_revenue_page() {
     ?>
     <div class="wrap">
         <h1>Динамика выручки</h1>
-        <p class="description">Управляйте данными для блока графика на главной странице. Добавьте значения по годам и ссылку для CTA.</p>
+        <p class="description">Управляйте точками графика на главной странице. Укажите подписи (например, годы) и значения.</p>
 
         <form method="post">
             <?php wp_nonce_field('bis_revenue_nonce'); ?>
-            <table class="form-table">
-                <tr>
-                    <th scope="row"><label for="bis_revenue_title">Заголовок</label></th>
-                    <td><input type="text" id="bis_revenue_title" name="bis_revenue_title" class="regular-text" value="<?php echo esc_attr($settings['title']); ?>" placeholder="Динамика выручки за 10 лет"></td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="bis_revenue_currency">Единица (подпись)</label></th>
-                    <td><input type="text" id="bis_revenue_currency" name="bis_revenue_currency" class="regular-text" value="<?php echo esc_attr($settings['currency_label']); ?>" placeholder="млрд ₽"></td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="bis_revenue_cta_label">Текст кнопки</label></th>
-                    <td><input type="text" id="bis_revenue_cta_label" name="bis_revenue_cta_label" class="regular-text" value="<?php echo esc_attr($settings['cta_label']); ?>" placeholder="Узнать больше"></td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="bis_revenue_cta_link">Ссылка кнопки</label></th>
-                    <td><input type="url" id="bis_revenue_cta_link" name="bis_revenue_cta_link" class="regular-text" value="<?php echo esc_url($settings['cta_link']); ?>" placeholder="#contact"></td>
-                </tr>
-            </table>
-
             <h2 style="margin-top:30px;">Точки графика</h2>
             <p class="description">Укажите подпись (обычно год) и значение. Для дробных значений можно использовать запятую или точку.</p>
 

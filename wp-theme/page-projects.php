@@ -53,7 +53,6 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                     $project_id = get_the_ID();
                     $image_url = bis_get_project_image_url($project_id);
                     $description = bis_get_project_description($project_id);
-                    $description_excerpt = $description ? wp_trim_words($description, 22, '…') : '';
                     $is_featured = get_post_meta($project_id, 'bis_project_is_featured', true) === '1';
                     ?>
                     <div class="experience-card">
@@ -63,8 +62,8 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                                 <span class="experience-badge">Ключевой проект</span>
                             <?php endif; ?>
                             <h3><?php the_title(); ?></h3>
-                            <?php if ($description_excerpt) : ?>
-                                <p class="experience-description"><?php echo esc_html($description_excerpt); ?></p>
+                            <?php if (!empty($description)) : ?>
+                                <p class="experience-description"><?php echo esc_html($description); ?></p>
                             <?php endif; ?>
                             <a class="experience-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
                         </div>
@@ -72,7 +71,10 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                 <?php endwhile; ?>
                 <?php wp_reset_postdata(); ?>
             <?php else : ?>
-                <p class="section-subtitle">Добавьте проекты в админке, чтобы показать их здесь.</p>
+                <div class="team-empty">
+                    <span class="team-empty__label">Проекты</span>
+                    <p>Мы готовим презентацию наших проектов.</p>
+                </div>
             <?php endif; ?>
         </div>
     </section>

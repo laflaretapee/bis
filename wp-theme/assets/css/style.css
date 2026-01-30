@@ -2271,12 +2271,12 @@ select {
 
 .revenue-card {
   position: relative;
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 16px 16px 20px;
-  overflow: hidden;
-  border: 1px solid rgba(17, 24, 39, 0.03);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  overflow: visible;
+  border: none;
+  box-shadow: none;
   color: var(--dark);
 }
 
@@ -2292,7 +2292,7 @@ select {
   justify-content: space-between;
   gap: 10px;
   color: var(--text-light);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .revenue-card__title {
@@ -2303,28 +2303,59 @@ select {
 
 .revenue-chart {
   position: relative;
-  background: #ffffff;
-  border: 1px solid rgba(17, 24, 39, 0.04);
-  border-radius: 12px;
-  padding: 10px 10px 16px;
-  height: 330px;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 14px;
+  align-items: stretch;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  height: 320px;
   overflow: visible;
-  box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.02);
+  box-shadow: none;
+}
+
+.revenue-chart__axis {
+  position: relative;
+  color: var(--text-light);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.revenue-axis-label {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  color: rgba(15, 23, 42, 0.6);
+  font-weight: var(--font-weight-medium);
+}
+
+.revenue-chart__plot {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .revenue-chart__grid {
   position: absolute;
   inset: 0;
-  margin: 10px 12px 14px;
-  background-image: linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-  background-size: 100% 60px, 90px 100%;
-  mask-image: linear-gradient(180deg, transparent, #000 14%, #000 82%, transparent);
+  z-index: 1;
   pointer-events: none;
 }
 
+.revenue-grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(15, 23, 42, 0.08);
+}
+
 .revenue-chart__svg {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
 }
@@ -2333,19 +2364,19 @@ select {
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0;
-  stroke-width: 0.9;
+  stroke-width: 1.6;
   filter: none;
   transition: stroke-dashoffset 1s ease, opacity 0.8s ease;
 }
 
 .revenue-chart__area {
-  opacity: 0.08;
+  opacity: 0.2;
 }
 
 .revenue-chart__labels {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -2375,7 +2406,7 @@ select {
   position: absolute;
   bottom: 12px;
   right: 12px;
-  z-index: 3;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -2469,7 +2500,8 @@ select {
   }
 
   .revenue-chart {
-    height: 320px;
+    height: 300px;
+    grid-template-columns: 48px 1fr;
   }
 }
 
@@ -2489,7 +2521,9 @@ select {
   }
 
   .revenue-chart {
-    height: 280px;
+    height: 260px;
+    grid-template-columns: 42px 1fr;
+    gap: 10px;
   }
 
   .revenue-label {
@@ -2499,7 +2533,7 @@ select {
 
 @media (max-width: 540px) {
   .revenue-chart {
-    height: 240px;
+    height: 220px;
   }
 
   .revenue-footer {
@@ -3554,6 +3588,17 @@ select {
 @media (max-width: 480px) {
 }
 
+@media (max-width: 768px) {
+  .service-card {
+    min-height: auto;
+  }
+
+  .service-card .btn {
+    width: auto;
+    justify-content: flex-start;
+  }
+}
+
 .slider-prev,
 .slider-next {
   width: 48px;
@@ -3819,6 +3864,7 @@ select {
   color: var(--text-light);
   font-size: 14px;
   line-height: 1.55;
+  white-space: pre-line;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -3862,6 +3908,72 @@ select {
 
 .case-more {
   margin-top: auto;
+}
+
+/* Services & Equipment cards to match project cards */
+.service-card,
+.equipment-card {
+  background: #ffffff;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s ease;
+}
+
+.service-card::before,
+.equipment-card::before {
+  display: none;
+}
+
+.service-card:hover,
+.equipment-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary);
+}
+
+.service-image,
+.equipment-image {
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.service-content,
+.equipment-content {
+  padding: 24px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.service-card h3,
+.equipment-card h3 {
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: var(--font-weight-semibold);
+  color: var(--dark);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.service-card p,
+.equipment-card p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.service-card .btn {
+  width: auto;
+  justify-content: flex-start;
+  margin-top: 4px;
 }
 
 .experience-cta {
@@ -4969,8 +5081,7 @@ select {
     opacity: 1;
     transform: scale(1);
     transition: all 0.3s ease;
-    min-height: 600px;
-    /* Увеличиваем высоту для контента */
+    min-height: 400px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   }
 
@@ -5018,8 +5129,8 @@ select {
   }
 
   .service-card .btn {
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    justify-content: flex-start;
   }
 }
 
@@ -5040,8 +5151,7 @@ select {
     flex: 0 0 calc(100vw - 32px);
     /* Учитываем меньшие отступы */
     margin: 0 8px;
-    min-height: 550px;
-    /* Немного уменьшаем высоту */
+    min-height: 380px;
   }
 
   .service-card:not(:first-child) {
@@ -7025,6 +7135,22 @@ body.post-type-archive-bis_news {
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--primary);
+}
+
+.services-grid .team-empty,
+.equipment-grid .team-empty,
+.experience-grid .team-empty,
+.projects-grid .team-empty,
+.all-cases-grid .team-empty {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 100%;
+}
+
+.services-grid .team-empty,
+.equipment-grid .team-empty {
+  flex: 0 0 100%;
+  margin: 0 auto;
 }
 
 /* Team Modal */

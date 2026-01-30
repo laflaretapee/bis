@@ -245,6 +245,9 @@ function initRevenueChart() {
   const linePath = svg?.querySelector('.revenue-chart__line');
   const areaPath = svg?.querySelector('.revenue-chart__area');
   const lastBadge = chart.querySelector('[data-revenue-last] .revenue-chip');
+  const labelsContainer = chart.querySelector('[data-revenue-labels]');
+  const axisContainer = chart.querySelector('[data-revenue-axis]');
+  const gridContainer = chart.querySelector('[data-revenue-grid]');
   const tooltip = document.createElement('div');
   tooltip.className = 'revenue-tooltip';
   chart.appendChild(tooltip);
@@ -276,7 +279,33 @@ function initRevenueChart() {
   const height = 60;
   const paddingTop = 6;
   const paddingBottom = 6;
-  const maxValue = Math.max(...cleanPoints.map(p => p.value), 1);
+  const rawMax = Math.max(...cleanPoints.map(p => p.value), 1);
+
+  const getNiceStep = (max) => {
+    if (max <= 0) {
+      return { step: 1, max: 1 };
+    }
+    const roughStep = max / 6;
+    const pow = Math.pow(10, Math.floor(Math.log10(roughStep)));
+    const fraction = roughStep / pow;
+    let niceFraction = 1;
+    if (fraction <= 1) {
+      niceFraction = 1;
+    } else if (fraction <= 2) {
+      niceFraction = 2;
+    } else if (fraction <= 5) {
+      niceFraction = 5;
+    } else {
+      niceFraction = 10;
+    }
+    const step = niceFraction * pow;
+    const niceMax = Math.ceil(max / step) * step;
+    return { step, max: niceMax };
+  };
+
+  const nice = getNiceStep(rawMax);
+  const maxValue = nice.max;
+  const axisStep = nice.step;
   const lastValue = cleanPoints[cleanPoints.length - 1]?.value || 0;
   const currencyLabel = chart.dataset.currency || (bisRevenueData?.currency_label || '');
 
@@ -285,6 +314,51 @@ function initRevenueChart() {
     const y = height - paddingBottom - (point.value / maxValue) * (height - paddingTop - paddingBottom);
     return { x, y, value: point.value, label: point.label };
   });
+
+  if (axisContainer) {
+    axisContainer.innerHTML = '';
+    const totalSteps = Math.floor(maxValue / axisStep);
+    for (let i = 0; i <= totalSteps; i++) {
+      const value = axisStep * i;
+      const y = height - paddingBottom - (value / maxValue) * (height - paddingTop - paddingBottom);
+      const yPercent = (y / height) * 100;
+      const label = document.createElement('div');
+      label.className = 'revenue-axis-label';
+      label.textContent = value.toString();
+      label.style.top = `${yPercent}%`;
+      axisContainer.appendChild(label);
+    }
+  }
+
+  if (gridContainer) {
+    gridContainer.innerHTML = '';
+    const totalSteps = Math.floor(maxValue / axisStep);
+    for (let i = 0; i <= totalSteps; i++) {
+      const value = axisStep * i;
+      const y = height - paddingBottom - (value / maxValue) * (height - paddingTop - paddingBottom);
+      const yPercent = (y / height) * 100;
+      const line = document.createElement('div');
+      line.className = 'revenue-grid-line';
+      line.style.top = `${yPercent}%`;
+      gridContainer.appendChild(line);
+    }
+  }
+
+  if (labelsContainer) {
+    labelsContainer.innerHTML = '';
+    coords.forEach((coord) => {
+      const label = document.createElement('div');
+      label.className = 'revenue-label';
+      label.textContent = coord.value.toString();
+      const xPercent = (coord.x / width) * 100;
+      const yPercent = (coord.y / height) * 100;
+      const clampedX = Math.min(96, Math.max(4, xPercent));
+      const clampedY = Math.min(90, Math.max(8, yPercent));
+      label.style.left = `${clampedX}%`;
+      label.style.top = `${clampedY}%`;
+      labelsContainer.appendChild(label);
+    });
+  }
 
   const smoothing = 0.2;
 

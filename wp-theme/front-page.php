@@ -104,90 +104,40 @@ $has_hero_slider = !empty($hero_images);
   </div>
 
   <div class="services-grid">
-    <div class="service-card">
-      <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec1.jpg');"></div>
-        <h5>Комплексная наладка и испытания</h5>
-        <ul>
-          <li>Общеобменной вентиляции</li>
-          <li>Противодымной вентиляции</li>
-          <li>Гидравлическая балансировка холодоснабжения, теплоснабжения, отопления</li>
-          <li>Автоматизация, диспетчеризация, программирование</li>
-          <li>Комплексные испытания</li>
-        </ul>
-        <button class="btn btn-primary order-btn" data-service="Пусконаладочные работы">Заказать</button>
+    <?php
+    $services = new WP_Query(array(
+      'post_type'      => 'bis_service',
+      'post_status'    => 'publish',
+      'posts_per_page' => -1,
+      'orderby'        => array('menu_order' => 'ASC', 'title' => 'ASC'),
+    ));
+    ?>
+
+    <?php if ($services->have_posts()) : ?>
+      <?php while ($services->have_posts()) : $services->the_post(); ?>
+        <?php
+        $service_id = get_the_ID();
+        $image_url = bis_get_service_image_url($service_id);
+        $description = get_post_meta($service_id, 'bis_service_description', true);
+        ?>
+        <div class="service-card">
+          <div class="service-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+          <div class="service-content">
+            <h3><?php the_title(); ?></h3>
+            <?php if (!empty($description)) : ?>
+              <p class="experience-description"><?php echo esc_html($description); ?></p>
+            <?php endif; ?>
+            <button class="btn btn-primary order-btn" data-service="<?php echo esc_attr(get_the_title()); ?>">Заказать</button>
+          </div>
+        </div>
+      <?php endwhile; ?>
+      <?php wp_reset_postdata(); ?>
+    <?php else : ?>
+      <div class="team-empty">
+        <span class="team-empty__label">Услуги</span>
+        <p>Мы готовим презентацию услуг.</p>
       </div>
-
-    <div class="service-card">
-      <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec2.jpg');"></div>
-      <h5>Обслуживание вентиляционных установок</h5>
-      <ul>
-        <li>Проверка
-состояния электродвигателей, вентиляторов, теплообменных
-агрегатов, увлажнителей, натяжение ремней и замена фильтрующих
-элементов, диагностика электрических соединений</li>
-      </ul>
-      <button class="btn btn-primary order-btn" data-service="Техническое сопровождение">Заказать</button>
-    </div>
-
-    <div class="service-card">
-      <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec3.jpg');"></div>
-      <h5>Комплексная чистка и дезинфекция системы вентиляции,
-удаление жировых отложений</h5>
-      <ul>
-        <li>чистка вентиляционных сетей
-механическим способом, с применением специальных средств для
-расщепления жировых отложений и аппаратов высокого давления </li>
-      </ul>
-      <button class="btn btn-primary order-btn" data-service="Техническое сопровождение">Заказать</button>
-    </div>
-
-    <div class="service-card">
-      <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec4.jpg');"></div>
-      <h5>Замеры параметров микроклимата</h5>
-      <p>На соответствие СанПин, ГОСТ:</p>
-      <ul>
-        <li>Скорость воздуха</li>
-        <li>Температура</li>
-        <li>Влажность</li>
-        <li>Уровень освещенности и шума</li>
-      </ul>
-      <button class="btn btn-primary order-btn" data-service="Замеры микроклимата">Заказать</button>
-    </div>
-
-    <div class="service-card">
-      <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec5.jpg');"></div>
-      <h5>Проведение испытаний воздуховодов на плотность и
-видеоинспекция вентиляционных каналов и трубопроводов</h5>
-      <button class="btn btn-primary order-btn" data-service="Испытания воздуховодов">Заказать</button>
-    </div>
-
-    <div class="service-card">
-      <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec6.jpg');"></div>
-      <h5>Испытания чистых помещений</h5>
-      <p>На соответствие требованиям ГОСТ:</p>
-      <ul>
-        <li>Классы чистоты</li>
-        <li>Кратность воздухообмена</li>
-        <li>Скорость однонаправленного потока воздуха</li>
-        <li>Относительная влажность воздуха</li>
-      </ul>
-      <button class="btn btn-primary order-btn" data-service="Испытания чистых помещений">Заказать</button>
-    </div>
-
-    <div class="service-card">
-      <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec7.jpg');"></div>
-      <h5>Проведение предпроектного и технического
-обследования</h5>
-      <ul>
-        <li>Обследование систем на дефекты монтажа,
-проверка соответствия параметром микроклимата и
-воздухообмена требованиям нормативных документов.</li>
-      </ul>
-      <button class="btn btn-primary order-btn" data-service="Документация">Заказать</button>
-    </div>
-
-
-
+    <?php endif; ?>
   </div>
 
   <div class="services-slider-nav">
@@ -301,92 +251,39 @@ $has_hero_slider = !empty($hero_images);
 
   <div class="equipment-park">
     <div class="equipment-grid">
+      <?php
+      $equipment_items = new WP_Query(array(
+        'post_type'      => 'bis_equipment',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => array('menu_order' => 'ASC', 'title' => 'ASC'),
+      ));
+      ?>
 
-    
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob3.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Комплект для вентиляции Testo 440</h5>
-        <p>Профессиональный набор с Bluetooth крыльчаткой 100 мм и зондом с обогреваемой струной для точных измерений воздушных потоков.</p>
-      </div>
-    </div>
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob2.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Электронный балометр Testo 420</h5>
-        <p>Замер объемного расхода воздуха с решёток размером до 600×600 мм и 1200×300 мм для систем вентиляции и кондиционирования.</p>
-      </div>
-    </div>
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob7.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Набор воронок Testo</h5>
-        <p>Специализированные воронки с выпрямителем потока для диффузоров ДУ200 и решёток 350×350 мм.</p>
-      </div>
-    </div>
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob4.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Комплект смарт-зондов Testo</h5>
-        <p>Универсальный набор для диагностики систем вентиляции: анемометр с обогреваемой струйной, зонд-крыльчатка ду15, пирометр лазерный, зонд замера качества воздуха,
-термогигрометр.</p>
-      </div>
-    </div>
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob5.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Октавный шумомер Октава 110А</h5>
-        <p>Точные измерения уровня шума и вибраций оборудования для соответствия санитарным нормам и стандартам.</p>
-      </div>
-    </div>
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob6.jpg');"></div>
-      <div class="equipment-content">
-        <h5>СУВ-1</h5>
-        <p>Прибор для проведения испытаний на герметичность вентиляционной сети. Данный прибор наша собственная разработка, позволяющая быстро и качественно проводить испытания и определять величину утечек.</p>
-      </div>
-    </div>
-
-    <!-- <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob6.webp');"></div>
-      <div class="equipment-content">
-        <h3>Анемометр Testo 416</h3>
-        <p>Компактный анемометр с крыльчаткой ДУ16 для измерения скорости воздушных потоков в системах вентиляции.</p>
-      </div>
-    </div> -->
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob8.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Измерительный прибор Danfoss PFM 1000</h5>
-        <p>Многофункциональный прибор для диагностики и наладки систем отопления, вентиляции и кондиционирования.</p>
-      </div>
-    </div>
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob9.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Измерительный прибор TA Scope</h5>
-        <p>Современный диагностический комплекс для комплексного анализа параметров инженерных систем.</p>
-      </div>
-    </div>
-
-
-
-    <div class="equipment-card">
-      <div class="equipment-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/ob1.jpg');"></div>
-      <div class="equipment-content">
-        <h5>Комплекс для очистки и герметичности</h5>
-        <p>Собственный комплекс «БИС — Баланс Инженерных Систем»: механическая очистка, химическая обработка и проверка герметичности воздуховодов с фото- и видеофиксацией каждого этапа.</p>
-      </div>
-    </div>
-
-
+      <?php if ($equipment_items->have_posts()) : ?>
+        <?php while ($equipment_items->have_posts()) : $equipment_items->the_post(); ?>
+          <?php
+          $equipment_id = get_the_ID();
+          $image_url = bis_get_equipment_image_url($equipment_id);
+          $description = get_post_meta($equipment_id, 'bis_equipment_description', true);
+          ?>
+          <div class="equipment-card">
+            <div class="equipment-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+            <div class="equipment-content">
+              <h3><?php the_title(); ?></h3>
+              <?php if (!empty($description)) : ?>
+                <p class="experience-description"><?php echo esc_html($description); ?></p>
+              <?php endif; ?>
+            </div>
+          </div>
+        <?php endwhile; ?>
+        <?php wp_reset_postdata(); ?>
+      <?php else : ?>
+        <div class="team-empty">
+          <span class="team-empty__label">Оборудование</span>
+          <p>Мы готовим презентацию оборудования.</p>
+        </div>
+      <?php endif; ?>
     </div>
     <div class="equipment-slider-nav">
       <button class="slider-prev" aria-label="Предыдущий прибор">
@@ -511,7 +408,6 @@ endif;
       $project_id = get_the_ID();
       $image_url = bis_get_project_image_url($project_id);
       $description = bis_get_project_description($project_id);
-      $description_excerpt = $description ? wp_trim_words($description, 22, '…') : '';
       ?>
       <div class="experience-card"
            data-image="<?php echo esc_url($image_url); ?>"
@@ -521,8 +417,8 @@ endif;
         <div class="experience-content">
           <span class="experience-badge">Ключевой проект</span>
           <h3><?php the_title(); ?></h3>
-          <?php if ($description_excerpt) : ?>
-            <p class="experience-description"><?php echo esc_html($description_excerpt); ?></p>
+          <?php if (!empty($description)) : ?>
+            <p class="experience-description"><?php echo esc_html($description); ?></p>
           <?php endif; ?>
           <a class="experience-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
         </div>
@@ -531,7 +427,10 @@ endif;
     <?php wp_reset_postdata(); ?>
   </div>
   <?php else : ?>
-    <p class="section-subtitle">Добавьте проекты в админке, чтобы показать их здесь.</p>
+    <div class="team-empty">
+      <span class="team-empty__label">Проекты</span>
+      <p>Мы готовим презентацию ключевых проектов.</p>
+    </div>
   <?php endif; ?>
   
   <div class="experience-cta">
@@ -587,7 +486,6 @@ endif;
           $project_id = get_the_ID();
           $image_url = bis_get_project_image_url($project_id);
           $description = bis_get_project_description($project_id);
-          $description_excerpt = $description ? wp_trim_words($description, 18, '…') : '';
           $is_featured = get_post_meta($project_id, 'bis_project_is_featured', true) === '1';
           ?>
           <div class="all-case-card"
@@ -600,8 +498,8 @@ endif;
                 <span class="experience-badge">Ключевой проект</span>
               <?php endif; ?>
               <h4><?php the_title(); ?></h4>
-              <?php if ($description_excerpt) : ?>
-                <p class="experience-description"><?php echo esc_html($description_excerpt); ?></p>
+              <?php if (!empty($description)) : ?>
+                <p class="experience-description"><?php echo esc_html($description); ?></p>
               <?php endif; ?>
               <a class="case-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
             </div>
@@ -609,7 +507,10 @@ endif;
         <?php endwhile; ?>
         <?php wp_reset_postdata(); ?>
       <?php else : ?>
-        <p class="section-subtitle">Добавьте проекты, чтобы показать их здесь.</p>
+        <div class="team-empty">
+          <span class="team-empty__label">Проекты</span>
+          <p>Мы готовим презентацию наших проектов.</p>
+        </div>
       <?php endif; ?>
     </div>
   </div>
@@ -893,7 +794,9 @@ $news_query = new WP_Query(array(
       </div>
 
       <div class="revenue-chart" data-currency="<?php echo esc_attr($revenue['currency_label']); ?>" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
-        <svg class="revenue-chart__svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+        <div class="revenue-chart__axis" data-revenue-axis></div>
+        <div class="revenue-chart__plot">
+          <svg class="revenue-chart__svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stop-color="rgba(132, 139, 153, 0.25)"/>
@@ -913,12 +816,13 @@ $news_query = new WP_Query(array(
           </defs>
           <path class="revenue-chart__area" fill="url(#revenueGradient)" d=""></path>
           <path class="revenue-chart__line" stroke="url(#revenueLine)" stroke-width="1.8" fill="none" filter="url(#revenueGlow)" d=""></path>
-        </svg>
-        <div class="revenue-chart__grid"></div>
-        <div class="revenue-chart__labels" data-revenue-labels></div>
-        <div class="revenue-chart__last" data-revenue-last>
-          <div class="revenue-chip">—</div>
-          <span class="revenue-chip__caption">текущий показатель</span>
+          </svg>
+          <div class="revenue-chart__grid" data-revenue-grid></div>
+          <div class="revenue-chart__labels" data-revenue-labels></div>
+          <div class="revenue-chart__last" data-revenue-last>
+            <div class="revenue-chip">—</div>
+            <span class="revenue-chip__caption">текущий показатель</span>
+          </div>
         </div>
       </div>
 
