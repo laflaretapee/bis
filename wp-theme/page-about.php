@@ -5,16 +5,28 @@ Template Name: О компании
 get_header();
 ?>
 
+<?php
+$page_id = get_the_ID();
+$banner_title = get_post_meta($page_id, 'bis_page_banner_title', true);
+$banner_subtitle = get_post_meta($page_id, 'bis_page_banner_subtitle', true);
+$banner_title = $banner_title ? $banner_title : get_the_title();
+$banner_subtitle = $banner_subtitle ? $banner_subtitle : '«БИС — Баланс Инженерных Систем» — инжиниринговая команда полного цикла: проектируем, запускаем и сопровождаем инженерные системы.';
+$banner_image = get_post_meta($page_id, 'bis_page_banner_image', true);
+$banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page_id, 'full');
+?>
+
 <main class="about-page">
-    <section class="about-hero" style="background-image: url('<?php echo get_the_post_thumbnail_url(get_the_ID(), 'full'); ?>');background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-        height: 95vh;">
-        <div class="about-hero__overlay" style="height: 100%;">
-            
-            <h1 class="about-hero__title"><?php the_title(); ?></h1>
-            <p class="about-hero__subtitle">«БИС — Баланс Инженерных Систем» — инжиниринговая команда полного цикла: проектируем, запускаем и сопровождаем инженерные системы.</p>
-            <div class="about-hero__nav">
+    <section class="page-hero">
+        <?php if ($banner_image) : ?>
+            <div class="page-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+        <?php endif; ?>
+        <div class="grid-pattern"></div>
+        <div class="page-hero__overlay">
+            <h1 class="page-hero__title"><?php echo esc_html($banner_title); ?></h1>
+            <?php if (!empty($banner_subtitle)) : ?>
+                <p class="page-hero__subtitle"><?php echo esc_html($banner_subtitle); ?></p>
+            <?php endif; ?>
+            <div class="page-hero__nav">
                 <a href="#about-who">Кто мы</a>
                 <a href="#about-mission">Миссия</a>
                 <a href="#about-stats">В цифрах</a>
@@ -23,14 +35,14 @@ get_header();
             </div>
         </div>
     </section>
-
+    
     <section class="breadcrumbs-section">
-    <nav class="project-breadcrumbs mw-1400px">
-                <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
-                <span class="breadcrumbs-delimiter">/</span>
-                <span><?php the_title(); ?></span>
-            </nav>
-            </section>
+        <nav class="project-breadcrumbs mw-1400px">
+            <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
+            <span class="breadcrumbs-delimiter">/</span>
+            <span><?php echo esc_html($banner_title); ?></span>
+        </nav>
+    </section>
 
     <section class="about-intro" id="about-who">
         <div class="about-intro__grid mw-1400px">
@@ -228,40 +240,37 @@ get_header();
                 <p class="section-subtitle">Благодарственные письма от партнёров и заказчиков подтверждают качество и результат нашей работы</p>
             </div>
 
-            <div class="gratitude-slider-wrapper">
-                <button class="gratitude-nav gratitude-prev" type="button" aria-label="Предыдущий отзыв">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
+        <div class="gratitude-slider-wrapper" data-gratitude-gallery>
+            <button class="gratitude-nav gratitude-prev" type="button" aria-label="Предыдущий отзыв" data-gratitude-prev>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
 
-                <div class="gratitude-slider">
-                    <div class="gratitude-track">
-                        <?php while ($gratitude_letters->have_posts()) : $gratitude_letters->the_post(); ?>
-                            <?php
-                            $image_url = has_post_thumbnail() ? get_the_post_thumbnail_url(get_the_ID(), 'full') : '';
+            <div class="gratitude-slider">
+                <div class="gratitude-track" data-gratitude-track>
+                    <?php while ($gratitude_letters->have_posts()) : $gratitude_letters->the_post(); ?>
+                        <?php
+                            $image_url = bis_get_gratitude_image_url(get_the_ID());
                             $title_attr = the_title_attribute(array('echo' => false));
-                            ?>
-                            <article class="gratitude-card<?php echo $image_url ? ' has-image' : ''; ?>"<?php if ($image_url) : ?> data-image="<?php echo esc_url($image_url); ?>" data-title="<?php echo esc_attr($title_attr); ?>" tabindex="0"<?php endif; ?>>
-                                <div class="gratitude-letter">
-                                    <?php if ($image_url) : ?>
-                                        <?php the_post_thumbnail('large', array('loading' => 'lazy')); ?>
-                                    <?php else : ?>
-                                        <div class="gratitude-letter__placeholder">Изображение письма появится здесь</div>
-                                    <?php endif; ?>
-                                </div>
-                                <h3 class="gratitude-company"><?php the_title(); ?></h3>
-                            </article>
-                        <?php endwhile; ?>
-                    </div>
+                        ?>
+                            <button type="button" class="gratitude-card<?php echo $image_url ? ' has-image' : ''; ?>" data-gratitude-slide<?php if ($image_url) : ?> data-image="<?php echo esc_url($image_url); ?>" data-title="<?php echo esc_attr($title_attr); ?>"<?php endif; ?>>
+                                <?php if ($image_url) : ?>
+                                    <img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($title_attr); ?>" loading="lazy">
+                                <?php else : ?>
+                                    <div class="gratitude-card__placeholder">Изображение письма появится здесь</div>
+                                <?php endif; ?>
+                            </button>
+                    <?php endwhile; ?>
                 </div>
-
-                <button class="gratitude-nav gratitude-next" type="button" aria-label="Следующий отзыв">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
             </div>
+
+            <button class="gratitude-nav gratitude-next" type="button" aria-label="Следующий отзыв" data-gratitude-next>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
             </div>
     </section>
     <?php

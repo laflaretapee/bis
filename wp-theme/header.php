@@ -47,11 +47,11 @@
         </button>
       </div>
       <ul class="drawer-nav">
-        <li><a href="<?php echo esc_url(home_url('/about/')); ?>">О компании</a></li>
+        <li><a href="<?php echo esc_url(home_url('/about/')); ?>">О нас</a></li>
+        <li><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></li>
         <li><a href="#services">Специализация</a></li>
         <li><a href="#equipment">Оборудование</a></li>
         <li><a href="#experience">Опыт</a></li>
-        <li><a href="#why">О нас</a></li>
         <li><a href="#contact">Контакты</a></li>
         <li><a href="#faq">F.A.Q</a></li>
       </ul>

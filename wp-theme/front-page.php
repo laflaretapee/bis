@@ -20,7 +20,7 @@ $has_hero_slider = !empty($hero_images);
     <div class="grid-pattern"></div>
     <div class="hero-content">
       <h1 class="typing-title">
-        <span class="typing-text">«БИС — </span><span class="cursor">|</span>
+        <span class="typing-text">БИС — </span><span class="cursor">|</span>
       </h1>
       <p class="hero-subtitle">
         Компания «БИС — Баланс Инженерных Систем» специализируется на комплексных пусконаладочных работах инженерных систем, техническом обслуживании и сопровождении
@@ -35,7 +35,8 @@ $has_hero_slider = !empty($hero_images);
         <li><a href="#services">Специализация</a></li>
         <li><a href="#equipment">Оборудование</a></li>
         <li><a href="#experience">Опыт</a></li>
-        <li><a href="#why">О нас</a></li>
+        <li><a href="<?php echo esc_url(home_url('/about/')); ?>">О нас</a></li>
+        <li><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></li>
         <li><a href="#contact">Контакты</a></li>
         <li><a href="#faq">F.A.Q</a></li>
       </ul>
@@ -420,35 +421,32 @@ if ($gratitude_letters->have_posts()) :
     <p class="section-subtitle">Благодарственные письма от партнёров и заказчиков подтверждают качество и результат нашей работы</p>
   </div>
 
-  <div class="gratitude-slider-wrapper">
-    <button class="gratitude-nav gratitude-prev" type="button" aria-label="Предыдущий отзыв">
+  <div class="gratitude-slider-wrapper" data-gratitude-gallery>
+    <button class="gratitude-nav gratitude-prev" type="button" aria-label="Предыдущий отзыв" data-gratitude-prev>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
 
     <div class="gratitude-slider">
-      <div class="gratitude-track">
+      <div class="gratitude-track" data-gratitude-track>
         <?php while ($gratitude_letters->have_posts()) : $gratitude_letters->the_post(); ?>
           <?php
-          $image_url = has_post_thumbnail() ? get_the_post_thumbnail_url(get_the_ID(), 'full') : '';
+          $image_url = bis_get_gratitude_image_url(get_the_ID());
           $title_attr = the_title_attribute(array('echo' => false));
           ?>
-          <article class="gratitude-card<?php echo $image_url ? ' has-image' : ''; ?>"<?php if ($image_url) : ?> data-image="<?php echo esc_url($image_url); ?>" data-title="<?php echo esc_attr($title_attr); ?>" tabindex="0"<?php endif; ?>>
-            <div class="gratitude-letter">
-              <?php if ($image_url) : ?>
-                <?php the_post_thumbnail('large', array('loading' => 'lazy')); ?>
-              <?php else : ?>
-                <div class="gratitude-letter__placeholder">Изображение письма появится здесь</div>
-              <?php endif; ?>
-            </div>
-            <h3 class="gratitude-company"><?php the_title(); ?></h3>
-          </article>
+          <button type="button" class="gratitude-card<?php echo $image_url ? ' has-image' : ''; ?>" data-gratitude-slide<?php if ($image_url) : ?> data-image="<?php echo esc_url($image_url); ?>" data-title="<?php echo esc_attr($title_attr); ?>"<?php endif; ?>>
+            <?php if ($image_url) : ?>
+              <img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($title_attr); ?>" loading="lazy">
+            <?php else : ?>
+              <div class="gratitude-card__placeholder">Изображение письма появится здесь</div>
+            <?php endif; ?>
+          </button>
         <?php endwhile; ?>
       </div>
     </div>
 
-    <button class="gratitude-nav gratitude-next" type="button" aria-label="Следующий отзыв">
+    <button class="gratitude-nav gratitude-next" type="button" aria-label="Следующий отзыв" data-gratitude-next>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -496,7 +494,7 @@ endif;
   ?>
 
   <?php if ($featured_projects->have_posts()) : ?>
-  <div class="experience-grid" style="max-width: unset;">
+  <div class="experience-grid">
     <?php while ($featured_projects->have_posts()) : $featured_projects->the_post(); ?>
       <?php
       $project_id = get_the_ID();

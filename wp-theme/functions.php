@@ -108,6 +108,7 @@ function bis_register_projects_cpt() {
         'labels'        => $labels,
         'public'        => true,
         'has_archive'   => false,
+        'rewrite'       => array('slug' => 'projects', 'with_front' => false),
         'menu_icon'     => 'dashicons-portfolio',
         'show_in_rest'  => true,
         'supports'      => array('title'),
@@ -138,6 +139,113 @@ function bis_add_project_meta_boxes() {
     );
 }
 add_action('add_meta_boxes', 'bis_add_project_meta_boxes');
+
+function bis_add_page_banner_meta_boxes() {
+    add_meta_box(
+        'bis_page_banner',
+        'Баннер страницы',
+        'bis_page_banner_metabox',
+        'page',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'bis_add_page_banner_meta_boxes');
+
+function bis_add_gratitude_meta_boxes() {
+    add_meta_box(
+        'bis_gratitude_image',
+        'Изображение благодарности',
+        'bis_gratitude_image_metabox',
+        'bis_gratitude',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'bis_add_gratitude_meta_boxes');
+
+function bis_page_banner_metabox($post) {
+    wp_nonce_field('bis_page_banner_nonce', 'bis_page_banner_nonce_field');
+
+    $banner_title = get_post_meta($post->ID, 'bis_page_banner_title', true);
+    $banner_subtitle = get_post_meta($post->ID, 'bis_page_banner_subtitle', true);
+    $banner_image = get_post_meta($post->ID, 'bis_page_banner_image', true);
+    $thumbnail_url = get_the_post_thumbnail_url($post->ID, 'full');
+    $banner_preview = $banner_image ? $banner_image : $thumbnail_url;
+    ?>
+    <div class="bis-project-box">
+        <div class="bis-project-box__header">
+            <div>
+                <h3>Текст баннера</h3>
+                <p>Задайте текст для баннера страницы. Фоновое изображение берется из «Изображения записи».</p>
+            </div>
+        </div>
+
+        <div class="bis-project-media bis-project-media--banner">
+            <div class="bis-project-media__preview <?php echo $banner_preview ? '' : 'is-empty'; ?>" data-image-preview="bis_page_banner_image" style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
+                <?php if (!$banner_preview) : ?>
+                    <span class="bis-project-media__placeholder">Нет изображения</span>
+                <?php endif; ?>
+            </div>
+            <div class="bis-project-media__controls">
+                <label for="bis_page_banner_image">Изображение баннера</label>
+                <input type="text" id="bis_page_banner_image" name="bis_page_banner_image" value="<?php echo esc_url($banner_image); ?>" placeholder="https://" data-image-input data-preview-target="bis_page_banner_image">
+                <div class="bis-project-media__buttons">
+                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_page_banner_image">Выбрать в медиабиблиотеке</button>
+                    <button type="button" class="button bis-project-image-clear" data-target="bis_page_banner_image">Убрать фото</button>
+                </div>
+                <p class="bis-field__hint">Можно указать ссылку вручную или выбрать файл. Если поле пустое, будет использовано «Изображение записи».</p>
+            </div>
+        </div>
+
+        <div class="bis-project-grid">
+            <div class="bis-field">
+                <label for="bis_page_banner_title">Заголовок баннера</label>
+                <input type="text" id="bis_page_banner_title" name="bis_page_banner_title" value="<?php echo esc_attr($banner_title); ?>" placeholder="<?php echo esc_attr(get_the_title($post->ID)); ?>">
+            </div>
+            <div class="bis-field">
+                <label for="bis_page_banner_subtitle">Подзаголовок</label>
+                <textarea id="bis_page_banner_subtitle" name="bis_page_banner_subtitle" rows="3" placeholder="Введите подзаголовок"><?php echo esc_textarea($banner_subtitle); ?></textarea>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
+function bis_gratitude_image_metabox($post) {
+    wp_nonce_field('bis_gratitude_image_nonce', 'bis_gratitude_image_nonce_field');
+
+    $gratitude_image = get_post_meta($post->ID, 'bis_gratitude_image', true);
+    $thumbnail_url = get_the_post_thumbnail_url($post->ID, 'full');
+    $preview = $gratitude_image ? $gratitude_image : $thumbnail_url;
+    ?>
+    <div class="bis-project-box">
+        <div class="bis-project-box__header">
+            <div>
+                <h3>Изображение благодарности</h3>
+                <p>Можно указать ссылку или выбрать изображение из медиабиблиотеки.</p>
+            </div>
+        </div>
+
+        <div class="bis-project-media bis-project-media--banner">
+            <div class="bis-project-media__preview <?php echo $preview ? '' : 'is-empty'; ?>" data-image-preview="bis_gratitude_image" style="background-image: url('<?php echo esc_url($preview); ?>');">
+                <?php if (!$preview) : ?>
+                    <span class="bis-project-media__placeholder">Нет изображения</span>
+                <?php endif; ?>
+            </div>
+            <div class="bis-project-media__controls">
+                <label for="bis_gratitude_image">Изображение</label>
+                <input type="text" id="bis_gratitude_image" name="bis_gratitude_image" value="<?php echo esc_url($gratitude_image); ?>" placeholder="https://" data-image-input data-preview-target="bis_gratitude_image">
+                <div class="bis-project-media__buttons">
+                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_gratitude_image">Выбрать в медиабиблиотеке</button>
+                    <button type="button" class="button bis-project-image-clear" data-target="bis_gratitude_image">Убрать фото</button>
+                </div>
+                <p class="bis-field__hint">Если поле пустое, будет использовано «Изображение записи».</p>
+            </div>
+        </div>
+    </div>
+    <?php
+}
 
 function bis_project_details_metabox_legacy($post) {
     wp_nonce_field('bis_project_details_nonce', 'bis_project_details_nonce_field');
@@ -194,14 +302,14 @@ function bis_project_details_metabox_legacy($post) {
         </div>
 
         <div class="bis-project-media">
-            <div class="bis-project-media__preview" data-project-preview style="background-image: url('<?php echo esc_url($image_url); ?>');">
+            <div class="bis-project-media__preview" data-image-preview="bis_project_image" style="background-image: url('<?php echo esc_url($image_url); ?>');">
                 <?php if (!$image_url) : ?>
                     <span class="bis-project-media__placeholder">Нет изображения</span>
                 <?php endif; ?>
             </div>
             <div class="bis-project-media__controls">
                 <label for="bis_project_image">Фото проекта</label>
-                <input type="text" id="bis_project_image" name="bis_project_image" value="<?php echo esc_url($image_url); ?>" placeholder="https://">
+                <input type="text" id="bis_project_image" name="bis_project_image" value="<?php echo esc_url($image_url); ?>" placeholder="https://" data-image-input data-preview-target="bis_project_image">
                 <div class="bis-project-media__buttons">
                     <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_image" data-preview="project">Выбрать в медиабиблиотеке</button>
                     <button type="button" class="button bis-project-image-clear" data-target="bis_project_image" data-preview="project">Убрать фото</button>
@@ -217,14 +325,14 @@ function bis_project_details_metabox_legacy($post) {
             </div>
 
             <div class="bis-project-media bis-project-media--banner">
-                <div class="bis-project-media__preview <?php echo $banner_preview ? '' : 'is-empty'; ?>" data-banner-image-preview style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
+                <div class="bis-project-media__preview <?php echo $banner_preview ? '' : 'is-empty'; ?>" data-image-preview="bis_project_banner_image" style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
                     <?php if (!$banner_preview) : ?>
                         <span class="bis-project-media__placeholder">Нет изображения</span>
                     <?php endif; ?>
                 </div>
                 <div class="bis-project-media__controls">
                     <label for="bis_project_banner_image">Баннер проекта</label>
-                    <input type="text" id="bis_project_banner_image" name="bis_project_banner_image" value="<?php echo esc_url($banner_image); ?>" placeholder="https://">
+                    <input type="text" id="bis_project_banner_image" name="bis_project_banner_image" value="<?php echo esc_url($banner_image); ?>" placeholder="https://" data-image-input data-preview-target="bis_project_banner_image">
                     <div class="bis-project-media__buttons">
                         <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_banner_image" data-preview="banner">Выбрать баннер</button>
                         <button type="button" class="button bis-project-image-clear" data-target="bis_project_banner_image" data-preview="banner">Убрать фото</button>
@@ -494,14 +602,14 @@ function bis_project_details_metabox($post) {
         </div>
 
         <div class="bis-project-media">
-            <div class="bis-project-media__preview <?php echo $banner_preview ? '' : 'is-empty'; ?>" data-banner-image-preview style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
+            <div class="bis-project-media__preview <?php echo $banner_preview ? '' : 'is-empty'; ?>" data-image-preview="bis_project_banner_image" style="background-image: url('<?php echo esc_url($banner_preview); ?>');">
                 <?php if (!$banner_preview) : ?>
                     <span class="bis-project-media__placeholder">Нет изображения</span>
                 <?php endif; ?>
             </div>
             <div class="bis-project-media__controls">
                 <label for="bis_project_banner_image">Главное изображение (баннер)</label>
-                <input type="text" id="bis_project_banner_image" name="bis_project_banner_image" value="<?php echo esc_url($banner_image); ?>" placeholder="https://">
+                <input type="text" id="bis_project_banner_image" name="bis_project_banner_image" value="<?php echo esc_url($banner_image); ?>" placeholder="https://" data-image-input data-preview-target="bis_project_banner_image">
                 <div class="bis-project-media__buttons">
                     <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_banner_image" data-preview="banner">Выбрать в медиабиблиотеке</button>
                     <button type="button" class="button bis-project-image-clear" data-target="bis_project_banner_image" data-preview="banner">Убрать фото</button>
@@ -573,7 +681,13 @@ function bis_project_details_metabox($post) {
                         </li>
                     <?php endforeach; ?>
                 </ul>
-                <button type="button" class="button" id="bis-project-gallery-add">Добавить фото</button>
+                <div class="bis-project-gallery-actions">
+                    <button type="button" class="button" id="bis-project-gallery-add">Добавить фото</button>
+                    <div class="bis-project-gallery-url">
+                        <input type="text" id="bis-project-gallery-url" placeholder="https://">
+                        <button type="button" class="button" id="bis-project-gallery-add-url">Добавить по ссылке</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -661,6 +775,47 @@ function bis_save_project_details($post_id) {
     update_post_meta($post_id, 'bis_project_description', $project_description);
 }
 add_action('save_post', 'bis_save_project_details');
+
+function bis_save_page_banner($post_id) {
+    if (!isset($_POST['bis_page_banner_nonce_field']) || !wp_verify_nonce($_POST['bis_page_banner_nonce_field'], 'bis_page_banner_nonce')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!isset($_POST['post_type']) || 'page' !== $_POST['post_type'] || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $banner_title = isset($_POST['bis_page_banner_title']) ? sanitize_text_field(wp_unslash($_POST['bis_page_banner_title'])) : '';
+    $banner_subtitle = isset($_POST['bis_page_banner_subtitle']) ? sanitize_textarea_field(wp_unslash($_POST['bis_page_banner_subtitle'])) : '';
+    $banner_image = isset($_POST['bis_page_banner_image']) ? esc_url_raw(wp_unslash($_POST['bis_page_banner_image'])) : '';
+
+    update_post_meta($post_id, 'bis_page_banner_title', $banner_title);
+    update_post_meta($post_id, 'bis_page_banner_subtitle', $banner_subtitle);
+    update_post_meta($post_id, 'bis_page_banner_image', $banner_image);
+}
+add_action('save_post', 'bis_save_page_banner');
+
+function bis_save_gratitude_image($post_id) {
+    if (!isset($_POST['bis_gratitude_image_nonce_field']) || !wp_verify_nonce($_POST['bis_gratitude_image_nonce_field'], 'bis_gratitude_image_nonce')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!isset($_POST['post_type']) || 'bis_gratitude' !== $_POST['post_type'] || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $gratitude_image = isset($_POST['bis_gratitude_image']) ? esc_url_raw(wp_unslash($_POST['bis_gratitude_image'])) : '';
+    update_post_meta($post_id, 'bis_gratitude_image', $gratitude_image);
+}
+add_action('save_post', 'bis_save_gratitude_image');
 
 /**
  * Custom columns for projects.
@@ -1041,6 +1196,16 @@ function bis_get_project_gallery($post_id) {
     return is_array($gallery) ? $gallery : array();
 }
 
+function bis_get_gratitude_image_url($post_id) {
+    $custom = get_post_meta($post_id, 'bis_gratitude_image', true);
+    if ($custom) {
+        return esc_url($custom);
+    }
+
+    $thumb = get_the_post_thumbnail_url($post_id, 'full');
+    return $thumb ? $thumb : '';
+}
+
 function bis_get_team_members() {
     $members = get_option('bis_team_members', array());
     if (!is_array($members)) {
@@ -1189,7 +1354,7 @@ function bis_admin_scripts($hook) {
 
     if (in_array($hook, array('post-new.php', 'post.php'), true)) {
         $screen = get_current_screen();
-        if ($screen && 'bis_project' === $screen->post_type) {
+        if ($screen && in_array($screen->post_type, array('bis_project', 'page', 'bis_gratitude'), true)) {
             wp_enqueue_media();
             wp_enqueue_script('jquery-ui-sortable');
             wp_enqueue_script('bis-projects-admin', get_template_directory_uri() . '/assets/js/admin-projects.js', array('jquery', 'jquery-ui-sortable'), '1.0', true);

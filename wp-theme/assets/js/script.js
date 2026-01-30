@@ -74,7 +74,7 @@ function initTypingEffect() {
   const textParts = [
     { text: 'Баланс ', isGradient: false },
     { text: 'Инженерных ', isGradient: true },
-    { text: 'Систем»', isGradient: false }
+    { text: 'Систем', isGradient: false }
   ];
 
   // Установим ширину контейнера до начала анимации, чтобы избежать смещения
@@ -1005,94 +1005,86 @@ function initServicesSlider() {
 
 // Slider for gratitude letters
 function initGratitudeSlider() {
-  const slider = document.querySelector('.gratitude-slider');
-  const track = slider ? slider.querySelector('.gratitude-track') : null;
-  const cards = track ? Array.from(track.children) : [];
-  const prevBtn = document.querySelector('.gratitude-prev');
-  const nextBtn = document.querySelector('.gratitude-next');
+  const galleries = document.querySelectorAll('[data-gratitude-gallery]');
+  if (!galleries.length) return;
 
-  if (!slider || !track || cards.length === 0) {
-    if (prevBtn) prevBtn.disabled = true;
-    if (nextBtn) nextBtn.disabled = true;
-    return;
-  }
+  galleries.forEach((gallery) => {
+    const track = gallery.querySelector('[data-gratitude-track]');
+    const slides = Array.from(gallery.querySelectorAll('[data-gratitude-slide]'));
+    const prevBtn = gallery.querySelector('[data-gratitude-prev]');
+    const nextBtn = gallery.querySelector('[data-gratitude-next]');
 
-  let currentIndex = 0;
-  let slidesPerView = getSlidesPerView();
-
-  const getGap = () => {
-    const styles = window.getComputedStyle(track);
-    const rawGap = styles.columnGap || styles.gap || '0';
-    const parsedGap = parseFloat(rawGap);
-    return Number.isNaN(parsedGap) ? 0 : parsedGap;
-  };
-
-  function getSlidesPerView() {
-    if (window.innerWidth >= 1400) return 4;
-    if (window.innerWidth >= 1024) return 3;
-    if (window.innerWidth >= 640) return 2;
-    return 1;
-  }
-
-  function setCardWidth() {
-    const sliderWidth = slider.clientWidth;
-    const gap = getGap();
-    const width = (sliderWidth - gap * (slidesPerView - 1)) / slidesPerView;
-    slider.style.setProperty('--gratitude-card-width', `${width}px`);
-  }
-
-  function getCardWidth() {
-    const raw = parseFloat(getComputedStyle(slider).getPropertyValue('--gratitude-card-width'));
-    if (Number.isNaN(raw) || raw <= 0) {
-      return cards[0].offsetWidth || slider.clientWidth;
+    if (!track || slides.length === 0) {
+      if (prevBtn) prevBtn.disabled = true;
+      if (nextBtn) nextBtn.disabled = true;
+      return;
     }
-    return raw;
-  }
 
-  function getMaxIndex() {
-    return Math.max(0, cards.length - slidesPerView);
-  }
+    let activeIndex = 0;
+    let slideStep = 0;
 
-  function updateButtons() {
-    if (prevBtn) prevBtn.disabled = currentIndex === 0;
-    if (nextBtn) nextBtn.disabled = currentIndex >= getMaxIndex();
-  }
+    const getGap = () => {
+      const styles = window.getComputedStyle(track);
+      const rawGap = styles.columnGap || styles.gap || '0';
+      const parsedGap = parseFloat(rawGap);
+      return Number.isNaN(parsedGap) ? 0 : parsedGap;
+    };
 
-  function updatePosition() {
-    const offset = currentIndex * (getCardWidth() + getGap());
-    track.style.transform = `translateX(-${offset}px)`;
-  }
+    const computeSlideStep = () => {
+      const first = slides[0];
+      if (!first) return 0;
+      const rect = first.getBoundingClientRect();
+      return rect.width + getGap();
+    };
 
-  function goTo(index) {
-    const maxIndex = getMaxIndex();
-    currentIndex = Math.max(0, Math.min(index, maxIndex));
-    updateButtons();
-    updatePosition();
-  }
+    const normalizeIndex = (index) => {
+      const total = slides.length;
+      if (!total) return 0;
+      return ((index % total) + total) % total;
+    };
 
-  setCardWidth();
-  goTo(0);
-
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => goTo(currentIndex - 1));
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => goTo(currentIndex + 1));
-  }
-
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    if (!slider.isConnected) return;
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      const updatedSlides = getSlidesPerView();
-      if (updatedSlides !== slidesPerView) {
-        slidesPerView = updatedSlides;
+    const scrollToIndex = (index) => {
+      if (!slideStep || Number.isNaN(slideStep)) {
+        slideStep = computeSlideStep();
       }
-      setCardWidth();
-      goTo(currentIndex);
-    }, 150);
+      if (!slideStep || Number.isNaN(slideStep)) {
+        return;
+      }
+      activeIndex = normalizeIndex(index);
+      track.scrollTo({
+        left: activeIndex * slideStep,
+        behavior: 'smooth'
+      });
+    };
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => scrollToIndex(activeIndex - 1));
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => scrollToIndex(activeIndex + 1));
+    }
+
+    track.addEventListener('scroll', () => {
+      if (!slideStep || Number.isNaN(slideStep)) {
+        slideStep = computeSlideStep();
+      }
+      if (!slideStep || Number.isNaN(slideStep)) {
+        return;
+      }
+      const index = Math.round(track.scrollLeft / slideStep);
+      if (index !== activeIndex) {
+        activeIndex = normalizeIndex(index);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (!track.isConnected) return;
+      slideStep = computeSlideStep();
+      scrollToIndex(activeIndex);
+    });
+
+    slideStep = computeSlideStep();
   });
 }
 
@@ -2037,100 +2029,8 @@ function initProjectGallery() {
   const gallery = document.querySelector('[data-project-gallery]');
   if (!gallery) return;
 
-  const track = gallery.querySelector('[data-gallery-track]');
   const slides = Array.from(gallery.querySelectorAll('[data-gallery-slide]'));
-  const prevBtn = gallery.querySelector('[data-gallery-prev]');
-  const nextBtn = gallery.querySelector('[data-gallery-next]');
-  const dotsContainer = gallery.querySelector('[data-gallery-dots]');
-
-  if (!track || slides.length === 0) return;
-
-  let activeIndex = 0;
-  let slideStep = 0;
-
-  const computeSlideStep = () => {
-    const first = slides[0];
-    if (!first) return 0;
-    const rect = first.getBoundingClientRect();
-    const styles = window.getComputedStyle(track);
-    const gap = parseFloat(styles.columnGap) || parseFloat(styles.gap) || 0;
-    return rect.width + gap;
-  };
-
-  const updateNav = () => {
-    if (prevBtn) {
-      prevBtn.disabled = activeIndex <= 0;
-    }
-    if (nextBtn) {
-      nextBtn.disabled = activeIndex >= slides.length - 1;
-    }
-  };
-
-  const updateDots = () => {
-    if (!dotsContainer) return;
-    const dots = dotsContainer.querySelectorAll('.slider-dot');
-    dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === activeIndex);
-    });
-  };
-
-  const scrollToIndex = (index) => {
-    if (!slideStep || Number.isNaN(slideStep)) {
-      slideStep = computeSlideStep();
-    }
-    if (!slideStep || Number.isNaN(slideStep)) {
-      return;
-    }
-    activeIndex = Math.max(0, Math.min(index, slides.length - 1));
-    track.scrollTo({
-      left: activeIndex * slideStep,
-      behavior: 'smooth'
-    });
-    updateNav();
-    updateDots();
-  };
-
-  if (dotsContainer) {
-    dotsContainer.innerHTML = '';
-    slides.forEach((_, index) => {
-      const dot = document.createElement('button');
-      dot.type = 'button';
-      dot.className = 'slider-dot';
-      dot.addEventListener('click', () => scrollToIndex(index));
-      dotsContainer.appendChild(dot);
-    });
-  }
-
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => scrollToIndex(activeIndex - 1));
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => scrollToIndex(activeIndex + 1));
-  }
-
-  track.addEventListener('scroll', () => {
-    if (!slideStep || Number.isNaN(slideStep)) {
-      slideStep = computeSlideStep();
-    }
-    if (!slideStep || Number.isNaN(slideStep)) {
-      return;
-    }
-    const index = Math.round(track.scrollLeft / slideStep);
-    if (index !== activeIndex) {
-      activeIndex = Math.max(0, Math.min(index, slides.length - 1));
-      updateNav();
-      updateDots();
-    }
-  });
-
-  window.addEventListener('resize', () => {
-    slideStep = computeSlideStep();
-    scrollToIndex(activeIndex);
-  });
-
-  slideStep = computeSlideStep();
-  updateNav();
-  updateDots();
+  if (slides.length === 0) return;
 
   const lightbox = document.getElementById('projectLightbox');
   if (!lightbox) return;
@@ -2143,6 +2043,12 @@ function initProjectGallery() {
 
   let lightboxIndex = 0;
 
+  const normalizeIndex = (index) => {
+    const total = slides.length;
+    if (!total) return 0;
+    return ((index % total) + total) % total;
+  };
+
   const updateLightbox = () => {
     const slide = slides[lightboxIndex];
     const src = slide ? slide.dataset.full || slide.querySelector('img')?.src : '';
@@ -2153,16 +2059,10 @@ function initProjectGallery() {
     if (lightboxCaption) {
       lightboxCaption.textContent = `${lightboxIndex + 1} / ${slides.length}`;
     }
-    if (lightboxPrev) {
-      lightboxPrev.disabled = lightboxIndex <= 0;
-    }
-    if (lightboxNext) {
-      lightboxNext.disabled = lightboxIndex >= slides.length - 1;
-    }
   };
 
   const openLightbox = (index) => {
-    lightboxIndex = Math.max(0, Math.min(index, slides.length - 1));
+    lightboxIndex = normalizeIndex(index);
     updateLightbox();
     lightbox.classList.add('active');
     lightbox.setAttribute('aria-hidden', 'false');
@@ -2184,23 +2084,19 @@ function initProjectGallery() {
 
   if (lightboxPrev) {
     lightboxPrev.addEventListener('click', () => {
-      if (lightboxIndex > 0) {
-        lightboxIndex -= 1;
-        updateLightbox();
-      }
+      lightboxIndex = normalizeIndex(lightboxIndex - 1);
+      updateLightbox();
     });
   }
 
   if (lightboxNext) {
     lightboxNext.addEventListener('click', () => {
-      if (lightboxIndex < slides.length - 1) {
-        lightboxIndex += 1;
-        updateLightbox();
-      }
+      lightboxIndex = normalizeIndex(lightboxIndex + 1);
+      updateLightbox();
     });
   }
 
-  closeButtons.forEach(button => {
+  closeButtons.forEach((button) => {
     button.addEventListener('click', closeLightbox);
   });
 

@@ -1,8 +1,12 @@
 (function ($) {
   $(document).ready(function () {
-    const bannerImagePreview = $('[data-banner-image-preview]');
     const galleryList = $('#bis-project-gallery-list');
     const galleryTemplate = $('#bis-project-gallery-item-template');
+
+    const getPreview = (targetId) => {
+      if (!targetId) return $();
+      return $(`[data-image-preview="${targetId}"]`);
+    };
 
     const updateBadge = (checkbox) => {
       const badge = $('[data-featured-badge]');
@@ -55,10 +59,11 @@
       const button = $(this);
       const targetId = button.data('target');
       const input = $('#' + targetId);
+      const preview = getPreview(targetId);
 
       openMediaFrame('Выберите изображение', false, (url) => {
         input.val(url);
-        updatePreview(bannerImagePreview, url);
+        updatePreview(preview, url);
       });
     });
 
@@ -67,12 +72,15 @@
       const button = $(this);
       const targetId = button.data('target');
       const input = $('#' + targetId);
+      const preview = getPreview(targetId);
       input.val('');
-      updatePreview(bannerImagePreview, '');
+      updatePreview(preview, '');
     });
 
-    $('#bis_project_banner_image').on('input', function () {
-      updatePreview(bannerImagePreview, $(this).val());
+    $('[data-image-input]').on('input', function () {
+      const input = $(this);
+      const targetId = input.data('preview-target') || input.attr('id');
+      updatePreview(getPreview(targetId), input.val());
     });
 
     const addGalleryItem = (url) => {
@@ -88,6 +96,16 @@
       openMediaFrame('Выберите изображения галереи', true, (url) => {
         addGalleryItem(url);
       });
+    });
+
+    $('#bis-project-gallery-add-url').on('click', function (e) {
+      e.preventDefault();
+      const urlInput = $('#bis-project-gallery-url');
+      if (!urlInput.length) return;
+      const url = urlInput.val().trim();
+      if (!url) return;
+      addGalleryItem(url);
+      urlInput.val('');
     });
 
     if (galleryList.length) {
@@ -107,6 +125,10 @@
     });
 
     updateBadge($('[data-featured-toggle]'));
-    updatePreview(bannerImagePreview, $('#bis_project_banner_image').val());
+    $('[data-image-input]').each(function () {
+      const input = $(this);
+      const targetId = input.data('preview-target') || input.attr('id');
+      updatePreview(getPreview(targetId), input.val());
+    });
   });
 })(jQuery);

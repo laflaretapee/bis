@@ -5,22 +5,37 @@ Template Name: Проекты
 get_header();
 ?>
 
+<?php
+$page_id = get_the_ID();
+$banner_title = get_post_meta($page_id, 'bis_page_banner_title', true);
+$banner_subtitle = get_post_meta($page_id, 'bis_page_banner_subtitle', true);
+$banner_title = $banner_title ? $banner_title : get_the_title();
+$banner_image = get_post_meta($page_id, 'bis_page_banner_image', true);
+$banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page_id, 'full');
+?>
+
 <main class="projects-page">
-    <section class="projects-hero" style="background-image: url('<?php echo get_the_post_thumbnail_url(get_the_ID(), 'full'); ?>');background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-        height: 95vh;">
-        <div class="projects-hero__overlay" style="height: 100%;">
-            <h1 class="projects-hero__title"><?php the_title(); ?></h1>
+    <section class="page-hero">
+        <?php if ($banner_image) : ?>
+            <div class="page-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+        <?php endif; ?>
+        <div class="grid-pattern"></div>
+        <div class="page-hero__overlay">
+            <h1 class="page-hero__title"><?php echo esc_html($banner_title); ?></h1>
+            <?php if (!empty($banner_subtitle)) : ?>
+                <p class="page-hero__subtitle"><?php echo esc_html($banner_subtitle); ?></p>
+            <?php endif; ?>
         </div>
     </section>
+
     <section class="breadcrumbs-section">
-    <nav class="project-breadcrumbs mw-1400px">
-                <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
-                <span class="breadcrumbs-delimiter">/</span>
-                <span><?php the_title(); ?></span>
-            </nav>
-            </section>
+        <nav class="project-breadcrumbs mw-1400px">
+            <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
+            <span class="breadcrumbs-delimiter">/</span>
+            <span><?php echo esc_html($banner_title); ?></span>
+        </nav>
+    </section>
+
     <section class="projects-list">
         <div class="experience-grid projects-grid">
             <?php

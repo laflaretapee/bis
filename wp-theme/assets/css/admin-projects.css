@@ -242,6 +242,27 @@
   gap: 12px;
 }
 
+.bis-project-gallery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.bis-project-gallery-url {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.bis-project-gallery-url input[type="text"] {
+  min-width: 240px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
 .bis-project-gallery-item {
   position: relative;
   border: 1px solid #e5e7eb;
