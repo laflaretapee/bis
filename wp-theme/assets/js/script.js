@@ -1013,6 +1013,7 @@ function initGratitudeSlider() {
     const slides = Array.from(gallery.querySelectorAll('[data-gratitude-slide]'));
     const prevBtn = gallery.querySelector('[data-gratitude-prev]');
     const nextBtn = gallery.querySelector('[data-gratitude-next]');
+    const dotsContainer = gallery.parentElement ? gallery.parentElement.querySelector('[data-gratitude-dots]') : null;
 
     if (!track || slides.length === 0) {
       if (prevBtn) prevBtn.disabled = true;
@@ -1043,6 +1044,14 @@ function initGratitudeSlider() {
       return ((index % total) + total) % total;
     };
 
+    const updateDots = () => {
+      if (!dotsContainer) return;
+      const dots = dotsContainer.querySelectorAll('.slider-dot');
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === activeIndex);
+      });
+    };
+
     const scrollToIndex = (index) => {
       if (!slideStep || Number.isNaN(slideStep)) {
         slideStep = computeSlideStep();
@@ -1055,6 +1064,7 @@ function initGratitudeSlider() {
         left: activeIndex * slideStep,
         behavior: 'smooth'
       });
+      updateDots();
     };
 
     if (prevBtn) {
@@ -1063,6 +1073,17 @@ function initGratitudeSlider() {
 
     if (nextBtn) {
       nextBtn.addEventListener('click', () => scrollToIndex(activeIndex + 1));
+    }
+
+    if (dotsContainer) {
+      dotsContainer.innerHTML = '';
+      slides.forEach((_, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'slider-dot';
+        dot.addEventListener('click', () => scrollToIndex(index));
+        dotsContainer.appendChild(dot);
+      });
     }
 
     track.addEventListener('scroll', () => {
@@ -1075,6 +1096,7 @@ function initGratitudeSlider() {
       const index = Math.round(track.scrollLeft / slideStep);
       if (index !== activeIndex) {
         activeIndex = normalizeIndex(index);
+        updateDots();
       }
     });
 
@@ -1085,34 +1107,54 @@ function initGratitudeSlider() {
     });
 
     slideStep = computeSlideStep();
+    updateDots();
   });
 }
 
 // Modal for gratitude cards
 function initGratitudeModal() {
   const modal = document.getElementById('gratitudeModal');
-  const cards = document.querySelectorAll('.gratitude-card.has-image');
+  const cards = Array.from(document.querySelectorAll('.gratitude-card.has-image'));
 
   if (!modal || cards.length === 0) {
     return;
   }
 
-  const modalImage = modal.querySelector('.gratitude-modal-image img');
-  const modalTitle = modal.querySelector('.gratitude-modal-title');
+  const modalImage = modal.querySelector('[data-gratitude-lightbox-image]');
+  const modalImageWrap = modal.querySelector('.gratitude-modal-image');
+  const modalCaption = modal.querySelector('[data-gratitude-lightbox-caption]');
+  const prevButton = modal.querySelector('[data-gratitude-lightbox-prev]');
+  const nextButton = modal.querySelector('[data-gratitude-lightbox-next]');
   const closeButtons = modal.querySelectorAll('[data-close-gratitude]');
   const modalClose = modal.querySelector('.gratitude-modal-close');
   let previouslyFocused = null;
+  let currentIndex = 0;
+
+  const normalizeIndex = (index) => {
+    const total = cards.length;
+    if (!total) return 0;
+    return ((index % total) + total) % total;
+  };
+
+  const updateModal = () => {
+    const card = cards[currentIndex];
+    const image = card ? card.dataset.image : '';
+    if (modalImage) {
+      modalImage.src = image || '';
+      modalImage.alt = card?.dataset.title || 'Благодарственное письмо';
+    }
+    if (modalCaption) {
+      modalCaption.textContent = `${currentIndex + 1} / ${cards.length}`;
+    }
+  };
 
   const openModal = (card) => {
-    const image = card.dataset.image;
-    if (!image || !modalImage) return;
+    const index = cards.indexOf(card);
+    if (index === -1 || !modalImage) return;
 
     previouslyFocused = document.activeElement;
-    modalImage.src = image;
-    modalImage.alt = card.dataset.title || 'Благодарственное письмо';
-    if (modalTitle) {
-      modalTitle.textContent = card.dataset.title || '';
-    }
+    currentIndex = normalizeIndex(index);
+    updateModal();
 
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
@@ -1144,6 +1186,20 @@ function initGratitudeModal() {
     });
   });
 
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      currentIndex = normalizeIndex(currentIndex - 1);
+      updateModal();
+    });
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      currentIndex = normalizeIndex(currentIndex + 1);
+      updateModal();
+    });
+  }
+
   closeButtons.forEach((btn) => {
     btn.addEventListener('click', closeModal);
   });
@@ -1153,6 +1209,14 @@ function initGratitudeModal() {
       closeModal();
     }
   });
+
+  if (modalImageWrap) {
+    modalImageWrap.addEventListener('click', (event) => {
+      if (event.target === modalImageWrap) {
+        closeModal();
+      }
+    });
+  }
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && modal.classList.contains('active')) {

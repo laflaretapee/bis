@@ -106,16 +106,16 @@ $has_hero_slider = !empty($hero_images);
   <div class="services-grid">
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec1.jpg');"></div>
-      <h5>Комплексная наладка и испытания</h5>
-      <ul>
-        <li>Общеобменной вентиляции</li>
-        <li>Противодымной вентиляции</li>
-        <li>Гидравлическая балансировка холодоснабжения, теплоснабжения, отопления</li>
-        <li>Автоматизация, диспетчеризация, программирование</li>
-        <li>Комплексные испытания</li>
-      </ul>
-      <button class="btn btn-primary order-btn" data-service="Пусконаладочные работы">Заказать</button>
-    </div>
+        <h5>Комплексная наладка и испытания</h5>
+        <ul>
+          <li>Общеобменной вентиляции</li>
+          <li>Противодымной вентиляции</li>
+          <li>Гидравлическая балансировка холодоснабжения, теплоснабжения, отопления</li>
+          <li>Автоматизация, диспетчеризация, программирование</li>
+          <li>Комплексные испытания</li>
+        </ul>
+        <button class="btn btn-primary order-btn" data-service="Пусконаладочные работы">Заказать</button>
+      </div>
 
     <div class="service-card">
       <div class="service-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/spec2.jpg');"></div>
@@ -452,6 +452,7 @@ if ($gratitude_letters->have_posts()) :
       </svg>
     </button>
   </div>
+  <div class="gratitude-dots slider-dots" data-gratitude-dots></div>
 </section>
 <?php
 wp_reset_postdata();
@@ -460,16 +461,26 @@ endif;
 
 <div class="gratitude-modal" id="gratitudeModal" aria-hidden="true" role="dialog">
   <div class="gratitude-modal-backdrop" data-close-gratitude></div>
-  <div class="gratitude-modal-content">
+  <div class="gratitude-modal-content" aria-modal="true">
     <button class="gratitude-modal-close" type="button" aria-label="Закрыть увеличенное письмо" data-close-gratitude>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
+    <button class="gratitude-modal-nav gratitude-modal-nav--prev" type="button" aria-label="Предыдущее письмо" data-gratitude-lightbox-prev>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
     <div class="gratitude-modal-image">
-      <img src="" alt="Благодарственное письмо" loading="lazy">
+      <img src="" alt="Благодарственное письмо" loading="lazy" data-gratitude-lightbox-image>
     </div>
-    <p class="gratitude-modal-title"></p>
+    <button class="gratitude-modal-nav gratitude-modal-nav--next" type="button" aria-label="Следующее письмо" data-gratitude-lightbox-next>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="gratitude-modal-caption" data-gratitude-lightbox-caption></div>
   </div>
 </div>
 

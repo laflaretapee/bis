@@ -34,6 +34,7 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                 <a href="#about-gratitude">Отзывы</a>
             </div>
         </div>
+        <div class="gratitude-dots slider-dots" data-gratitude-dots></div>
     </section>
     
     <section class="breadcrumbs-section">
@@ -280,16 +281,26 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
 
     <div class="gratitude-modal" id="gratitudeModal" aria-hidden="true" role="dialog">
         <div class="gratitude-modal-backdrop" data-close-gratitude></div>
-        <div class="gratitude-modal-content">
+        <div class="gratitude-modal-content" aria-modal="true">
             <button class="gratitude-modal-close" type="button" aria-label="Закрыть увеличенное письмо" data-close-gratitude>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
+            <button class="gratitude-modal-nav gratitude-modal-nav--prev" type="button" aria-label="Предыдущее письмо" data-gratitude-lightbox-prev>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
             <div class="gratitude-modal-image">
-                <img src="" alt="Благодарственное письмо" loading="lazy">
+                <img src="" alt="Благодарственное письмо" loading="lazy" data-gratitude-lightbox-image>
             </div>
-            <p class="gratitude-modal-title"></p>
+            <button class="gratitude-modal-nav gratitude-modal-nav--next" type="button" aria-label="Следующее письмо" data-gratitude-lightbox-next>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="gratitude-modal-caption" data-gratitude-lightbox-caption></div>
         </div>
     </div>
 </main>
