@@ -241,16 +241,13 @@ function initRevenueChart() {
   const chart = document.querySelector('.revenue-chart');
   if (!chart) return;
 
-  const svg = chart.querySelector('.revenue-chart__svg');
-  const linePath = svg?.querySelector('.revenue-chart__line');
-  const areaPath = svg?.querySelector('.revenue-chart__area');
-  const lastBadge = chart.querySelector('[data-revenue-last] .revenue-chip');
+  const svg = chart.querySelector('.revenue-svg');
+  const linePath = svg?.querySelector('.revenue-line');
+  const areaPath = svg?.querySelector('.revenue-area');
+  const pointsGroup = svg?.querySelector('.revenue-points');
   const labelsContainer = chart.querySelector('[data-revenue-labels]');
   const axisContainer = chart.querySelector('[data-revenue-axis]');
   const gridContainer = chart.querySelector('[data-revenue-grid]');
-  const tooltip = document.createElement('div');
-  tooltip.className = 'revenue-tooltip';
-  chart.appendChild(tooltip);
 
   let points = [];
   try {
@@ -264,7 +261,7 @@ function initRevenueChart() {
     points = bisRevenueData.points;
   }
 
-  if (!points.length || !svg || !linePath || !areaPath) return;
+  if (!svg || !linePath || !areaPath || !pointsGroup) return;
 
   const cleanPoints = points
     .map(point => ({
@@ -273,17 +270,15 @@ function initRevenueChart() {
     }))
     .filter(point => point.label !== '');
 
-  if (cleanPoints.length < 2) return;
-
   const width = 100;
   const height = 60;
   const paddingTop = 6;
   const paddingBottom = 6;
-  const rawMax = Math.max(...cleanPoints.map(p => p.value), 1);
+  const rawMax = cleanPoints.length ? Math.max(...cleanPoints.map(p => p.value), 0) : 0;
 
   const getNiceStep = (max) => {
     if (max <= 0) {
-      return { step: 1, max: 1 };
+      return { step: 10, max: 60 };
     }
     const roughStep = max / 6;
     const pow = Math.pow(10, Math.floor(Math.log10(roughStep)));
@@ -303,14 +298,18 @@ function initRevenueChart() {
     return { step, max: niceMax };
   };
 
-  const nice = getNiceStep(rawMax);
+  const nice = getNiceStep(rawMax || 60);
   const maxValue = nice.max;
   const axisStep = nice.step;
-  const lastValue = cleanPoints[cleanPoints.length - 1]?.value || 0;
-  const currencyLabel = chart.dataset.currency || (bisRevenueData?.currency_label || '');
 
+  const formatValue = (value) => {
+    if (Number.isInteger(value)) return value.toString();
+    return value.toString().replace('.', ',');
+  };
+
+  const denom = cleanPoints.length > 1 ? (cleanPoints.length - 1) : 1;
   const coords = cleanPoints.map((point, index) => {
-    const x = (index / (cleanPoints.length - 1)) * width;
+    const x = (index / denom) * width;
     const y = height - paddingBottom - (point.value / maxValue) * (height - paddingTop - paddingBottom);
     return { x, y, value: point.value, label: point.label };
   });
@@ -324,7 +323,7 @@ function initRevenueChart() {
       const yPercent = (y / height) * 100;
       const label = document.createElement('div');
       label.className = 'revenue-axis-label';
-      label.textContent = value.toString();
+      label.textContent = formatValue(value);
       label.style.top = `${yPercent}%`;
       axisContainer.appendChild(label);
     }
@@ -349,15 +348,31 @@ function initRevenueChart() {
     coords.forEach((coord) => {
       const label = document.createElement('div');
       label.className = 'revenue-label';
-      label.textContent = coord.value.toString();
+      label.textContent = formatValue(coord.value);
       const xPercent = (coord.x / width) * 100;
       const yPercent = (coord.y / height) * 100;
       const clampedX = Math.min(96, Math.max(4, xPercent));
-      const clampedY = Math.min(90, Math.max(8, yPercent));
+      const clampedY = Math.min(92, Math.max(6, yPercent));
       label.style.left = `${clampedX}%`;
       label.style.top = `${clampedY}%`;
       labelsContainer.appendChild(label);
     });
+  }
+
+  if (!cleanPoints.length) {
+    linePath.setAttribute('d', '');
+    areaPath.setAttribute('d', '');
+    pointsGroup.innerHTML = '';
+    return;
+  }
+
+  if (cleanPoints.length < 2) {
+    const point = coords[0];
+    const lineD = `M ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+    linePath.setAttribute('d', lineD);
+    areaPath.setAttribute('d', '');
+    pointsGroup.innerHTML = '';
+    return;
   }
 
   const smoothing = 0.2;
@@ -398,69 +413,7 @@ function initRevenueChart() {
 
   linePath.setAttribute('d', lineD);
   areaPath.setAttribute('d', areaD);
-
-  // Animate stroke drawing
-  const totalLength = linePath.getTotalLength();
-  linePath.style.strokeDasharray = totalLength;
-  linePath.style.strokeDashoffset = totalLength;
-  areaPath.style.opacity = 0;
-
-  requestAnimationFrame(() => {
-    linePath.style.transition = 'stroke-dashoffset 1.2s ease, opacity 0.6s ease';
-    areaPath.style.transition = 'opacity 1s ease';
-    linePath.style.strokeDashoffset = '0';
-    linePath.style.opacity = 1;
-    areaPath.style.opacity = 1;
-  });
-
-  // Points with hover tooltip (SVG circles to stay on path)
-  const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  pointsGroup.setAttribute('class', 'revenue-points');
-  svg.appendChild(pointsGroup);
-
-  function showTooltip(xPercent, yPercent, text) {
-    const clampedX = Math.min(92, Math.max(8, xPercent));
-    const desiredTop = yPercent - 8;
-    const placeBelow = desiredTop < 10;
-    const finalY = placeBelow ? Math.min(90, yPercent + 10) : Math.max(10, desiredTop);
-    tooltip.textContent = text;
-    tooltip.style.left = `${clampedX}%`;
-    tooltip.style.top = `${finalY}%`;
-    tooltip.style.opacity = '1';
-    tooltip.style.transform = placeBelow ? 'translate(-50%, 20%)' : 'translate(-50%, -130%)';
-  }
-
-  function hideTooltip() {
-    tooltip.style.opacity = '0';
-    tooltip.style.transform = 'translate(-50%, -90%)';
-  }
-
-  const chartRect = chart.getBoundingClientRect();
-  const svgRect = svg.getBoundingClientRect();
-
-  coords.forEach(coord => {
-    const cx = coord.x;
-    const cy = coord.y;
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('class', 'revenue-point');
-    circle.setAttribute('cx', cx.toFixed(2));
-    circle.setAttribute('cy', cy.toFixed(2));
-    circle.setAttribute('r', '0.5');
-    circle.setAttribute('stroke-width', '0.35');
-
-    circle.addEventListener('mouseenter', () => {
-      const xPercent = (cx / width) * 100;
-      const yPercent = (cy / height) * 100;
-      const text = `${coord.value}${currencyLabel ? ' ' + currencyLabel : ''}`;
-      showTooltip(xPercent, yPercent, text);
-    });
-    circle.addEventListener('mouseleave', hideTooltip);
-    pointsGroup.appendChild(circle);
-  });
-
-  if (lastBadge) {
-    lastBadge.textContent = `${lastValue}${currencyLabel ? ' ' + currencyLabel : ''}`;
-  }
+  pointsGroup.innerHTML = '';
 }
 
 // Функция отправки формы обратного звонка

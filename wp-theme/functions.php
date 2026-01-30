@@ -244,6 +244,18 @@ function bis_add_gratitude_meta_boxes() {
 }
 add_action('add_meta_boxes', 'bis_add_gratitude_meta_boxes');
 
+function bis_add_news_meta_boxes() {
+    add_meta_box(
+        'bis_news_image',
+        'Изображение новости',
+        'bis_news_image_metabox',
+        'bis_news',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'bis_add_news_meta_boxes');
+
 function bis_page_banner_metabox($post) {
     wp_nonce_field('bis_page_banner_nonce', 'bis_page_banner_nonce_field');
 
@@ -401,6 +413,41 @@ function bis_gratitude_image_metabox($post) {
                 <div class="bis-project-media__buttons">
                     <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_gratitude_image">Выбрать в медиабиблиотеке</button>
                     <button type="button" class="button bis-project-image-clear" data-target="bis_gratitude_image">Убрать фото</button>
+                </div>
+                <p class="bis-field__hint">Если поле пустое, будет использовано «Изображение записи».</p>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
+function bis_news_image_metabox($post) {
+    wp_nonce_field('bis_news_image_nonce', 'bis_news_image_nonce_field');
+
+    $news_image = get_post_meta($post->ID, 'bis_news_image', true);
+    $thumbnail_url = get_the_post_thumbnail_url($post->ID, 'full');
+    $preview = $news_image ? $news_image : $thumbnail_url;
+    ?>
+    <div class="bis-project-box">
+        <div class="bis-project-box__header">
+            <div>
+                <h3>Изображение новости</h3>
+                <p>Можно указать ссылку или выбрать изображение из медиабиблиотеки.</p>
+            </div>
+        </div>
+
+        <div class="bis-project-media bis-project-media--banner">
+            <div class="bis-project-media__preview <?php echo $preview ? '' : 'is-empty'; ?>" data-image-preview="bis_news_image" style="background-image: url('<?php echo esc_url($preview); ?>');">
+                <?php if (!$preview) : ?>
+                    <span class="bis-project-media__placeholder">Нет изображения</span>
+                <?php endif; ?>
+            </div>
+            <div class="bis-project-media__controls">
+                <label for="bis_news_image">Изображение</label>
+                <input type="text" id="bis_news_image" name="bis_news_image" value="<?php echo esc_url($news_image); ?>" placeholder="https://" data-image-input data-preview-target="bis_news_image">
+                <div class="bis-project-media__buttons">
+                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_news_image">Выбрать в медиабиблиотеке</button>
+                    <button type="button" class="button bis-project-image-clear" data-target="bis_news_image">Убрать фото</button>
                 </div>
                 <p class="bis-field__hint">Если поле пустое, будет использовано «Изображение записи».</p>
             </div>
@@ -1021,6 +1068,24 @@ function bis_save_gratitude_image($post_id) {
 }
 add_action('save_post', 'bis_save_gratitude_image');
 
+function bis_save_news_image($post_id) {
+    if (!isset($_POST['bis_news_image_nonce_field']) || !wp_verify_nonce($_POST['bis_news_image_nonce_field'], 'bis_news_image_nonce')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!isset($_POST['post_type']) || 'bis_news' !== $_POST['post_type'] || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $news_image = isset($_POST['bis_news_image']) ? esc_url_raw(wp_unslash($_POST['bis_news_image'])) : '';
+    update_post_meta($post_id, 'bis_news_image', $news_image);
+}
+add_action('save_post', 'bis_save_news_image');
+
 /**
  * Custom columns for projects.
  */
@@ -1410,6 +1475,20 @@ function bis_get_gratitude_image_url($post_id) {
     return $thumb ? $thumb : '';
 }
 
+function bis_get_news_image_url($post_id) {
+    $custom = get_post_meta($post_id, 'bis_news_image', true);
+    if ($custom) {
+        return esc_url($custom);
+    }
+
+    $thumb = get_the_post_thumbnail_url($post_id, 'full');
+    if ($thumb) {
+        return $thumb;
+    }
+
+    return 'https://placehold.co/600x400';
+}
+
 function bis_get_service_image_url($post_id) {
     $custom = get_post_meta($post_id, 'bis_service_image', true);
     if ($custom) {
@@ -1578,7 +1657,7 @@ function bis_admin_scripts($hook) {
 
     if (in_array($hook, array('post-new.php', 'post.php'), true)) {
         $screen = get_current_screen();
-        if ($screen && in_array($screen->post_type, array('bis_project', 'page', 'bis_gratitude', 'bis_service', 'bis_equipment'), true)) {
+        if ($screen && in_array($screen->post_type, array('bis_project', 'page', 'bis_gratitude', 'bis_service', 'bis_equipment', 'bis_news'), true)) {
             wp_enqueue_media();
             wp_enqueue_script('jquery-ui-sortable');
             wp_enqueue_script('bis-projects-admin', get_template_directory_uri() . '/assets/js/admin-projects.js', array('jquery', 'jquery-ui-sortable'), '1.0', true);

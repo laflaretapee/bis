@@ -666,54 +666,54 @@ style>
 
 <?php
 $news_query = new WP_Query(array(
-  'post_type' => 'bis_news',
-  'posts_per_page' => 4,
-  'post_status' => 'publish',
+  'post_type'      => 'bis_news',
+  'posts_per_page' => 3,
+  'post_status'    => 'publish',
 ));
 ?>
 
-<?php if ($news_query->have_posts()) : ?>
 <section class="homepage-news" id="news">
   <div class="homepage-news__container">
-    <div class="homepage-news__header">
+  <div class="homepage-news__header">
       <!-- <span class="section-badge">Новости</span> -->
       <h2 class="section-title">Свежие новости компании</h2>
       <p class="section-subtitle">Рассказываем о ключевых событиях, проектах и экспертизе нашей команды.</p>
     </div>
 
-    <div class="homepage-news__grid">
-      <?php while ($news_query->have_posts()) : $news_query->the_post(); ?>
-        <article class="news-card news-card--home">
-          <a class="news-card__image" href="<?php the_permalink(); ?>">
-            <?php if (has_post_thumbnail()) : ?>
-              <?php the_post_thumbnail('large'); ?>
-            <?php else : ?>
-              <div class="news-card__image-placeholder">
-                <span>«БИС»</span>
-              </div>
-            <?php endif; ?>
-          </a>
-          <div class="news-card__body">
-            <div class="news-card__meta">
-              <time datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date('d.m.Y')); ?></time>
+    <?php if ($news_query->have_posts()) : ?>
+      <div class="news-grid news-grid--home">
+        <?php while ($news_query->have_posts()) : $news_query->the_post(); ?>
+          <?php
+          $news_id = get_the_ID();
+          $image_url = bis_get_news_image_url($news_id);
+          ?>
+          <article class="news-item">
+            <a class="news-item__image" href="<?php the_permalink(); ?>">
+              <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
+            </a>
+            <div class="news-item__body">
+              <time class="news-item__date" datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date('d.m.Y')); ?></time>
+              <h3 class="news-item__title">
+                <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+              </h3>
+              <p class="news-item__excerpt"><?php echo esc_html(wp_trim_words(get_the_excerpt(), 18)); ?></p>
             </div>
-            <h3 class="news-card__title">
-              <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-            </h3>
-            <p class="news-card__excerpt"><?php echo esc_html(wp_trim_words(get_the_excerpt(), 20)); ?></p>
-            <a class="news-card__link" href="<?php the_permalink(); ?>">Читать</a>
-          </div>
-        </article>
-      <?php endwhile; ?>
-    </div>
-
-    <div class="homepage-news__cta">
-      <a class="btn btn-primary" href="<?php echo esc_url(get_post_type_archive_link('bis_news')); ?>">Все новости</a>
-    </div>
+          </article>
+        <?php endwhile; ?>
+      </div>
+      <div class="homepage-news__cta">
+        <a class="btn btn-outline btn-outline--bold" href="<?php echo esc_url(get_post_type_archive_link('bis_news')); ?>">Все новости</a>
+      </div>
+      <?php wp_reset_postdata(); ?>
+    <?php else : ?>
+      <div class="team-empty">
+        <span class="team-empty__label">Новости</span>
+        <p>Мы готовим подборку новостей компании.</p>
+      </div>
+    <?php endif; ?>
+    <?php wp_reset_postdata(); ?>
   </div>
 </section>
-<?php wp_reset_postdata(); ?>
-<?php endif; ?>
 
   <!-- Contact Section -->
   <section class="contact" id="contact">
@@ -776,65 +776,38 @@ $news_query = new WP_Query(array(
 <?php $revenue = bis_get_revenue_settings(); ?>
 <section class="revenue-section" id="revenue">
   <div class="revenue-container">
-    <div class="revenue-heading">
-      <div>
-        <span class="section-badge section-badge--ghost">Динамика</span>
-        <h2 class="section-title"><?php echo esc_html($revenue['title']); ?></h2>
-      </div>
-      <div class="revenue-meta-chip">
-        <span class="revenue-meta-label">Единицы</span>
-        <span class="revenue-meta-value"><?php echo esc_html($revenue['currency_label']); ?></span>
+    <div class="revenue-header">
+      <h2 class="revenue-title"><?php echo esc_html($revenue['title']); ?></h2>
+      <span class="revenue-unit"><?php echo esc_html($revenue['currency_label']); ?></span>
+    </div>
+
+    <div class="revenue-chart" data-currency="<?php echo esc_attr($revenue['currency_label']); ?>" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
+      <div class="revenue-axis" data-revenue-axis></div>
+      <div class="revenue-plot">
+        <svg class="revenue-svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="rgba(17, 24, 39, 0.18)"/>
+              <stop offset="100%" stop-color="rgba(17, 24, 39, 0)"/>
+            </linearGradient>
+          </defs>
+          <path class="revenue-area" fill="url(#revenueGradient)" d=""></path>
+          <path class="revenue-line" d=""></path>
+          <g class="revenue-points"></g>
+        </svg>
+        <div class="revenue-grid" data-revenue-grid></div>
+        <div class="revenue-labels" data-revenue-labels></div>
       </div>
     </div>
 
-    <div class="revenue-card">
-      <div class="revenue-card__gradient"></div>
-      <div class="revenue-card__header">
-        <div class="revenue-card__title">Рост компании в динамике</div>
-      </div>
-
-      <div class="revenue-chart" data-currency="<?php echo esc_attr($revenue['currency_label']); ?>" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
-        <div class="revenue-chart__axis" data-revenue-axis></div>
-        <div class="revenue-chart__plot">
-          <svg class="revenue-chart__svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="rgba(132, 139, 153, 0.25)"/>
-              <stop offset="100%" stop-color="rgba(132, 139, 153, 0.08)"/>
-            </linearGradient>
-            <linearGradient id="revenueLine" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#848b99"/>
-              <stop offset="100%" stop-color="#848b99"/>
-            </linearGradient>
-            <filter id="revenueGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2.8" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <path class="revenue-chart__area" fill="url(#revenueGradient)" d=""></path>
-          <path class="revenue-chart__line" stroke="url(#revenueLine)" stroke-width="1.8" fill="none" filter="url(#revenueGlow)" d=""></path>
-          </svg>
-          <div class="revenue-chart__grid" data-revenue-grid></div>
-          <div class="revenue-chart__labels" data-revenue-labels></div>
-          <div class="revenue-chart__last" data-revenue-last>
-            <div class="revenue-chip">—</div>
-            <span class="revenue-chip__caption">текущий показатель</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="revenue-footer">
-        <?php if (!empty($revenue['cta_link'])) : ?>
-          <a class="btn btn-outline btn-outline--bold" href="<?php echo esc_url($revenue['cta_link']); ?>">
-            <?php echo esc_html($revenue['cta_label']); ?>
-          </a>
-        <?php else : ?>
-          <span class="btn btn-outline btn-outline--bold btn-disabled"><?php echo esc_html($revenue['cta_label']); ?></span>
-        <?php endif; ?>
-      </div>
+    <div class="revenue-cta">
+      <?php if (!empty($revenue['cta_link'])) : ?>
+        <a class="btn btn-outline btn-outline--bold" href="<?php echo esc_url($revenue['cta_link']); ?>">
+          <?php echo esc_html($revenue['cta_label']); ?>
+        </a>
+      <?php else : ?>
+        <span class="btn btn-outline btn-outline--bold btn-disabled"><?php echo esc_html($revenue['cta_label']); ?></span>
+      <?php endif; ?>
     </div>
   </div>
 </section>

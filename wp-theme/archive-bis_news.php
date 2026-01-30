@@ -1,60 +1,64 @@
 <?php
+/*
+Template Name: Новости
+*/
 get_header();
 ?>
 
-<main class="news-archive">
-    <div class="news-archive__container news-archive__intro">
-        <p class="news-archive__badge">Новости</p>
-        <h1 class="news-archive__title">Новости компании «БИС»</h1>
-        <p class="news-archive__description">
-            Свежие проекты, экспертные материалы и важные обновления о нашей работе.
-        </p>
-    </div>
+<main class="news-archive-page">
+    <section class="news-hero">
+        <div class="news-hero__media" style="background-image: url('<?php echo esc_url($cover); ?>');"></div>
+        <div class="news-hero__overlay">
+            <h1 class="news-hero__title">Новости</h1>
+            <p class="news-hero__text">Комплексная экспертиза в инженерных системах, исследования и практические кейсы — рассказываем о проектах и жизни команды «БИС — Баланс Инженерных Систем».</p>
+        </div>
+    </section>
 
-    <div class="news-archive__container">
-        <?php if (have_posts()) : ?>
-            <div class="news-archive__grid">
-                <?php while (have_posts()) : the_post(); ?>
-                    <article class="news-card">
-                        <a class="news-card__image" href="<?php the_permalink(); ?>">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('large'); ?>
-                            <?php else : ?>
-                                <div class="news-card__image-placeholder">
-                                    <span>«БИС»</span>
-                                </div>
-                            <?php endif; ?>
-                        </a>
-                        <div class="news-card__body">
-                            <div class="news-card__meta">
-                                <time datetime="<?php echo esc_attr(get_the_date('c')); ?>">
-                                    <?php echo esc_html(get_the_date('d.m.Y')); ?>
-                                </time>
+    <section class="breadcrumbs-section">
+        <nav class="project-breadcrumbs mw-1400px">
+            <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
+            <span class="breadcrumbs-delimiter">/</span>
+            <span>Новости</span>
+        </nav>
+    </section>
+
+    <section class="news-list">
+        <div class="news-list__container">
+            <?php if (have_posts()) : ?>
+                <div class="news-grid">
+                    <?php while (have_posts()) : the_post(); ?>
+                        <?php $image_url = bis_get_news_image_url(get_the_ID()); ?>
+                        <article class="news-item">
+                            <a class="news-item__image" href="<?php the_permalink(); ?>">
+                                <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
+                            </a>
+                            <div class="news-item__body">
+                                <time class="news-item__date" datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date('d.m.Y')); ?></time>
+                                <h3 class="news-item__title">
+                                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                                </h3>
+                                <p class="news-item__excerpt"><?php echo esc_html(wp_trim_words(get_the_excerpt(), 22)); ?></p>
                             </div>
-                            <h2 class="news-card__title">
-                                <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                            </h2>
-                            <p class="news-card__excerpt">
-                                <?php echo esc_html(wp_trim_words(get_the_excerpt(), 28)); ?>
-                            </p>
-                            <a class="news-card__link" href="<?php the_permalink(); ?>">Читать полностью</a>
-                        </div>
-                    </article>
-                <?php endwhile; ?>
-            </div>
+                        </article>
+                    <?php endwhile; ?>
+                </div>
 
-            <div class="news-archive__pagination">
-                <?php
-                the_posts_pagination(array(
-                    'prev_text' => '&larr; Предыдущие',
-                    'next_text' => 'Следующие &rarr;',
-                ));
-                ?>
-            </div>
-        <?php else : ?>
-            <p>Новости пока не опубликованы.</p>
-        <?php endif; ?>
-    </div>
+                <div class="news-pagination">
+                    <?php
+                    the_posts_pagination(array(
+                        'prev_text' => '&larr; Предыдущие',
+                        'next_text' => 'Следующие &rarr;',
+                    ));
+                    ?>
+                </div>
+            <?php else : ?>
+                <div class="team-empty">
+                    <span class="team-empty__label">Новости</span>
+                    <p>Мы готовим подборку новостей компании.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
 </main>
 
 <?php
