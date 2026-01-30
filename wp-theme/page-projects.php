@@ -15,15 +15,14 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
 ?>
 
 <main class="projects-page">
-    <section class="page-hero">
+    <section class="news-hero news-hero--page">
         <?php if ($banner_image) : ?>
-            <div class="page-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+            <div class="news-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
         <?php endif; ?>
-        <div class="grid-pattern"></div>
-        <div class="page-hero__overlay">
-            <h1 class="page-hero__title"><?php echo esc_html($banner_title); ?></h1>
+        <div class="news-hero__overlay">
+            <h1 class="news-hero__title"><?php echo esc_html($banner_title); ?></h1>
             <?php if (!empty($banner_subtitle)) : ?>
-                <p class="page-hero__subtitle"><?php echo esc_html($banner_subtitle); ?></p>
+                <p class="news-hero__text"><?php echo esc_html($banner_subtitle); ?></p>
             <?php endif; ?>
         </div>
     </section>

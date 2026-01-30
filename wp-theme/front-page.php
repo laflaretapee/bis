@@ -760,11 +760,16 @@ $news_query = new WP_Query(array(
             <label for="message">Сообщение</label>
             <textarea id="message" name="message" required></textarea>
           </div>
-          <button type="submit" class="btn btn-primary">Отправить заявку</button>
+          <button type="submit" class="btn btn-primary" style="
+    width: 100%;
+    display: flex;
+    min-width: 100%;
+">Отправить заявку</button>
         </form>
       </div>
     </div>
-    
+    </section>
+    <section class="map-section">
     <!-- Яндекс.Карта -->
     <div class="map-container">
       <div id="yandex-map">
@@ -777,11 +782,11 @@ $news_query = new WP_Query(array(
 <section class="revenue-section" id="revenue">
   <div class="revenue-container">
     <div class="revenue-header">
-      <h2 class="revenue-title"><?php echo esc_html($revenue['title']); ?></h2>
-      <span class="revenue-unit"><?php echo esc_html($revenue['currency_label']); ?></span>
+      <h2 class="revenue-title">Динамика выручки за 10 лет</h2>
+      <span class="revenue-unit">млрд ₽</span>
     </div>
 
-    <div class="revenue-chart" data-currency="<?php echo esc_attr($revenue['currency_label']); ?>" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
+    <div class="revenue-chart" data-currency="₽" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
       <div class="revenue-axis" data-revenue-axis></div>
       <div class="revenue-plot">
         <svg class="revenue-svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
@@ -798,16 +803,13 @@ $news_query = new WP_Query(array(
         <div class="revenue-grid" data-revenue-grid></div>
         <div class="revenue-labels" data-revenue-labels></div>
       </div>
+      <div class="revenue-xaxis" data-revenue-xaxis></div>
     </div>
 
     <div class="revenue-cta">
-      <?php if (!empty($revenue['cta_link'])) : ?>
-        <a class="btn btn-outline btn-outline--bold" href="<?php echo esc_url($revenue['cta_link']); ?>">
-          <?php echo esc_html($revenue['cta_label']); ?>
+        <a class="btn btn-outline btn-outline--bold" href="#contact">
+        Узнать больше
         </a>
-      <?php else : ?>
-        <span class="btn btn-outline btn-outline--bold btn-disabled"><?php echo esc_html($revenue['cta_label']); ?></span>
-      <?php endif; ?>
     </div>
   </div>
 </section>

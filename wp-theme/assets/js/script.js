@@ -248,6 +248,7 @@ function initRevenueChart() {
   const labelsContainer = chart.querySelector('[data-revenue-labels]');
   const axisContainer = chart.querySelector('[data-revenue-axis]');
   const gridContainer = chart.querySelector('[data-revenue-grid]');
+  const xAxisContainer = chart.querySelector('[data-revenue-xaxis]');
 
   let points = [];
   try {
@@ -352,26 +353,50 @@ function initRevenueChart() {
       const xPercent = (coord.x / width) * 100;
       const yPercent = (coord.y / height) * 100;
       const clampedX = Math.min(96, Math.max(4, xPercent));
-      const clampedY = Math.min(92, Math.max(6, yPercent));
+      const clampedY = Math.min(96, Math.max(6, yPercent));
       label.style.left = `${clampedX}%`;
       label.style.top = `${clampedY}%`;
       labelsContainer.appendChild(label);
     });
   }
 
+  if (xAxisContainer) {
+    xAxisContainer.innerHTML = '';
+    coords.forEach((coord) => {
+      const label = document.createElement('div');
+      label.className = 'revenue-xlabel';
+      label.textContent = coord.label;
+      const xPercent = (coord.x / width) * 100;
+      const clampedX = Math.min(96, Math.max(4, xPercent));
+      label.style.left = `${clampedX}%`;
+      xAxisContainer.appendChild(label);
+    });
+  }
+
+  pointsGroup.innerHTML = '';
+
   if (!cleanPoints.length) {
     linePath.setAttribute('d', '');
     areaPath.setAttribute('d', '');
-    pointsGroup.innerHTML = '';
+    if (labelsContainer) labelsContainer.innerHTML = '';
+    if (xAxisContainer) xAxisContainer.innerHTML = '';
     return;
   }
+
+  coords.forEach((coord) => {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('class', 'revenue-dot');
+    circle.setAttribute('cx', coord.x.toFixed(2));
+    circle.setAttribute('cy', coord.y.toFixed(2));
+    circle.setAttribute('r', '0.9');
+    pointsGroup.appendChild(circle);
+  });
 
   if (cleanPoints.length < 2) {
     const point = coords[0];
     const lineD = `M ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
     linePath.setAttribute('d', lineD);
     areaPath.setAttribute('d', '');
-    pointsGroup.innerHTML = '';
     return;
   }
 
