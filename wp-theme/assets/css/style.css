@@ -1101,7 +1101,7 @@ select {
 }
 
 .service-card {
-  padding: 40px;
+  padding: 0 !important;
   background: white;
   border: 1px solid var(--border);
   border-radius: 0;
@@ -1138,7 +1138,7 @@ select {
 
 .service-image {
   height: 200px;
-  background-size: cover;
+  background-size: cover !important;
   background-position: center;
 }
 
@@ -3864,7 +3864,7 @@ select {
   border: none;
   border-radius: 0;
   overflow: hidden;
-  padding: 0;
+  padding: 32px 0 0 0;
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
@@ -3885,19 +3885,29 @@ select {
 
 .service-image,
 .equipment-image {
-  height: 220px;
-  background-size: cover;
+  height: 384px;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 }
 
 .service-content,
 .equipment-content {
+  height: 50%;
+  justify-content: space-between;
+  display: flex;
+
   padding: 24px;
   text-align: left;
-  display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.service-content-main{
+  gap: 12px;
+  flex-direction: column;
+  justify-content: space-between;
+  display: flex;
 }
 
 .service-card h3,
@@ -3918,8 +3928,8 @@ select {
 }
 
 .service-card .btn {
-  width: auto;
-  justify-content: flex-start;
+  min-width: 100%;
+  justify-content: center;
   margin-top: 4px;
 }
 
@@ -5044,10 +5054,6 @@ select {
     /* Отступы для навигации */
   }
 
-  .service-image {
-    height: 200px;
-  }
-
   .service-content {
     padding: 20px;
   }
@@ -5107,10 +5113,6 @@ select {
 
   .services-slider-nav {
     padding: 0 16px;
-  }
-
-  .service-image {
-    height: 180px;
   }
 
   .service-content {

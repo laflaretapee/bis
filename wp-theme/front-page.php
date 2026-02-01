@@ -37,6 +37,7 @@ $has_hero_slider = !empty($hero_images);
         <li><a href="#experience">Опыт</a></li>
         <li><a href="<?php echo esc_url(home_url('/about/')); ?>">О нас</a></li>
         <li><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></li>
+        <li><a href="<?php echo esc_url(home_url('/news/')); ?>">Новости</a></li>
         <li><a href="#contact">Контакты</a></li>
         <li><a href="#faq">F.A.Q</a></li>
       </ul>
@@ -123,10 +124,12 @@ $has_hero_slider = !empty($hero_images);
         <div class="service-card">
           <div class="service-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
           <div class="service-content">
-            <h3><?php the_title(); ?></h3>
-            <?php if (!empty($description)) : ?>
-              <p class="experience-description"><?php echo esc_html($description); ?></p>
-            <?php endif; ?>
+            <div class="service-content-main">
+              <h3><?php the_title(); ?></h3>
+              <?php if (!empty($description)) : ?>
+                <p class="experience-description"><?php echo esc_html($description); ?></p>
+              <?php endif; ?>
+            </div>
             <button class="btn btn-primary order-btn" data-service="<?php echo esc_attr(get_the_title()); ?>">Заказать</button>
           </div>
         </div>
