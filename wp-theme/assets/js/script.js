@@ -1464,26 +1464,21 @@ function initTeamSlider() {
 
   if (originalSlides.length === 0) return;
 
-  // Создаем копии слайдов для бесконечного цикла
+  // Создаем по одному клону для бесконечного цикла
   if (originalSlides.length > 1) {
-    // Добавляем копии в начало и конец для бесконечного цикла
-    originalSlides.forEach((slide, index) => {
-      const clone = slide.cloneNode(true);
-      clone.classList.add('is-clone');
-      track.appendChild(clone);
-    });
-
-    originalSlides.forEach((slide, index) => {
-      const clone = slide.cloneNode(true);
-      clone.classList.add('is-clone');
-      track.insertBefore(clone, track.firstChild);
-    });
+    const firstClone = originalSlides[0].cloneNode(true);
+    firstClone.classList.add('is-clone');
+    const lastClone = originalSlides[originalSlides.length - 1].cloneNode(true);
+    lastClone.classList.add('is-clone');
+    track.appendChild(firstClone);
+    track.insertBefore(lastClone, track.firstChild);
   }
 
   slider.dataset.teamSliderInitialized = 'true';
   const allSlides = Array.from(track.querySelectorAll('.team-slide'));
+  const originalCount = originalSlides.length;
 
-  let currentIndex = originalSlides.length > 1 ? originalSlides.length : 0;
+  let currentIndex = originalSlides.length > 1 ? 1 : 0;
   let slideWidth = 0;
   let isAnimating = false;
   let isDragging = false;
@@ -1537,19 +1532,20 @@ function initTeamSlider() {
     }
   });
 
-  track.addEventListener('transitionend', () => {
+  track.addEventListener('transitionend', (event) => {
+    if (event.target !== track || event.propertyName !== 'transform') return;
     if (!isAnimating || originalSlides.length <= 1) return;
     isAnimating = false;
 
     // Если мы закончили анимацию на клонированном слайде, мгновенно перейдем к соответствующему оригинальному
     if (currentIndex === 0) {
       // Находимся на первом клоне, переходим к последнему оригинальному
-      currentIndex = allSlides.length - originalSlides.length - 1;
+      currentIndex = originalCount;
       track.style.transition = 'none';
       track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
     } else if (currentIndex === allSlides.length - 1) {
       // Находимся на последнем клоне, переходим к первому оригинальному
-      currentIndex = originalSlides.length;
+      currentIndex = 1;
       track.style.transition = 'none';
       track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
     }
