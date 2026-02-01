@@ -793,6 +793,7 @@ select {
 
   .hero-nav {
     gap: 12px 16px;
+    justify-content: center;
   }
 
   .hero-nav a {
@@ -2133,6 +2134,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  margin-top: 32px;
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
   box-shadow: 0 4px 12px rgba(111, 200, 214, 0.4);
@@ -3544,6 +3546,10 @@ select {
     width: auto;
     justify-content: flex-start;
   }
+
+  .services-grid .service-card.fade-in {
+    animation: none;
+  }
 }
 
 .slider-prev,
@@ -3680,6 +3686,10 @@ select {
   /* Скрываем неактивные карточки через скролл */
   .equipment-card:not(:first-child) {
     margin-left: 20px;
+  }
+
+  .equipment-grid .equipment-card.fade-in {
+    animation: none;
   }
 }
 
