@@ -965,44 +965,6 @@ function initServicesSlider() {
   if (prevBtn) prevBtn.addEventListener('click', goPrev);
   if (nextBtn) nextBtn.addEventListener('click', goNext);
 
-  slider.addEventListener('click', (event) => {
-    const prev = event.target.closest('.team-prev');
-    const next = event.target.closest('.team-next');
-    if (prev) {
-      event.preventDefault();
-      goPrev();
-      return;
-    }
-    if (next) {
-      event.preventDefault();
-      goNext();
-    }
-  });
-
-  let startX = 0;
-  let startY = 0;
-
-  const handleTouchStart = (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e) => {
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
-    const diffX = startX - endX;
-    const diffY = startY - endY;
-    const swipeThreshold = 50;
-
-    if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 0) {
-        goNext();
-      } else {
-        goPrev();
-      }
-    }
-  };
-
   const getClosestSlideIndex = () => {
     const center = servicesGrid.scrollLeft + servicesGrid.clientWidth / 2;
     let closestIndex = 0;
@@ -1021,10 +983,6 @@ function initServicesSlider() {
   };
 
   const handleScroll = () => {
-    if (servicesGrid._scrollEndTimer) {
-      clearTimeout(servicesGrid._scrollEndTimer);
-    }
-
     servicesGrid._scrollEndTimer = setTimeout(() => {
       const newIndex = getClosestSlideIndex();
       if (newIndex !== currentSlide) {
@@ -1034,12 +992,8 @@ function initServicesSlider() {
     }, 120);
   };
 
-  servicesGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
-  servicesGrid.addEventListener('touchend', handleTouchEnd, { passive: true });
   servicesGrid.addEventListener('scroll', handleScroll, { passive: true });
 
-  servicesGrid._touchStartHandler = handleTouchStart;
-  servicesGrid._touchEndHandler = handleTouchEnd;
   servicesGrid._scrollHandler = handleScroll;
 
   if (window.ResizeObserver) {
@@ -1450,38 +1404,7 @@ function initEquipmentSlider() {
     });
   }
 
-  // Swipe для мобильных
-  let startX = 0;
-  let startY = 0;
-
-  const handleTouchStart = (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e) => {
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
-    const diffX = startX - endX;
-    const diffY = startY - endY;
-    const swipeThreshold = 50;
-
-    if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 0) {
-        if (currentSlide < totalSlides - 1) {
-          goToSlide(currentSlide + 1);
-        }
-      } else if (currentSlide > 0) {
-        goToSlide(currentSlide - 1);
-      }
-    }
-  };
-
   const handleScroll = () => {
-    if (equipmentGrid._scrollEndTimer) {
-      clearTimeout(equipmentGrid._scrollEndTimer);
-    }
-
     equipmentGrid._scrollEndTimer = setTimeout(() => {
       const center = equipmentGrid.scrollLeft + equipmentGrid.clientWidth / 2;
       let closestIndex = 0;
@@ -1503,12 +1426,8 @@ function initEquipmentSlider() {
     }, 120);
   };
 
-  equipmentGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
-  equipmentGrid.addEventListener('touchend', handleTouchEnd, { passive: true });
   equipmentGrid.addEventListener('scroll', handleScroll, { passive: true });
 
-  equipmentGrid._touchStartHandler = handleTouchStart;
-  equipmentGrid._touchEndHandler = handleTouchEnd;
   equipmentGrid._scrollHandler = handleScroll;
 
   if (window.ResizeObserver) {
@@ -1569,7 +1488,11 @@ function initTeamSlider() {
   let isAnimating = false;
   let isDragging = false;
   let dragStartX = 0;
+  let dragStartY = 0;
+  let dragAxis = null;
   let dragStartTranslate = 0;
+  let dragRaf = null;
+  let dragPendingX = 0;
 
   const moveTo = (index, animate = true) => {
     currentIndex = index;
@@ -1637,6 +1560,8 @@ function initTeamSlider() {
     if (event.target.closest('.team-more') || event.target.closest('.team-nav')) return;
     isDragging = true;
     dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    dragAxis = null;
     dragStartTranslate = -slideWidth * currentIndex;
     track.style.transition = 'none';
     wrap.setPointerCapture(event.pointerId);
@@ -1644,8 +1569,28 @@ function initTeamSlider() {
 
   const handlePointerMove = (event) => {
     if (!isDragging) return;
-    const delta = event.clientX - dragStartX;
-    track.style.transform = `translateX(${dragStartTranslate + delta}px)`;
+    const deltaX = event.clientX - dragStartX;
+    const deltaY = event.clientY - dragStartY;
+
+    if (!dragAxis) {
+      if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
+      dragAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
+    }
+
+    if (dragAxis !== 'x') {
+      isDragging = false;
+      dragAxis = null;
+      wrap.releasePointerCapture(event.pointerId);
+      return;
+    }
+
+    dragPendingX = dragStartTranslate + deltaX;
+    if (dragRaf) return;
+
+    dragRaf = requestAnimationFrame(() => {
+      track.style.transform = `translateX(${dragPendingX}px)`;
+      dragRaf = null;
+    });
   };
 
   const handlePointerUp = (event) => {
@@ -1655,17 +1600,26 @@ function initTeamSlider() {
     const delta = event.clientX - dragStartX;
     const threshold = slideWidth * 0.15;
 
-    if (Math.abs(delta) > threshold) {
-      delta < 0 ? goNext() : goPrev();
-    } else {
-      moveTo(currentIndex, true);
+    if (dragRaf) {
+      cancelAnimationFrame(dragRaf);
+      dragRaf = null;
     }
+
+    if (dragAxis === 'x') {
+      if (Math.abs(delta) > threshold) {
+        delta < 0 ? goNext() : goPrev();
+      } else {
+        moveTo(currentIndex, true);
+      }
+    }
+
+    dragAxis = null;
   };
 
   wrap.addEventListener('pointerdown', handlePointerDown);
   wrap.addEventListener('pointermove', handlePointerMove);
   wrap.addEventListener('pointerup', handlePointerUp);
-  wrap.addEventListener('pointerleave', handlePointerUp);
+  wrap.addEventListener('pointercancel', handlePointerUp);
   wrap.addEventListener('dragstart', (event) => event.preventDefault());
 
   window.addEventListener('resize', () => {

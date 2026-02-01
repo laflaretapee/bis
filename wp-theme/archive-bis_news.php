@@ -3,14 +3,45 @@
 Template Name: Новости
 */
 get_header();
+
+$news_page_id = 0;
+$news_pages = get_pages(array(
+    'meta_key'   => '_wp_page_template',
+    'meta_value' => 'page-news.php',
+    'number'     => 1,
+));
+if (!empty($news_pages)) {
+    $news_page_id = $news_pages[0]->ID;
+}
+if (!$news_page_id) {
+    $news_page = get_page_by_path('news');
+    if ($news_page) {
+        $news_page_id = $news_page->ID;
+    }
+}
+
+$banner_title = $news_page_id ? get_post_meta($news_page_id, 'bis_page_banner_title', true) : '';
+$banner_subtitle = $news_page_id ? get_post_meta($news_page_id, 'bis_page_banner_subtitle', true) : '';
+$banner_title = $banner_title ? $banner_title : ($news_page_id ? get_the_title($news_page_id) : 'Новости');
+if (!$banner_subtitle) {
+    $banner_subtitle = 'Комплексная экспертиза в инженерных системах, исследования и практические кейсы — рассказываем о проектах и жизни команды «БИС — Баланс Инженерных Систем».';
+}
+$banner_image = $news_page_id ? get_post_meta($news_page_id, 'bis_page_banner_image', true) : '';
+if (!$banner_image && $news_page_id) {
+    $banner_image = get_the_post_thumbnail_url($news_page_id, 'full');
+}
 ?>
 
 <main class="news-archive-page">
     <section class="news-hero">
-        <div class="news-hero__media" style="background-image: url('<?php echo esc_url($cover); ?>');"></div>
+        <?php if ($banner_image) : ?>
+            <div class="news-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+        <?php endif; ?>
         <div class="news-hero__overlay">
-            <h1 class="news-hero__title">Новости</h1>
-            <p class="news-hero__text">Комплексная экспертиза в инженерных системах, исследования и практические кейсы — рассказываем о проектах и жизни команды «БИС — Баланс Инженерных Систем».</p>
+            <h1 class="news-hero__title"><?php echo esc_html($banner_title); ?></h1>
+            <?php if (!empty($banner_subtitle)) : ?>
+                <p class="news-hero__text"><?php echo nl2br(esc_html($banner_subtitle)); ?></p>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -18,7 +49,7 @@ get_header();
         <nav class="project-breadcrumbs mw-1400px">
             <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
             <span class="breadcrumbs-delimiter">/</span>
-            <span>Новости</span>
+            <span><?php echo esc_html($banner_title); ?></span>
         </nav>
     </section>
 
