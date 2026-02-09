@@ -2377,15 +2377,15 @@ function bis_revenue_page() {
                     <?php if (!empty($points)) : ?>
                         <?php foreach ($points as $point) : ?>
                             <tr>
-                                <td><input type="text" name="bis_revenue_year[]" value="<?php echo esc_attr($point['label']); ?>" placeholder="2024" class="widefat"></td>
-                                <td><input type="text" name="bis_revenue_value[]" value="<?php echo esc_attr($point['value']); ?>" placeholder="12.5" class="widefat"></td>
+                                <td><input type="text" name="bis_revenue_year[]" value="<?php echo esc_attr($point['label']); ?>" placeholder="Год" class="widefat"></td>
+                                <td><input type="text" name="bis_revenue_value[]" value="<?php echo esc_attr($point['value']); ?>" placeholder="Значение" class="widefat"></td>
                                 <td><button type="button" class="button bis-revenue-remove">Удалить</button></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td><input type="text" name="bis_revenue_year[]" value="" placeholder="2024" class="widefat"></td>
-                            <td><input type="text" name="bis_revenue_value[]" value="" placeholder="12.5" class="widefat"></td>
+                            <td><input type="text" name="bis_revenue_year[]" value="" placeholder="Год" class="widefat"></td>
+                            <td><input type="text" name="bis_revenue_value[]" value="" placeholder="Значение" class="widefat"></td>
                             <td><button type="button" class="button bis-revenue-remove">Удалить</button></td>
                         </tr>
                     <?php endif; ?>
@@ -2402,8 +2402,8 @@ function bis_revenue_page() {
     </div>
     <script type="text/html" id="bis-revenue-row-template">
         <tr>
-            <td><input type="text" name="bis_revenue_year[]" value="" placeholder="2024" class="widefat"></td>
-            <td><input type="text" name="bis_revenue_value[]" value="" placeholder="12.5" class="widefat"></td>
+            <td><input type="text" name="bis_revenue_year[]" value="" placeholder="Год" class="widefat"></td>
+            <td><input type="text" name="bis_revenue_value[]" value="" placeholder="Значение" class="widefat"></td>
             <td><button type="button" class="button bis-revenue-remove">Удалить</button></td>
         </tr>
     </script>

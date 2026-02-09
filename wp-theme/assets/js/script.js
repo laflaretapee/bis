@@ -303,9 +303,18 @@ function initRevenueChart() {
   const maxValue = nice.max;
   const axisStep = nice.step;
 
-  const formatValue = (value) => {
-    if (Number.isInteger(value)) return value.toString();
-    return value.toString().replace('.', ',');
+  const DECIMAL_PRECISION = 2;
+  const roundValue = (value, decimals = DECIMAL_PRECISION) => {
+    const factor = Math.pow(10, decimals);
+    return Math.round((value + Number.EPSILON) * factor) / factor;
+  };
+
+  const formatValue = (value, decimals = DECIMAL_PRECISION) => {
+    const safeValue = Number.isFinite(value) ? value : 0;
+    const rounded = roundValue(safeValue, decimals);
+    let text = rounded.toFixed(decimals);
+    text = text.replace(/\.?0+$/, '');
+    return text.replace('.', ',');
   };
 
   const denom = cleanPoints.length > 1 ? (cleanPoints.length - 1) : 1;
