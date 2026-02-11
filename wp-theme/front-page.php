@@ -211,23 +211,23 @@ $has_hero_slider = !empty($hero_images);
           <span class="stat-label">реализованных проектов</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">20 тыс</span>
+          <span class="stat-value">15 тыс</span>
           <span class="stat-label">общеобменных систем обследовано и налажено</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">10 тыс</span>
+          <span class="stat-value">6 тыс</span>
           <span class="stat-label">противодымных систем обследовано и налажено</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">20 тыс</span>
-          <span class="stat-label">регулирующих устройств</span>
+          <span class="stat-value">200 тыс</span>
+          <span class="stat-label">регулирующих устройств и балансиров</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">40 тыс</span>
+          <span class="stat-value">25 тыс</span>
           <span class="stat-label">индивидуальных испытаний</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">200</span>
+          <span class="stat-value">100</span>
           <span class="stat-label">ИТП и хладоцентров</span>
         </div>
         <div class="stat-item">
