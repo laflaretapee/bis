@@ -1641,12 +1641,14 @@ function initTeamModal() {
 
   const nameEl = modal.querySelector('[data-team-modal-name]');
   const roleEl = modal.querySelector('[data-team-modal-role]');
+  const sinceEl = modal.querySelector('[data-team-modal-since]');
   const textEl = modal.querySelector('[data-team-modal-text]');
   const imageEl = modal.querySelector('[data-team-modal-image]');
 
   const openModal = (slide) => {
     const name = slide.dataset.name || '';
     const role = slide.dataset.role || '';
+    const since = slide.dataset.since || '';
     const modalPhoto = slide.dataset.modalPhoto || slide.dataset.photo || '';
     const detail = slide.querySelector('.team-slide__long');
     const summary = slide.querySelector('.team-story');
@@ -1654,6 +1656,15 @@ function initTeamModal() {
 
     if (nameEl) nameEl.textContent = name;
     if (roleEl) roleEl.textContent = role;
+    if (sinceEl) {
+      if (since) {
+        sinceEl.textContent = `В команде с ${since}`;
+        sinceEl.style.display = '';
+      } else {
+        sinceEl.textContent = '';
+        sinceEl.style.display = 'none';
+      }
+    }
     if (textEl) textEl.innerHTML = detailHtml;
     if (imageEl) {
       const imageWrap = imageEl.closest('.team-modal__image');

@@ -116,6 +116,69 @@ function bis_register_projects_cpt() {
 }
 add_action('init', 'bis_register_projects_cpt');
 
+function bis_register_project_taxonomies() {
+    $type_labels = array(
+        'name'              => 'Типы проектов',
+        'singular_name'     => 'Тип проекта',
+        'search_items'      => 'Искать типы проектов',
+        'all_items'         => 'Все типы проектов',
+        'edit_item'         => 'Редактировать тип проекта',
+        'update_item'       => 'Обновить тип проекта',
+        'add_new_item'      => 'Добавить тип проекта',
+        'new_item_name'     => 'Новый тип проекта',
+        'menu_name'         => 'Типы проектов',
+    );
+
+    register_taxonomy('bis_project_type', array('bis_project'), array(
+        'hierarchical'      => true,
+        'labels'            => $type_labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'show_in_rest'      => true,
+        'rewrite'           => array('slug' => 'project-type'),
+    ));
+
+    $service_labels = array(
+        'name'              => 'Услуги проекта',
+        'singular_name'     => 'Услуга проекта',
+        'search_items'      => 'Искать услуги проекта',
+        'all_items'         => 'Все услуги проекта',
+        'edit_item'         => 'Редактировать услугу проекта',
+        'update_item'       => 'Обновить услугу проекта',
+        'add_new_item'      => 'Добавить услугу проекта',
+        'new_item_name'     => 'Новая услуга проекта',
+        'menu_name'         => 'Услуги проекта',
+    );
+
+    register_taxonomy('bis_project_service', array('bis_project'), array(
+        'hierarchical'      => true,
+        'labels'            => $service_labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'show_in_rest'      => true,
+        'rewrite'           => array('slug' => 'project-service'),
+    ));
+}
+add_action('init', 'bis_register_project_taxonomies');
+
+function bis_projects_filter_request($query_vars) {
+    if (isset($query_vars['pagename']) && 'projects' === $query_vars['pagename']) {
+        if (isset($query_vars['year'])) {
+            $query_vars['project_year'] = $query_vars['year'];
+            unset($query_vars['year']);
+        }
+        if (isset($query_vars['area'])) {
+            $query_vars['project_area'] = $query_vars['area'];
+            unset($query_vars['area']);
+        }
+    }
+
+    return $query_vars;
+}
+add_filter('request', 'bis_projects_filter_request');
+
 function bis_register_services_cpt() {
     $labels = array(
         'name'               => 'Услуги',
@@ -829,6 +892,23 @@ function bis_project_details_metabox($post) {
 
         <div class="bis-project-section">
             <div class="bis-project-section__header">
+                <h4>Параметры проекта</h4>
+                <p class="bis-field__hint">Поля требуются для фильтров на странице проектов.</p>
+            </div>
+            <div class="bis-project-grid">
+                <div class="bis-field">
+                    <label for="bis_project_area">Площадь (м²)</label>
+                    <input type="text" id="bis_project_area" name="bis_project_area" value="<?php echo esc_attr($legacy_area); ?>" placeholder="45 000">
+                </div>
+                <div class="bis-field">
+                    <label for="bis_project_year">Год</label>
+                    <input type="text" id="bis_project_year" name="bis_project_year" value="<?php echo esc_attr($legacy_year); ?>" placeholder="2024">
+                </div>
+            </div>
+        </div>
+
+        <div class="bis-project-section">
+            <div class="bis-project-section__header">
                 <h4>Текст на баннере</h4>
                 <p class="bis-field__hint">Заполните подписи и значения для четырех блоков. Если подпись и значение пустые — блок не отображается.</p>
             </div>
@@ -967,14 +1047,23 @@ function bis_save_project_details($post_id) {
         }
     }
 
+    $year_input = isset($_POST['bis_project_year']) ? sanitize_text_field(wp_unslash($_POST['bis_project_year'])) : '';
+    $area_input = isset($_POST['bis_project_area']) ? sanitize_text_field(wp_unslash($_POST['bis_project_area'])) : '';
+    $address_input = isset($_POST['bis_project_address']) ? sanitize_text_field(wp_unslash($_POST['bis_project_address'])) : '';
+
     $legacy_year = isset($banner_blocks['top_left']['value']) ? $banner_blocks['top_left']['value'] : '';
     $legacy_address = isset($banner_blocks['bottom_left']['value']) ? $banner_blocks['bottom_left']['value'] : '';
     $legacy_area_raw = isset($banner_blocks['top_right']['value']) ? $banner_blocks['top_right']['value'] : '';
     $legacy_area = trim(preg_replace('/\\s*(м2|м²|m2|m²)\\s*/iu', '', $legacy_area_raw));
 
-    update_post_meta($post_id, 'bis_project_address', $legacy_address);
-    update_post_meta($post_id, 'bis_project_area', $legacy_area);
-    update_post_meta($post_id, 'bis_project_year', $legacy_year);
+    $area_input = trim(preg_replace('/\\s*(м2|м²|m2|m²)\\s*/iu', '', $area_input));
+    $project_year = $year_input !== '' ? $year_input : $legacy_year;
+    $project_address = $address_input !== '' ? $address_input : $legacy_address;
+    $project_area = $area_input !== '' ? $area_input : $legacy_area;
+
+    update_post_meta($post_id, 'bis_project_address', $project_address);
+    update_post_meta($post_id, 'bis_project_area', $project_area);
+    update_post_meta($post_id, 'bis_project_year', $project_year);
     update_post_meta($post_id, 'bis_project_image', $banner_image);
     update_post_meta($post_id, 'bis_project_banner_image', $banner_image);
     update_post_meta($post_id, 'bis_project_banner_title', $banner_title);
@@ -1717,18 +1806,20 @@ function bis_team_page() {
         foreach ($raw_members as $member) {
             $name = isset($member['name']) ? sanitize_text_field($member['name']) : '';
             $role = isset($member['role']) ? sanitize_text_field($member['role']) : '';
+            $since = isset($member['since']) ? sanitize_text_field($member['since']) : '';
             $short = isset($member['short']) ? wp_kses_post($member['short']) : '';
             $long = isset($member['long']) ? wp_kses_post($member['long']) : '';
             $photo = isset($member['photo']) ? esc_url_raw($member['photo']) : '';
             $modal_photo = isset($member['modal_photo']) ? esc_url_raw($member['modal_photo']) : '';
 
-            if ($name === '' && $role === '' && $short === '' && $long === '' && $photo === '' && $modal_photo === '') {
+            if ($name === '' && $role === '' && $since === '' && $short === '' && $long === '' && $photo === '' && $modal_photo === '') {
                 continue;
             }
 
             $members[] = array(
                 'name' => $name,
                 'role' => $role,
+                'since' => $since,
                 'short' => $short,
                 'long' => $long,
                 'photo' => $photo,
@@ -1756,6 +1847,7 @@ function bis_team_page() {
                 <?php foreach ($members as $index => $member) :
                     $name = isset($member['name']) ? $member['name'] : '';
                     $role = isset($member['role']) ? $member['role'] : '';
+                    $since = isset($member['since']) ? $member['since'] : '';
                     $short = isset($member['short']) ? $member['short'] : '';
                     $long = isset($member['long']) ? $member['long'] : '';
                     $photo = isset($member['photo']) ? $member['photo'] : '';
@@ -1803,6 +1895,10 @@ function bis_team_page() {
                                 <div class="team-field">
                                     <label>Должность</label>
                                     <input type="text" value="<?php echo esc_attr($role); ?>" data-field="role" name="team_members[<?php echo esc_attr($index); ?>][role]" placeholder="Директор">
+                                </div>
+                                <div class="team-field">
+                                    <label>В команде с</label>
+                                    <input type="text" value="<?php echo esc_attr($since); ?>" data-field="since" name="team_members[<?php echo esc_attr($index); ?>][since]" placeholder="2021">
                                 </div>
                                 <div class="team-field">
                                     <label>Короткое описание для слайда</label>
@@ -1871,6 +1967,10 @@ function bis_team_page() {
                         <div class="team-field">
                             <label>Должность</label>
                             <input type="text" value="" data-field="role" placeholder="Директор">
+                        </div>
+                        <div class="team-field">
+                            <label>В команде с</label>
+                            <input type="text" value="" data-field="since" placeholder="2021">
                         </div>
                         <div class="team-field">
                             <label>Короткое описание для слайда</label>

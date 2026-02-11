@@ -7274,6 +7274,12 @@ body.post-type-archive-bis_news {
   color: var(--text-light);
 }
 
+.team-since {
+  font-size: 13px;
+  color: var(--text-light);
+  opacity: 0.85;
+}
+
 .team-more {
   position: relative;
   width: fit-content;
@@ -7357,6 +7363,11 @@ body.post-type-archive-bis_news {
   grid-column: 1 / -1;
   justify-self: center;
   width: 100%;
+}
+
+.equipment-grid,
+.services-grid {
+  max-width: 1200px;
 }
 
 .services-grid .team-empty,
@@ -7448,6 +7459,12 @@ body.post-type-archive-bis_news {
 .team-modal__role {
   margin: 0 0 16px;
   color: var(--text-light);
+}
+
+.team-modal__since {
+  margin: -10px 0 16px;
+  color: var(--text-light);
+  font-size: 14px;
 }
 
 .team-modal__text {
@@ -7568,8 +7585,57 @@ body.post-type-archive-bis_news {
   background: var(--bg);
 }
 
+.projects-filters {
+  max-width: 1400px;
+  margin: 0 auto 36px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  align-items: center;
+}
+
+.projects-filters__item {
+  position: relative;
+}
+
+.projects-filter {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 26px 8px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 160px;
+  cursor: pointer;
+}
+
+.projects-filter:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.projects-filters__item::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-70%) rotate(45deg);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .projects-grid {
   margin-bottom: 0;
+}
+
+.projects-grid .team-empty {
+  margin-top: 32px;
 }
 
 .about-intro {
@@ -8315,6 +8381,15 @@ body.post-type-archive-bis_news {
     padding: 40px 6vw 80px;
   }
 
+  .projects-filters {
+    margin-bottom: 28px;
+    gap: 12px 18px;
+  }
+
+  .projects-filter {
+    min-width: 140px;
+  }
+
   .project-hero__overlay {
     padding: 110px 6vw 60px;
   }
@@ -8374,6 +8449,17 @@ body.post-type-archive-bis_news {
 @media (max-width: 640px) {
   .project-gallery__masonry {
     column-count: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .projects-filters {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .projects-filter {
+    width: 100%;
   }
 }
 

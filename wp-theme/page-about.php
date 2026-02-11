@@ -158,13 +158,14 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                         <?php foreach ($team_members as $member) :
                             $name = isset($member['name']) ? $member['name'] : '';
                             $role = isset($member['role']) ? $member['role'] : '';
+                            $since = isset($member['since']) ? $member['since'] : '';
                             $short = isset($member['short']) ? $member['short'] : '';
                             $long = isset($member['long']) ? $member['long'] : '';
                             $photo = isset($member['photo']) ? $member['photo'] : '';
                             $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
                             $modal_photo = $modal_photo ? $modal_photo : $photo;
                             ?>
-                            <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
+                            <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-since="<?php echo esc_attr($since); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
                                 <div class="team-slide__content">
                                     <div class="team-header">
                                         <span class="team-label">Команда</span>
@@ -185,6 +186,9 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                                     <div class="team-meta">
                                         <span class="team-name"><?php echo esc_html($name); ?></span>
                                         <span class="team-role"><?php echo esc_html($role); ?></span>
+                                        <?php if ($since !== '') : ?>
+                                            <span class="team-since">В команде с <?php echo esc_html($since); ?></span>
+                                        <?php endif; ?>
                                     </div>
                                     <button class="btn btn-outline team-more" type="button" data-team-more>Подробнее</button>
                                 </div>
@@ -219,6 +223,7 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
             <div class="team-modal__body">
                 <h3 class="team-modal__name" id="teamModalTitle" data-team-modal-name></h3>
                 <p class="team-modal__role" data-team-modal-role></p>
+                <p class="team-modal__since" data-team-modal-since></p>
                 <div class="team-modal__text" data-team-modal-text></div>
             </div>
         </div>
