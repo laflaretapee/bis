@@ -7296,10 +7296,10 @@ body.post-type-archive-bis_news {
 }
 
 .team-slide__photo {
-  min-height: 520px;
+  min-height: 600px;
   background-color: #e2e8f0;
   background-size: cover;
-  background-position: center;
+  background-position: top;
   position: relative;
 }
 
@@ -7446,6 +7446,7 @@ body.post-type-archive-bis_news {
   width: 100%;
   height: 384px;
   object-fit: cover;
+  object-position: top;
   display: block;
 }
 

@@ -629,7 +629,7 @@ style>
       </svg>
     </button>
     <div class="team-modal__image">
-      <img src="" alt="" loading="lazy" data-team-modal-image>
+      <img src="" alt="" data-team-modal-image>
     </div>
     <div class="team-modal__body">
       <h3 class="team-modal__name" id="teamModalTitle" data-team-modal-name></h3>
