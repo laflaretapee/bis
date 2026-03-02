@@ -554,12 +554,22 @@ function initMobileMenu() {
 // Эффекты при скролле
 function initScrollEffects() {
   const header = document.getElementById('header');
+  const floatingEstimateBtn = document.querySelector('.floating-estimate-btn');
   let lastScroll = 0;
 
   window.addEventListener('scroll', () => {
     const currentScroll = window.pageYOffset;
     if (currentScroll > 50) header.classList.add('scrolled');
     else header.classList.remove('scrolled');
+
+    if (floatingEstimateBtn) {
+      if (currentScroll > 400) {
+        floatingEstimateBtn.classList.add('visible');
+      } else {
+        floatingEstimateBtn.classList.remove('visible');
+      }
+    }
+
     lastScroll = currentScroll;
   });
 
@@ -836,10 +846,10 @@ function initSmoothScroll() {
         const headerHeight = document.getElementById('header').offsetHeight;
         const targetPosition = targetElement.offsetTop - headerHeight;
 
-      window.scrollTo({
-        top: targetPosition,
-        behavior: 'smooth'
-      });
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
 
         // Закрываем меню если оно открыто
         closeMenuDrawer();
