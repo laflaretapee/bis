@@ -7,11 +7,11 @@
         'file' => '1130000018015543.191121509186564585.1.pdf',
       ),
       array(
-        'label' => 'Выписка из реестра СРО ЦСО (БИС)',
+        'label' => 'Выписка из реестра СРО ЦСО',
         'file' => 'Выписка из реестра ЦСО БИС.pdf',
       ),
       array(
-        'label' => 'Сертификат соответствия ISO (скан)',
+        'label' => 'Сертификат соответствия ГОСТ Р ИСО 9001-2015 (ISO 9001:2015',
         'file' => 'ИСО_сертификат.pdf',
       ),
       array(
@@ -30,17 +30,19 @@
     ?>
     <div class="footer-content">
       <div class="footer-section">
-        <h3>«БИС — Баланс Инженерных Систем»</h3>
-        <p>«Баланс Инженерных Систем»</p>
-        <p>ООО «БИС — БАЛАНС ИНЖЕНЕРНЫХ СИСТЕМ»</p>
+        <h3>ООО «БИС — Баланс Инженерных Систем»</h3>
         <p>ИНН 7722323589</p>
       </div>
       <div class="footer-section">
         <h3>Навигация</h3>
-        <p><a href="#services">Услуги</a></p>
-        <p><a href="#cases">Кейсы</a></p>
-        <p><a href="#why">О нас</a></p>
+        <p><a href="#services">Специализация</a></p>
+        <p><a href="#equipment">Оборудование</a></p>
+        <p><a href="#experience">Опыт</a></p>
+        <p><a href="<?php echo esc_url(home_url('/about/')); ?>">О нас</a></p>
+        <p><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></p>
+        <p><a href="<?php echo esc_url(home_url('/news/')); ?>">Новости</a></p>
         <p><a href="#contact">Контакты</a></p>
+        <p><a href="#faq">F.A.Q</a></p>
       </div>
       <div class="footer-section">
         <h3>Контакты</h3>

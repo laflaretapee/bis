@@ -36,10 +36,6 @@
       <div class="drawer-header">
         <div class="drawer-brand">
           <img src="<?php echo get_template_directory_uri(); ?>/assets/img/LOGOLOGO11.png" alt="БИС — Баланс Инженерных Систем" class="drawer-mark">
-          <div class="drawer-brand-text">
-            <span class="drawer-title">Баланс Инженерных Систем</span>
-            <span class="drawer-subtitle">технологически и эстетически совершенные</span>
-          </div>
         </div>
         <button class="drawer-close" id="drawerClose" aria-label="Закрыть меню">
           <span></span>
@@ -51,7 +47,6 @@
         <li><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></li>
         <li><a href="#services">Специализация</a></li>
         <li><a href="#equipment">Оборудование</a></li>
-        <li><a href="#experience">Опыт</a></li>
         <li><a href="#contact">Контакты</a></li>
         <li><a href="#faq">F.A.Q</a></li>
       </ul>

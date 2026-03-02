@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
-    container_name: mysql
+    container_name: bis_mysql
     restart: unless-stopped
     env_file:
       - "./.env.mysql"
@@ -22,6 +20,7 @@ services:
 
   wordpress:
     image: wordpress:latest
+    container_name: bis_wordpress
     restart: unless-stopped
     ports:
       - "8000:80"
@@ -38,11 +37,12 @@ services:
 
   phpmyadmin:
     image: phpmyadmin:latest
+    container_name: bis_phpmyadmin
     restart: unless-stopped
     networks:
       - bisnet
     ports:
-      - "8080:80"
+      - "9999:80"
     env_file:
       - "./.env.pma"
     depends_on:

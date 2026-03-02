@@ -2490,7 +2490,8 @@ select {
 
 /* Objects Section */
 .objects-section {
-  padding: 100px 32px;
+  padding: 64px 32px;
+  padding-top: 0;
   background: var(--bg);
 }
 
@@ -2546,9 +2547,6 @@ select {
 }
 
 @media (max-width: 768px) {
-  .objects-section {
-    padding: 80px 20px;
-  }
 
   .objects-section .section-header {
     margin-bottom: 36px;
@@ -5099,11 +5097,12 @@ select {
 
 @media (max-width: 480px) {
   .services {
-    padding: 60px 0;
+    padding-top: 0;
   }
 
   .services .section-header {
     padding: 0 16px;
+    margin: 0;
   }
 
   .services-grid {
@@ -7904,6 +7903,7 @@ body.post-type-archive-bis_news {
   bottom: 10%;
   right: 8%;
   text-align: right;
+  max-width: max-content;
 }
 
 .project-hero__label {

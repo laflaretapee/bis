@@ -75,14 +75,14 @@ $has_hero_slider = !empty($hero_images);
   <div class="objects-container">
     <div class="section-header">
       <span class="section-badge">Типы объектов</span>
-      <h2 class="section-title">Объекты, которые мы налаживаем</h2>
+      <h2 class="section-title">Объекты, на которых мы работаем</h2>
       <p class="section-subtitle">Работаем с инженерными системами на разных типах площадок — от производственных комплексов до жилых объектов.</p>
     </div>
 
     <div class="objects-grid">
       <div class="object-card">
         <h3>Промышленные</h3>
-        <p>Пусконаладка производственных зданий, складов и чистых помещений.</p>
+        <p>Производственные здания, склады и чистые помещения.</p>
       </div>
       <div class="object-card">
         <h3>Административные</h3>
@@ -101,7 +101,6 @@ $has_hero_slider = !empty($hero_images);
   <section class="services" id="services">
   <div class="section-header">
     <h2 class="section-title">Комплексные решения для ваших систем</h2>
-    <p class="section-subtitle">Специализация инженерных систем</p>
   </div>
 
   <div class="services-grid">
@@ -245,6 +244,42 @@ $has_hero_slider = !empty($hero_images);
   </div>
 </section>
 
+<?php $revenue = bis_get_revenue_settings(); ?>
+<section class="revenue-section" id="revenue">
+  <div class="revenue-container">
+    <div class="revenue-header">
+      <h2 class="revenue-title">Динамика выручки за 10 лет</h2>
+      <span class="revenue-unit">млрд ₽</span>
+    </div>
+
+    <div class="revenue-chart" data-currency="₽" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
+      <div class="revenue-axis" data-revenue-axis></div>
+      <div class="revenue-plot">
+        <svg class="revenue-svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="rgba(17, 24, 39, 0.18)"/>
+              <stop offset="100%" stop-color="rgba(17, 24, 39, 0)"/>
+            </linearGradient>
+          </defs>
+          <path class="revenue-area" fill="url(#revenueGradient)" d=""></path>
+          <path class="revenue-line" d=""></path>
+          <g class="revenue-points"></g>
+        </svg>
+        <div class="revenue-grid" data-revenue-grid></div>
+        <div class="revenue-labels" data-revenue-labels></div>
+      </div>
+      <div class="revenue-xaxis" data-revenue-xaxis></div>
+    </div>
+
+    <div class="revenue-cta">
+        <a class="btn btn-outline btn-outline--bold" href="#contact">
+        Узнать больше
+        </a>
+    </div>
+  </div>
+</section>
+
 <section class="equipment-section" id="equipment">
   <div class="section-header">
     <!-- <span class="section-badge">Оборудование</span> -->
@@ -314,7 +349,7 @@ $gratitude_letters = new WP_Query(array(
 ));
 if ($gratitude_letters->have_posts()) :
 ?>
-<section class="gratitude-section" id="gratitude">
+<section class="gratitude-section" id="gratitude" style="display: none;">
   <div class="section-header">
     <!-- <span class="section-badge">Отзывы</span> -->
     <h2 class="section-title">Отзывы наших клиентов</h2>
@@ -389,7 +424,6 @@ endif;
   <!-- Experience Section -->
 <section class="experience" id="experience">
   <div class="section-header">
-    <!-- <span class="section-badge">Опыт</span> -->
     <h2 class="section-title">Наши ключевые проекты</h2>
     <p class="section-subtitle">Реализованные решения для ведущих компаний</p>
   </div>
@@ -680,7 +714,7 @@ $news_query = new WP_Query(array(
 ));
 ?>
 
-<section class="homepage-news" id="news">
+<section class="homepage-news" id="news"  style="display: none;">
   <div class="homepage-news__container">
   <div class="homepage-news__header">
       <!-- <span class="section-badge">Новости</span> -->
@@ -785,42 +819,6 @@ $news_query = new WP_Query(array(
       </div>
     </div>
   </section>
-
-<?php $revenue = bis_get_revenue_settings(); ?>
-<section class="revenue-section" id="revenue">
-  <div class="revenue-container">
-    <div class="revenue-header">
-      <h2 class="revenue-title">Динамика выручки за 10 лет</h2>
-      <span class="revenue-unit">млрд ₽</span>
-    </div>
-
-    <div class="revenue-chart" data-currency="₽" data-revenue-points="<?php echo esc_attr(wp_json_encode($revenue['points'])); ?>">
-      <div class="revenue-axis" data-revenue-axis></div>
-      <div class="revenue-plot">
-        <svg class="revenue-svg" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="rgba(17, 24, 39, 0.18)"/>
-              <stop offset="100%" stop-color="rgba(17, 24, 39, 0)"/>
-            </linearGradient>
-          </defs>
-          <path class="revenue-area" fill="url(#revenueGradient)" d=""></path>
-          <path class="revenue-line" d=""></path>
-          <g class="revenue-points"></g>
-        </svg>
-        <div class="revenue-grid" data-revenue-grid></div>
-        <div class="revenue-labels" data-revenue-labels></div>
-      </div>
-      <div class="revenue-xaxis" data-revenue-xaxis></div>
-    </div>
-
-    <div class="revenue-cta">
-        <a class="btn btn-outline btn-outline--bold" href="#contact">
-        Узнать больше
-        </a>
-    </div>
-  </div>
-</section>
 
 <!-- FAQ Section -->
 <section class="faq-section" id="faq">
