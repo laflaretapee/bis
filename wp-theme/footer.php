@@ -46,10 +46,20 @@
       </div>
       <div class="footer-section">
         <h3>Контакты</h3>
-        <p><a href="tel:+79264380770">+7 (926) 438-07-70</a></p>
+        <p style="display: flex; align-items: center; gap: 12px;">
+          <a href="tel:+79264380770">+7 (926) 438-07-70</a>
+        </p>
         <p><a href="tel:+79169861187">+7 (916) 986-11-87</a></p>
-
+        
         <p><a href="mailto:office@bis-rf.ru">office@bis-rf.ru</a></p>
+        <p style="display: flex; align-items: center; gap: 12px;margin-top: 20px;">
+          <a href="https://t.me/+79264380770" target="_blank" rel="noopener" aria-label="Telegram" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; transition: opacity 0.3s ease;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+            <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/telegram-white-32x32.png" alt="Telegram" style="width: 100%; height: 100%; object-fit: contain;">
+          </a>
+          <a href="https://max.ru/u/f9LHodD0cOIYdHZd-s9_nqTN9t76kGjdQxmIoxXSFGhqRnW3d4TLAMEFfVs" target="_blank" rel="noopener" aria-label="Max" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; transition: opacity 0.3s ease;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+            <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/MAX-white-32x32.png" alt="Max" style="width: 100%; height: 100%; object-fit: contain;">
+          </a>
+        </p>
       </div>
       <div class="footer-section">
         <h3>Документы</h3>
@@ -78,5 +88,7 @@
   </footer>
 
   <?php wp_footer(); ?>
+  
+  <button class="btn btn-primary open-estimate-modal floating-estimate-btn">Рассчитать смету и сроки</button>
 </body>
 </html>

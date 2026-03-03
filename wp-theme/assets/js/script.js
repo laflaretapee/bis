@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initRevenueChart();
   initProjectGallery();
   initProjectConsultationForm();
+  initObjectsSlider();
 });
 
 function applyBisCondensedStyling(root = document.body) {
@@ -554,12 +555,22 @@ function initMobileMenu() {
 // Эффекты при скролле
 function initScrollEffects() {
   const header = document.getElementById('header');
+  const floatingEstimateBtn = document.querySelector('.floating-estimate-btn');
   let lastScroll = 0;
 
   window.addEventListener('scroll', () => {
     const currentScroll = window.pageYOffset;
     if (currentScroll > 50) header.classList.add('scrolled');
     else header.classList.remove('scrolled');
+
+    if (floatingEstimateBtn) {
+      if (currentScroll > 400) {
+        floatingEstimateBtn.classList.add('visible');
+      } else {
+        floatingEstimateBtn.classList.remove('visible');
+      }
+    }
+
     lastScroll = currentScroll;
   });
 
@@ -836,10 +847,10 @@ function initSmoothScroll() {
         const headerHeight = document.getElementById('header').offsetHeight;
         const targetPosition = targetElement.offsetTop - headerHeight;
 
-      window.scrollTo({
-        top: targetPosition,
-        behavior: 'smooth'
-      });
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
 
         // Закрываем меню если оно открыто
         closeMenuDrawer();
@@ -1396,47 +1407,44 @@ function initEquipmentSlider() {
     updateNavigation();
   }
 
-  // Кнопки навигации
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      if (currentSlide > 0) {
-        goToSlide(currentSlide - 1);
-      }
-    });
-  }
+  const goPrev = () => {
+    if (currentSlide > 0) goToSlide(currentSlide - 1);
+  };
 
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      if (currentSlide < totalSlides - 1) {
-        goToSlide(currentSlide + 1);
+  const goNext = () => {
+    if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
+  };
+
+  if (prevBtn) prevBtn.addEventListener('click', goPrev);
+  if (nextBtn) nextBtn.addEventListener('click', goNext);
+
+  const getClosestSlideIndex = () => {
+    const center = equipmentGrid.scrollLeft + equipmentGrid.clientWidth / 2;
+    let closestIndex = 0;
+    let minDiff = Number.POSITIVE_INFINITY;
+
+    equipmentCards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const diff = Math.abs(cardCenter - center);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = index;
       }
     });
-  }
+    return closestIndex;
+  };
 
   const handleScroll = () => {
     equipmentGrid._scrollEndTimer = setTimeout(() => {
-      const center = equipmentGrid.scrollLeft + equipmentGrid.clientWidth / 2;
-      let closestIndex = 0;
-      let minDiff = Number.POSITIVE_INFINITY;
-
-      equipmentCards.forEach((card, index) => {
-        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-        const diff = Math.abs(cardCenter - center);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestIndex = index;
-        }
-      });
-
-      if (closestIndex !== currentSlide) {
-        currentSlide = closestIndex;
+      const newIndex = getClosestSlideIndex();
+      if (newIndex !== currentSlide) {
+        currentSlide = newIndex;
         updateNavigation();
       }
     }, 120);
   };
 
   equipmentGrid.addEventListener('scroll', handleScroll, { passive: true });
-
   equipmentGrid._scrollHandler = handleScroll;
 
   if (window.ResizeObserver) {
@@ -1452,477 +1460,620 @@ function initEquipmentSlider() {
   goToSlide(0, 'auto');
 }
 
-// Team Slider
-function initTeamSlider() {
-  const slider = document.querySelector('[data-team-slider]');
-  if (!slider) return;
+// Слайдер для объектов (мобильный)
+function initObjectsSlider() {
+  const objectsGrid = document.querySelector('.objects-grid');
+  if (!objectsGrid) return;
 
-  const track = slider.querySelector('.team-track');
-  const wrap = slider.querySelector('.team-track-wrap');
-  const prevBtn = slider.querySelector('.team-prev');
-  const nextBtn = slider.querySelector('.team-next');
+  const objectCards = objectsGrid.querySelectorAll('.object-card');
+  const prevBtn = document.querySelector('.objects-slider-nav .slider-prev');
+  const nextBtn = document.querySelector('.objects-slider-nav .slider-next');
+  const dotsContainer = document.querySelector('.objects-slider-nav .slider-dots');
 
-  if (!track || !wrap) return;
+  if (objectCards.length === 0) return;
 
-  if (slider.dataset.teamSliderInitialized === 'true') {
+  const resetButton = (selector) => {
+    const btn = document.querySelector(selector);
+    if (btn) {
+      const clone = btn.cloneNode(true);
+      btn.parentNode.replaceChild(clone, btn);
+    }
+  };
+
+  const isMobile = window.innerWidth <= 768;
+
+  if (!isMobile) {
+    if (objectsGrid.dataset.sliderInitialized === 'true') {
+      if (objectsGrid._scrollHandler) {
+        objectsGrid.removeEventListener('scroll', objectsGrid._scrollHandler);
+        objectsGrid._scrollHandler = null;
+      }
+      if (objectsGrid._resizeObserver) {
+        objectsGrid._resizeObserver.disconnect();
+        objectsGrid._resizeObserver = null;
+      }
+      if (objectsGrid._scrollEndTimer) {
+        clearTimeout(objectsGrid._scrollEndTimer);
+        objectsGrid._scrollEndTimer = null;
+      }
+    }
+
+    objectsGrid.removeAttribute('data-slider-initialized');
+    if (dotsContainer) dotsContainer.innerHTML = '';
+    resetButton('.objects-slider-nav .slider-prev');
+    resetButton('.objects-slider-nav .slider-next');
     return;
   }
 
-  const getSlides = () => Array.from(track.querySelectorAll('.team-slide:not(.is-clone)'));
-  let originalSlides = getSlides();
+  if (objectsGrid.dataset.sliderInitialized === 'true') return;
 
-  if (originalSlides.length === 0) return;
+  objectsGrid.dataset.sliderInitialized = 'true';
 
-  // Создаем по одному клону для бесконечного цикла
-  if (originalSlides.length > 1) {
-    const firstClone = originalSlides[0].cloneNode(true);
-    firstClone.classList.add('is-clone');
-    const lastClone = originalSlides[originalSlides.length - 1].cloneNode(true);
-    lastClone.classList.add('is-clone');
-    track.appendChild(firstClone);
-    track.insertBefore(lastClone, track.firstChild);
+  let currentSlide = 0;
+  const totalSlides = objectCards.length;
+
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+    objectCards.forEach((_, index) => {
+      const dot = document.createElement('div');
+      dot.className = 'slider-dot';
+      if (index === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(index));
+      dotsContainer.appendChild(dot);
+    });
   }
 
-  slider.dataset.teamSliderInitialized = 'true';
-  const allSlides = Array.from(track.querySelectorAll('.team-slide'));
-  const originalCount = originalSlides.length;
+  const dots = dotsContainer ? dotsContainer.querySelectorAll('.slider-dot') : [];
 
-  let currentIndex = originalSlides.length > 1 ? 1 : 0;
-  let slideWidth = 0;
-  let isAnimating = false;
-  let isDragging = false;
-  let dragStartX = 0;
-  let dragStartY = 0;
-  let dragAxis = null;
-  let dragStartTranslate = 0;
-  let dragRaf = null;
-  let dragPendingX = 0;
+  function updateNavigation() {
+    if (prevBtn) prevBtn.disabled = currentSlide === 0;
+    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
+    dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
+  }
 
-  const moveTo = (index, animate = true) => {
-    currentIndex = index;
-    track.style.transition = animate ? 'transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none';
-    track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
-    isAnimating = animate;
-  };
+  function getTargetLeft(index) {
+    const targetCard = objectCards[index];
+    const maxScrollLeft = objectsGrid.scrollWidth - objectsGrid.clientWidth;
+    const offset = targetCard.offsetLeft - (objectsGrid.clientWidth - targetCard.offsetWidth) / 2;
+    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
+  }
 
-  const setSizes = () => {
-    slideWidth = wrap.getBoundingClientRect().width;
-    allSlides.forEach((slide) => {
-      slide.style.width = `${slideWidth}px`;
-    });
-    track.style.width = `${slideWidth * allSlides.length}px`;
-    moveTo(currentIndex, false);
+  function goToSlide(slideIndex, behavior = 'smooth') {
+    currentSlide = Math.max(0, Math.min(slideIndex, totalSlides - 1));
+    if (objectsGrid.scrollTo) {
+      objectsGrid.scrollTo({ left: getTargetLeft(currentSlide), behavior });
+    } else {
+      objectsGrid.scrollLeft = getTargetLeft(currentSlide);
+    }
+    updateNavigation();
+  }
+
+  const goPrev = () => {
+    if (currentSlide > 0) goToSlide(currentSlide - 1);
   };
 
   const goNext = () => {
-    if (originalSlides.length <= 1 || isAnimating) return;
-    moveTo(currentIndex + 1, true);
-  };
-
-  const goPrev = () => {
-    if (originalSlides.length <= 1 || isAnimating) return;
-    moveTo(currentIndex - 1, true);
+    if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
   };
 
   if (prevBtn) prevBtn.addEventListener('click', goPrev);
   if (nextBtn) nextBtn.addEventListener('click', goNext);
 
-  slider.addEventListener('click', (event) => {
-    const prev = event.target.closest('.team-prev');
-    const next = event.target.closest('.team-next');
-    if (prev) {
-      event.preventDefault();
-      goPrev();
-      return;
-    }
-    if (next) {
-      event.preventDefault();
-      goNext();
-    }
-  });
+  const getClosestSlideIndex = () => {
+    const center = objectsGrid.scrollLeft + objectsGrid.clientWidth / 2;
+    let closestIndex = 0;
+    let minDiff = Number.POSITIVE_INFINITY;
 
-  track.addEventListener('transitionend', (event) => {
-    if (event.target !== track || event.propertyName !== 'transform') return;
-    if (!isAnimating || originalSlides.length <= 1) return;
-    isAnimating = false;
-
-    // Если мы закончили анимацию на клонированном слайде, мгновенно перейдем к соответствующему оригинальному
-    if (currentIndex === 0) {
-      // Находимся на первом клоне, переходим к последнему оригинальному
-      currentIndex = originalCount;
-      track.style.transition = 'none';
-      track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
-    } else if (currentIndex === allSlides.length - 1) {
-      // Находимся на последнем клоне, переходим к первому оригинальному
-      currentIndex = 1;
-      track.style.transition = 'none';
-      track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
-    }
-  });
-
-  const handlePointerDown = (event) => {
-    if (originalSlides.length <= 1 || isAnimating) return;
-    if (event.target.closest('.team-more') || event.target.closest('.team-nav')) return;
-    isDragging = true;
-    dragStartX = event.clientX;
-    dragStartY = event.clientY;
-    dragAxis = null;
-    dragStartTranslate = -slideWidth * currentIndex;
-    track.style.transition = 'none';
-    wrap.setPointerCapture(event.pointerId);
-  };
-
-  const handlePointerMove = (event) => {
-    if (!isDragging) return;
-    const deltaX = event.clientX - dragStartX;
-    const deltaY = event.clientY - dragStartY;
-
-    if (!dragAxis) {
-      if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
-      dragAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
-    }
-
-    if (dragAxis !== 'x') {
-      isDragging = false;
-      dragAxis = null;
-      wrap.releasePointerCapture(event.pointerId);
-      return;
-    }
-
-    dragPendingX = dragStartTranslate + deltaX;
-    if (dragRaf) return;
-
-    dragRaf = requestAnimationFrame(() => {
-      track.style.transform = `translateX(${dragPendingX}px)`;
-      dragRaf = null;
+    objectCards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const diff = Math.abs(cardCenter - center);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = index;
+      }
     });
+
+    return closestIndex;
   };
 
-  const handlePointerUp = (event) => {
-    if (!isDragging) return;
-    isDragging = false;
-    wrap.releasePointerCapture(event.pointerId);
-    const delta = event.clientX - dragStartX;
-    const threshold = slideWidth * 0.15;
-
-    if (dragRaf) {
-      cancelAnimationFrame(dragRaf);
-      dragRaf = null;
-    }
-
-    if (dragAxis === 'x') {
-      if (Math.abs(delta) > threshold) {
-        delta < 0 ? goNext() : goPrev();
-      } else {
-        moveTo(currentIndex, true);
+  const handleScroll = () => {
+    objectsGrid._scrollEndTimer = setTimeout(() => {
+      const newIndex = getClosestSlideIndex();
+      if (newIndex !== currentSlide) {
+        currentSlide = newIndex;
+        updateNavigation();
       }
-    }
-
-    dragAxis = null;
+    }, 120);
   };
 
-  wrap.addEventListener('pointerdown', handlePointerDown);
-  wrap.addEventListener('pointermove', handlePointerMove);
-  wrap.addEventListener('pointerup', handlePointerUp);
-  wrap.addEventListener('pointercancel', handlePointerUp);
-  wrap.addEventListener('dragstart', (event) => event.preventDefault());
+  objectsGrid.addEventListener('scroll', handleScroll, { passive: true });
+  objectsGrid._scrollHandler = handleScroll;
 
-  window.addEventListener('resize', () => {
-    setSizes();
-  });
-
-  setSizes();
-  moveTo(currentIndex, false);
-}
-
-function initTeamModal() {
-  const modal = document.getElementById('teamModal');
-  if (!modal) return;
-
-  const nameEl = modal.querySelector('[data-team-modal-name]');
-  const roleEl = modal.querySelector('[data-team-modal-role]');
-  const sinceEl = modal.querySelector('[data-team-modal-since]');
-  const textEl = modal.querySelector('[data-team-modal-text]');
-  const imageEl = modal.querySelector('[data-team-modal-image]');
-
-  const openModal = (slide) => {
-    const name = slide.dataset.name || '';
-    const role = slide.dataset.role || '';
-    const since = slide.dataset.since || '';
-    const modalPhoto = slide.dataset.modalPhoto || slide.dataset.photo || '';
-    const detail = slide.querySelector('.team-slide__long');
-    const summary = slide.querySelector('.team-story');
-    const detailHtml = detail && detail.innerHTML.trim() ? detail.innerHTML : (summary ? summary.innerHTML : '');
-
-    if (nameEl) nameEl.textContent = name;
-    if (roleEl) roleEl.textContent = role;
-    if (sinceEl) {
-      if (since) {
-        sinceEl.textContent = `В команде с ${since}`;
-        sinceEl.style.display = '';
-      } else {
-        sinceEl.textContent = '';
-        sinceEl.style.display = 'none';
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      if (window.innerWidth <= 768) {
+        goToSlide(currentSlide, 'auto');
       }
-    }
-    if (textEl) textEl.innerHTML = detailHtml;
-    if (imageEl) {
-      const imageWrap = imageEl.closest('.team-modal__image');
-      if (modalPhoto) {
-        imageEl.src = modalPhoto;
-        imageEl.alt = name ? name : 'Фото сотрудника';
-        if (imageWrap) imageWrap.style.display = '';
-      } else {
-        imageEl.removeAttribute('src');
-        imageEl.alt = '';
-        if (imageWrap) imageWrap.style.display = 'none';
-      }
-    }
+    });
+    resizeObserver.observe(objectsGrid);
+    objectsGrid._resizeObserver = resizeObserver;
+  }
 
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  };
+  goToSlide(0, 'auto');
 
-  const closeModal = () => {
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  };
 
-  document.addEventListener('click', (event) => {
-    const trigger = event.target.closest('[data-team-more]');
-    if (trigger) {
-      const slide = trigger.closest('.team-slide');
-      if (slide) {
-        openModal(slide);
-      }
+
+  // Team Slider
+  function initTeamSlider() {
+    const slider = document.querySelector('[data-team-slider]');
+    if (!slider) return;
+
+    const track = slider.querySelector('.team-track');
+    const wrap = slider.querySelector('.team-track-wrap');
+    const prevBtn = slider.querySelector('.team-prev');
+    const nextBtn = slider.querySelector('.team-next');
+
+    if (!track || !wrap) return;
+
+    if (slider.dataset.teamSliderInitialized === 'true') {
+      return;
     }
 
-    if (event.target.closest('[data-team-close]')) {
-      closeModal();
+    const getSlides = () => Array.from(track.querySelectorAll('.team-slide:not(.is-clone)'));
+    let originalSlides = getSlides();
+
+    if (originalSlides.length === 0) return;
+
+    // Создаем по одному клону для бесконечного цикла
+    if (originalSlides.length > 1) {
+      const firstClone = originalSlides[0].cloneNode(true);
+      firstClone.classList.add('is-clone');
+      const lastClone = originalSlides[originalSlides.length - 1].cloneNode(true);
+      lastClone.classList.add('is-clone');
+      track.appendChild(firstClone);
+      track.insertBefore(lastClone, track.firstChild);
     }
-  });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && modal.classList.contains('active')) {
-      closeModal();
-    }
-  });
-}
+    slider.dataset.teamSliderInitialized = 'true';
+    const allSlides = Array.from(track.querySelectorAll('.team-slide'));
+    const originalCount = originalSlides.length;
 
-function initExperienceModal() {
-  const cardSelector = '.experience-card[data-modal="1"], .all-case-card[data-modal="1"]';
-  const cards = document.querySelectorAll(cardSelector);
-  const modal = document.getElementById('experienceModal');
-  if (!cards.length || !modal) return;
+    let currentIndex = originalSlides.length > 1 ? 1 : 0;
+    let slideWidth = 0;
+    let isAnimating = false;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragAxis = null;
+    let dragStartTranslate = 0;
+    let dragRaf = null;
+    let dragPendingX = 0;
 
-  const modalTitle = modal.querySelector('.experience-modal-title');
-  const modalImage = modal.querySelector('.experience-modal-image');
-  const modalMeta = modal.querySelector('.experience-modal-meta');
-  const modalClose = document.getElementById('experienceModalClose');
-  const discussButton = modal.querySelector('.experience-modal-cta');
-  const pageButton = modal.querySelector('.experience-modal-link');
-  const casesModal = document.getElementById('casesModal');
-
-  const openModal = (card) => {
-    let title = (card.querySelector('h3') || card.querySelector('h4'))?.innerHTML.trim() || 'Проект БИС — Баланс Инженерных Систем';
-
-    // Ensure BIZ is styled in description if it comes from data attribute as plain text
-    title = title.replace(/БИС/g, 'БИС');
-
-    // Clean up nested spans if any
-    title = title.replace(/<span class="bis-condensed"><span class="bis-condensed">БИС<\/span><\/span>/g, 'БИС');
-
-    const image = card.dataset.image || '';
-    const address = card.dataset.address || '';
-    const area = card.dataset.area || '';
-    const year = card.dataset.year || '';
-    const featured = card.dataset.featured === '1';
-    const link = card.dataset.link || '';
-
-    modalTitle.innerHTML = title;
-    modalMeta.innerHTML = '';
-
-    const metaList = document.createElement('ul');
-    metaList.className = 'experience-modal-meta__list';
-
-    const addMetaRow = (label, value) => {
-      if (!value) return;
-      const row = document.createElement('li');
-      const labelEl = document.createElement('span');
-      labelEl.textContent = label;
-      const valueEl = document.createElement('strong');
-      valueEl.textContent = value;
-      row.appendChild(labelEl);
-      row.appendChild(valueEl);
-      metaList.appendChild(row);
+    const moveTo = (index, animate = true) => {
+      currentIndex = index;
+      track.style.transition = animate ? 'transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none';
+      track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+      isAnimating = animate;
     };
 
-    addMetaRow('Адрес', address);
-    addMetaRow('Площадь', area ? `${area} м²` : '');
-    addMetaRow('Год', year);
+    const setSizes = () => {
+      slideWidth = wrap.getBoundingClientRect().width;
+      allSlides.forEach((slide) => {
+        slide.style.width = `${slideWidth}px`;
+      });
+      track.style.width = `${slideWidth * allSlides.length}px`;
+      moveTo(currentIndex, false);
+    };
 
-    if (featured) {
-      const badge = document.createElement('div');
-      badge.className = 'experience-modal-meta__badge';
-      badge.textContent = 'Ключевой проект';
-      modalMeta.appendChild(badge);
-    }
+    const goNext = () => {
+      if (originalSlides.length <= 1 || isAnimating) return;
+      moveTo(currentIndex + 1, true);
+    };
 
-    if (metaList.childElementCount) {
-      modalMeta.appendChild(metaList);
-    } else {
-      const placeholder = document.createElement('p');
-      placeholder.className = 'experience-modal-meta__placeholder';
-      placeholder.textContent = 'Детали проекта уточняются';
-      modalMeta.appendChild(placeholder);
-    }
+    const goPrev = () => {
+      if (originalSlides.length <= 1 || isAnimating) return;
+      moveTo(currentIndex - 1, true);
+    };
 
-    if (image) {
-      modalImage.style.backgroundImage = `url('${image}')`;
-    } else {
-      modalImage.style.backgroundImage = '';
-    }
+    if (prevBtn) prevBtn.addEventListener('click', goPrev);
+    if (nextBtn) nextBtn.addEventListener('click', goNext);
 
-    if (pageButton) {
-      if (link) {
-        pageButton.href = link;
-        pageButton.style.display = '';
-      } else {
-        pageButton.style.display = 'none';
+    slider.addEventListener('click', (event) => {
+      const prev = event.target.closest('.team-prev');
+      const next = event.target.closest('.team-next');
+      if (prev) {
+        event.preventDefault();
+        goPrev();
+        return;
       }
-    }
-
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeModal = () => {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-  };
-
-  cards.forEach(card => {
-    card.addEventListener('click', () => openModal(card));
-  });
-
-  document.querySelectorAll('.experience-more, .case-more').forEach(button => {
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const parentCard = button.closest(cardSelector);
-      if (parentCard) {
-        openModal(parentCard);
+      if (next) {
+        event.preventDefault();
+        goNext();
       }
     });
-  });
 
-  if (modalClose) {
-    modalClose.addEventListener('click', closeModal);
-  }
+    track.addEventListener('transitionend', (event) => {
+      if (event.target !== track || event.propertyName !== 'transform') return;
+      if (!isAnimating || originalSlides.length <= 1) return;
+      isAnimating = false;
 
-  modal.addEventListener('click', (event) => {
-    if (event.target === modal) {
-      closeModal();
-    }
-  });
+      // Если мы закончили анимацию на клонированном слайде, мгновенно перейдем к соответствующему оригинальному
+      if (currentIndex === 0) {
+        // Находимся на первом клоне, переходим к последнему оригинальному
+        currentIndex = originalCount;
+        track.style.transition = 'none';
+        track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+      } else if (currentIndex === allSlides.length - 1) {
+        // Находимся на последнем клоне, переходим к первому оригинальному
+        currentIndex = 1;
+        track.style.transition = 'none';
+        track.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+      }
+    });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && modal.classList.contains('active')) {
-      closeModal();
-    }
-  });
+    const handlePointerDown = (event) => {
+      if (originalSlides.length <= 1 || isAnimating) return;
+      if (event.target.closest('.team-more') || event.target.closest('.team-nav')) return;
+      isDragging = true;
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
+      dragAxis = null;
+      dragStartTranslate = -slideWidth * currentIndex;
+      track.style.transition = 'none';
+      wrap.setPointerCapture(event.pointerId);
+    };
 
-  if (discussButton) {
-    discussButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      closeModal();
+    const handlePointerMove = (event) => {
+      if (!isDragging) return;
+      const deltaX = event.clientX - dragStartX;
+      const deltaY = event.clientY - dragStartY;
 
-      if (casesModal && casesModal.classList.contains('active')) {
-        casesModal.classList.remove('active');
+      if (!dragAxis) {
+        if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
+        dragAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
       }
 
-      document.body.style.overflow = '';
+      if (dragAxis !== 'x') {
+        isDragging = false;
+        dragAxis = null;
+        wrap.releasePointerCapture(event.pointerId);
+        return;
+      }
 
-      const contactSection = document.getElementById('contact');
-      if (contactSection) {
-        contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        const nameInput = contactSection.querySelector('#contactForm input[name="name"]');
-        if (nameInput) {
-          try {
-            nameInput.focus({ preventScroll: true });
-          } catch (error) {
-            nameInput.focus();
-          }
+      dragPendingX = dragStartTranslate + deltaX;
+      if (dragRaf) return;
+
+      dragRaf = requestAnimationFrame(() => {
+        track.style.transform = `translateX(${dragPendingX}px)`;
+        dragRaf = null;
+      });
+    };
+
+    const handlePointerUp = (event) => {
+      if (!isDragging) return;
+      isDragging = false;
+      wrap.releasePointerCapture(event.pointerId);
+      const delta = event.clientX - dragStartX;
+      const threshold = slideWidth * 0.15;
+
+      if (dragRaf) {
+        cancelAnimationFrame(dragRaf);
+        dragRaf = null;
+      }
+
+      if (dragAxis === 'x') {
+        if (Math.abs(delta) > threshold) {
+          delta < 0 ? goNext() : goPrev();
+        } else {
+          moveTo(currentIndex, true);
         }
       }
+
+      dragAxis = null;
+    };
+
+    wrap.addEventListener('pointerdown', handlePointerDown);
+    wrap.addEventListener('pointermove', handlePointerMove);
+    wrap.addEventListener('pointerup', handlePointerUp);
+    wrap.addEventListener('pointercancel', handlePointerUp);
+    wrap.addEventListener('dragstart', (event) => event.preventDefault());
+
+    window.addEventListener('resize', () => {
+      setSizes();
+    });
+
+    setSizes();
+    moveTo(currentIndex, false);
+  }
+
+  function initTeamModal() {
+    const modal = document.getElementById('teamModal');
+    if (!modal) return;
+
+    const nameEl = modal.querySelector('[data-team-modal-name]');
+    const roleEl = modal.querySelector('[data-team-modal-role]');
+    const sinceEl = modal.querySelector('[data-team-modal-since]');
+    const textEl = modal.querySelector('[data-team-modal-text]');
+    const imageEl = modal.querySelector('[data-team-modal-image]');
+
+    const openModal = (slide) => {
+      const name = slide.dataset.name || '';
+      const role = slide.dataset.role || '';
+      const since = slide.dataset.since || '';
+      const modalPhoto = slide.dataset.modalPhoto || slide.dataset.photo || '';
+      const detail = slide.querySelector('.team-slide__long');
+      const summary = slide.querySelector('.team-story');
+      const detailHtml = detail && detail.innerHTML.trim() ? detail.innerHTML : (summary ? summary.innerHTML : '');
+
+      if (nameEl) nameEl.textContent = name;
+      if (roleEl) roleEl.textContent = role;
+      if (sinceEl) {
+        if (since) {
+          sinceEl.textContent = `В команде с ${since}`;
+          sinceEl.style.display = '';
+        } else {
+          sinceEl.textContent = '';
+          sinceEl.style.display = 'none';
+        }
+      }
+      if (textEl) textEl.innerHTML = detailHtml;
+      if (imageEl) {
+        const imageWrap = imageEl.closest('.team-modal__image');
+        if (modalPhoto) {
+          imageEl.src = modalPhoto;
+          imageEl.alt = name ? name : 'Фото сотрудника';
+          if (imageWrap) imageWrap.style.display = '';
+        } else {
+          imageEl.removeAttribute('src');
+          imageEl.alt = '';
+          if (imageWrap) imageWrap.style.display = 'none';
+        }
+      }
+
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    };
+
+    document.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-team-more]');
+      if (trigger) {
+        const slide = trigger.closest('.team-slide');
+        if (slide) {
+          openModal(slide);
+        }
+      }
+
+      if (event.target.closest('[data-team-close]')) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('active')) {
+        closeModal();
+      }
     });
   }
-}
 
-// Modal for Cases
-function initCasesModal() {
-  const showAllBtn = document.querySelector('.show-all-cases');
-  const casesModal = document.getElementById('casesModal');
-  const modalClose = document.getElementById('modalClose');
+  function initExperienceModal() {
+    const cardSelector = '.experience-card[data-modal="1"], .all-case-card[data-modal="1"]';
+    const cards = document.querySelectorAll(cardSelector);
+    const modal = document.getElementById('experienceModal');
+    if (!cards.length || !modal) return;
 
-  if (!showAllBtn || !casesModal) return;
+    const modalTitle = modal.querySelector('.experience-modal-title');
+    const modalImage = modal.querySelector('.experience-modal-image');
+    const modalMeta = modal.querySelector('.experience-modal-meta');
+    const modalClose = document.getElementById('experienceModalClose');
+    const discussButton = modal.querySelector('.experience-modal-cta');
+    const pageButton = modal.querySelector('.experience-modal-link');
+    const casesModal = document.getElementById('casesModal');
 
-  showAllBtn.addEventListener('click', () => {
-    casesModal.classList.add('active');
-    document.body.style.overflow = 'hidden'; // Блокируем скролл страницы
-  });
+    const openModal = (card) => {
+      let title = (card.querySelector('h3') || card.querySelector('h4'))?.innerHTML.trim() || 'Проект БИС — Баланс Инженерных Систем';
 
-  modalClose.addEventListener('click', () => {
-    closeCasesModal();
-  });
+      // Ensure BIZ is styled in description if it comes from data attribute as plain text
+      title = title.replace(/БИС/g, 'БИС');
 
-  casesModal.addEventListener('click', (e) => {
-    if (e.target === casesModal) {
-      closeCasesModal();
-    }
-  });
+      // Clean up nested spans if any
+      title = title.replace(/<span class="bis-condensed"><span class="bis-condensed">БИС<\/span><\/span>/g, 'БИС');
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && casesModal.classList.contains('active')) {
-      closeCasesModal();
-    }
-  });
+      const image = card.dataset.image || '';
+      const address = card.dataset.address || '';
+      const area = card.dataset.area || '';
+      const year = card.dataset.year || '';
+      const featured = card.dataset.featured === '1';
+      const link = card.dataset.link || '';
 
-  function closeCasesModal() {
-    casesModal.classList.remove('active');
-    document.body.style.overflow = ''; // Восстанавливаем скролл
-  }
-};
+      modalTitle.innerHTML = title;
+      modalMeta.innerHTML = '';
 
+      const metaList = document.createElement('ul');
+      metaList.className = 'experience-modal-meta__list';
 
-// FAQ Functionality
-function initFAQ() {
-  const faqItems = document.querySelectorAll('.faq-item');
+      const addMetaRow = (label, value) => {
+        if (!value) return;
+        const row = document.createElement('li');
+        const labelEl = document.createElement('span');
+        labelEl.textContent = label;
+        const valueEl = document.createElement('strong');
+        valueEl.textContent = value;
+        row.appendChild(labelEl);
+        row.appendChild(valueEl);
+        metaList.appendChild(row);
+      };
 
-  faqItems.forEach(item => {
-    const question = item.querySelector('.faq-question');
+      addMetaRow('Адрес', address);
+      addMetaRow('Площадь', area ? `${area} м²` : '');
+      addMetaRow('Год', year);
 
-    question.addEventListener('click', () => {
-      // Закрываем все остальные элементы
-      faqItems.forEach(otherItem => {
-        if (otherItem !== item && otherItem.classList.contains('active')) {
-          otherItem.classList.remove('active');
+      if (featured) {
+        const badge = document.createElement('div');
+        badge.className = 'experience-modal-meta__badge';
+        badge.textContent = 'Ключевой проект';
+        modalMeta.appendChild(badge);
+      }
+
+      if (metaList.childElementCount) {
+        modalMeta.appendChild(metaList);
+      } else {
+        const placeholder = document.createElement('p');
+        placeholder.className = 'experience-modal-meta__placeholder';
+        placeholder.textContent = 'Детали проекта уточняются';
+        modalMeta.appendChild(placeholder);
+      }
+
+      if (image) {
+        modalImage.style.backgroundImage = `url('${image}')`;
+      } else {
+        modalImage.style.backgroundImage = '';
+      }
+
+      if (pageButton) {
+        if (link) {
+          pageButton.href = link;
+          pageButton.style.display = '';
+        } else {
+          pageButton.style.display = 'none';
+        }
+      }
+
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => openModal(card));
+    });
+
+    document.querySelectorAll('.experience-more, .case-more').forEach(button => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const parentCard = button.closest(cardSelector);
+        if (parentCard) {
+          openModal(parentCard);
         }
       });
-
-      // Переключаем текущий элемент
-      item.classList.toggle('active');
     });
-  });
-}
+
+    if (modalClose) {
+      modalClose.addEventListener('click', closeModal);
+    }
+
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+
+    if (discussButton) {
+      discussButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        closeModal();
+
+        if (casesModal && casesModal.classList.contains('active')) {
+          casesModal.classList.remove('active');
+        }
+
+        document.body.style.overflow = '';
+
+        const contactSection = document.getElementById('contact');
+        if (contactSection) {
+          contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const nameInput = contactSection.querySelector('#contactForm input[name="name"]');
+          if (nameInput) {
+            try {
+              nameInput.focus({ preventScroll: true });
+            } catch (error) {
+              nameInput.focus();
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // Modal for Cases
+  function initCasesModal() {
+    const showAllBtn = document.querySelector('.show-all-cases');
+    const casesModal = document.getElementById('casesModal');
+    const modalClose = document.getElementById('modalClose');
+
+    if (!showAllBtn || !casesModal) return;
+
+    showAllBtn.addEventListener('click', () => {
+      casesModal.classList.add('active');
+      document.body.style.overflow = 'hidden'; // Блокируем скролл страницы
+    });
+
+    modalClose.addEventListener('click', () => {
+      closeCasesModal();
+    });
+
+    casesModal.addEventListener('click', (e) => {
+      if (e.target === casesModal) {
+        closeCasesModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && casesModal.classList.contains('active')) {
+        closeCasesModal();
+      }
+    });
+
+    function closeCasesModal() {
+      casesModal.classList.remove('active');
+      document.body.style.overflow = ''; // Восстанавливаем скролл
+    }
+  };
+
+
+  // FAQ Functionality
+  function initFAQ() {
+    const faqItems = document.querySelectorAll('.faq-item');
+
+    faqItems.forEach(item => {
+      const question = item.querySelector('.faq-question');
+
+      question.addEventListener('click', () => {
+        // Закрываем все остальные элементы
+        faqItems.forEach(otherItem => {
+          if (otherItem !== item && otherItem.classList.contains('active')) {
+            otherItem.classList.remove('active');
+          }
+        });
+
+        // Переключаем текущий элемент
+        item.classList.toggle('active');
+      });
+    });
+  }
 
 
 
-// Добавление CSS анимаций через JavaScript
-const style = document.createElement('style');
-style.textContent = `
+  // Добавление CSS анимаций через JavaScript
+  const style = document.createElement('style');
+  style.textContent = `
   @keyframes slideIn {
     from {
       transform: translateX(400px);
@@ -1945,120 +2096,276 @@ style.textContent = `
     }
   }
 `;
-document.head.appendChild(style);
+  document.head.appendChild(style);
 
-// Estimate Modal Functionality
-function initEstimateModal() {
-  const estimateBtns = document.querySelectorAll('.open-estimate-modal');
-  const estimateOverlay = document.getElementById('estimateOverlay');
-  const estimateClose = document.getElementById('estimateClose');
-  const estimateForm = document.getElementById('estimateForm');
-  const estimatePhone = document.getElementById('estimatePhone');
-  const ANIMATION_DURATION = 450;
-  let closeTimeout;
+  // Estimate Modal Functionality
+  function initEstimateModal() {
+    const estimateBtns = document.querySelectorAll('.open-estimate-modal');
+    const estimateOverlay = document.getElementById('estimateOverlay');
+    const estimateClose = document.getElementById('estimateClose');
+    const estimateForm = document.getElementById('estimateForm');
+    const estimatePhone = document.getElementById('estimatePhone');
+    const ANIMATION_DURATION = 450;
+    let closeTimeout;
 
-  if (!estimateOverlay) return;
+    if (!estimateOverlay) return;
 
-  estimateBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openEstimateModal();
+    estimateBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openEstimateModal();
+      });
     });
-  });
 
-  if (estimateClose) {
-    estimateClose.addEventListener('click', (event) => {
-      event.preventDefault();
-      closeEstimateModal();
-    });
-  }
-
-  estimateOverlay.addEventListener('click', (e) => {
-    if (e.target === estimateOverlay || e.target.closest('#estimateClose')) {
-      closeEstimateModal();
+    if (estimateClose) {
+      estimateClose.addEventListener('click', (event) => {
+        event.preventDefault();
+        closeEstimateModal();
+      });
     }
-  });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && estimateOverlay.classList.contains('active')) {
-      closeEstimateModal();
-    }
-  });
-
-  if (estimatePhone) {
-    const formatPhone = (value) => {
-      let digits = value.replace(/\D/g, '');
-      if (digits.startsWith('7') || digits.startsWith('8')) {
-        digits = digits.slice(1);
+    estimateOverlay.addEventListener('click', (e) => {
+      if (e.target === estimateOverlay || e.target.closest('#estimateClose')) {
+        closeEstimateModal();
       }
-      digits = digits.substring(0, 10);
+    });
 
-      const parts = {
-        area: digits.substring(0, 3),
-        central: digits.substring(3, 6),
-        line1: digits.substring(6, 8),
-        line2: digits.substring(8, 10)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && estimateOverlay.classList.contains('active')) {
+        closeEstimateModal();
+      }
+    });
+
+    if (estimatePhone) {
+      const formatPhone = (value) => {
+        let digits = value.replace(/\D/g, '');
+        if (digits.startsWith('7') || digits.startsWith('8')) {
+          digits = digits.slice(1);
+        }
+        digits = digits.substring(0, 10);
+
+        const parts = {
+          area: digits.substring(0, 3),
+          central: digits.substring(3, 6),
+          line1: digits.substring(6, 8),
+          line2: digits.substring(8, 10)
+        };
+
+        let formatted = '+7';
+        if (parts.area) {
+          formatted += ` (${parts.area}`;
+          if (parts.area.length === 3) {
+            formatted += ')';
+          }
+        }
+
+        if (parts.central) {
+          formatted += ` ${parts.central}`;
+        }
+
+        if (parts.line1) {
+          formatted += `-${parts.line1}`;
+        }
+
+        if (parts.line2) {
+          formatted += `-${parts.line2}`;
+        }
+
+        if (!parts.area) {
+          formatted += ' ';
+        }
+
+        return formatted.trimEnd();
       };
 
-      let formatted = '+7';
-      if (parts.area) {
-        formatted += ` (${parts.area}`;
-        if (parts.area.length === 3) {
-          formatted += ')';
+      const handlePhoneInput = (event) => {
+        event.target.value = formatPhone(event.target.value);
+      };
+
+      estimatePhone.addEventListener('focus', () => {
+        if (!estimatePhone.value.trim()) {
+          estimatePhone.value = '+7 ';
         }
-      }
+      });
 
-      if (parts.central) {
-        formatted += ` ${parts.central}`;
-      }
+      estimatePhone.addEventListener('input', handlePhoneInput);
 
-      if (parts.line1) {
-        formatted += `-${parts.line1}`;
-      }
+      estimatePhone.addEventListener('blur', () => {
+        const digits = estimatePhone.value.replace(/\D/g, '');
+        if (digits.length <= 1) {
+          estimatePhone.value = '';
+        }
+      });
+    }
 
-      if (parts.line2) {
-        formatted += `-${parts.line2}`;
-      }
+    if (estimateForm) {
+      estimateForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-      if (!parts.area) {
-        formatted += ' ';
-      }
+        const formData = new FormData(estimateForm);
+        formData.append('action', 'bis_submit_estimate');
 
-      return formatted.trimEnd();
+        const submitBtn = estimateForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправка...';
+
+        fetch('/wp-admin/admin-ajax.php', {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              submitBtn.textContent = '✓ Отправлено!';
+              submitBtn.style.background = '#10b981';
+
+              setTimeout(() => {
+                closeEstimateModal();
+                estimateForm.reset();
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                submitBtn.style.background = '';
+                showNotification('Спасибо! Мы свяжемся с вами в течение 2 дней.', 'success');
+              }, 1500);
+            } else {
+              showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalText;
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          });
+      });
+    }
+
+    function openEstimateModal() {
+      clearTimeout(closeTimeout);
+      estimateOverlay.classList.remove('closing');
+      estimateOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeEstimateModal() {
+      if (!estimateOverlay.classList.contains('active')) return;
+      estimateOverlay.classList.add('closing');
+      clearTimeout(closeTimeout);
+      closeTimeout = setTimeout(() => {
+        estimateOverlay.classList.remove('active', 'closing');
+        document.body.style.overflow = '';
+      }, ANIMATION_DURATION);
+    }
+  }
+
+  function initProjectGallery() {
+    const gallery = document.querySelector('[data-project-gallery]');
+    if (!gallery) return;
+
+    const slides = Array.from(gallery.querySelectorAll('[data-gallery-slide]'));
+    if (slides.length === 0) return;
+
+    const lightbox = document.getElementById('projectLightbox');
+    if (!lightbox) return;
+
+    const lightboxImage = lightbox.querySelector('[data-lightbox-image]');
+    const lightboxCaption = lightbox.querySelector('[data-lightbox-caption]');
+    const lightboxPrev = lightbox.querySelector('[data-lightbox-prev]');
+    const lightboxNext = lightbox.querySelector('[data-lightbox-next]');
+    const closeButtons = lightbox.querySelectorAll('[data-lightbox-close]');
+
+    let lightboxIndex = 0;
+
+    const normalizeIndex = (index) => {
+      const total = slides.length;
+      if (!total) return 0;
+      return ((index % total) + total) % total;
     };
 
-    const handlePhoneInput = (event) => {
-      event.target.value = formatPhone(event.target.value);
+    const updateLightbox = () => {
+      const slide = slides[lightboxIndex];
+      const src = slide ? slide.dataset.full || slide.querySelector('img')?.src : '';
+      if (lightboxImage) {
+        lightboxImage.src = src || '';
+        lightboxImage.alt = slide ? slide.getAttribute('aria-label') || '' : '';
+      }
+      if (lightboxCaption) {
+        lightboxCaption.textContent = `${lightboxIndex + 1} / ${slides.length}`;
+      }
     };
 
-    estimatePhone.addEventListener('focus', () => {
-      if (!estimatePhone.value.trim()) {
-        estimatePhone.value = '+7 ';
+    const openLightbox = (index) => {
+      lightboxIndex = normalizeIndex(index);
+      updateLightbox();
+      lightbox.classList.add('active');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.remove('active');
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (lightboxImage) {
+        lightboxImage.src = '';
+      }
+    };
+
+    slides.forEach((slide, index) => {
+      slide.addEventListener('click', () => openLightbox(index));
+    });
+
+    if (lightboxPrev) {
+      lightboxPrev.addEventListener('click', () => {
+        lightboxIndex = normalizeIndex(lightboxIndex - 1);
+        updateLightbox();
+      });
+    }
+
+    if (lightboxNext) {
+      lightboxNext.addEventListener('click', () => {
+        lightboxIndex = normalizeIndex(lightboxIndex + 1);
+        updateLightbox();
+      });
+    }
+
+    closeButtons.forEach((button) => {
+      button.addEventListener('click', closeLightbox);
+    });
+
+    lightbox.addEventListener('click', (event) => {
+      if (event.target === lightbox) {
+        closeLightbox();
       }
     });
 
-    estimatePhone.addEventListener('input', handlePhoneInput);
-
-    estimatePhone.addEventListener('blur', () => {
-      const digits = estimatePhone.value.replace(/\D/g, '');
-      if (digits.length <= 1) {
-        estimatePhone.value = '';
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && lightbox.classList.contains('active')) {
+        closeLightbox();
       }
     });
   }
 
-  if (estimateForm) {
-    estimateForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+  function initProjectConsultationForm() {
+    const form = document.getElementById('projectConsultationForm');
+    if (!form) return;
 
-      const formData = new FormData(estimateForm);
-      formData.append('action', 'bis_submit_estimate');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.textContent : '';
 
-      const submitBtn = estimateForm.querySelector('button[type="submit"]');
-      const originalText = submitBtn.textContent;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправка...';
+      }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Отправка...';
+      const formData = new FormData(form);
+      formData.append('action', 'bis_submit_project_consultation');
 
       fetch('/wp-admin/admin-ajax.php', {
         method: 'POST',
@@ -2067,176 +2374,21 @@ function initEstimateModal() {
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            submitBtn.textContent = '✓ Отправлено!';
-            submitBtn.style.background = '#10b981';
-
-            setTimeout(() => {
-              closeEstimateModal();
-              estimateForm.reset();
-              submitBtn.disabled = false;
-              submitBtn.textContent = originalText;
-              submitBtn.style.background = '';
-              showNotification('Спасибо! Мы свяжемся с вами в течение 2 дней.', 'success');
-            }, 1500);
+            showNotification('Спасибо! Мы свяжемся с вами в ближайшее время.', 'success');
+            form.reset();
           } else {
             showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+          }
+        })
+        .catch(() => {
+          showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+        })
+        .finally(() => {
+          if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.textContent = originalText;
           }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showNotification('Ошибка отправки. Попробуйте позже.', 'error');
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
         });
     });
   }
-
-  function openEstimateModal() {
-    clearTimeout(closeTimeout);
-    estimateOverlay.classList.remove('closing');
-    estimateOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeEstimateModal() {
-    if (!estimateOverlay.classList.contains('active')) return;
-    estimateOverlay.classList.add('closing');
-    clearTimeout(closeTimeout);
-    closeTimeout = setTimeout(() => {
-      estimateOverlay.classList.remove('active', 'closing');
-      document.body.style.overflow = '';
-    }, ANIMATION_DURATION);
-  }
-}
-
-function initProjectGallery() {
-  const gallery = document.querySelector('[data-project-gallery]');
-  if (!gallery) return;
-
-  const slides = Array.from(gallery.querySelectorAll('[data-gallery-slide]'));
-  if (slides.length === 0) return;
-
-  const lightbox = document.getElementById('projectLightbox');
-  if (!lightbox) return;
-
-  const lightboxImage = lightbox.querySelector('[data-lightbox-image]');
-  const lightboxCaption = lightbox.querySelector('[data-lightbox-caption]');
-  const lightboxPrev = lightbox.querySelector('[data-lightbox-prev]');
-  const lightboxNext = lightbox.querySelector('[data-lightbox-next]');
-  const closeButtons = lightbox.querySelectorAll('[data-lightbox-close]');
-
-  let lightboxIndex = 0;
-
-  const normalizeIndex = (index) => {
-    const total = slides.length;
-    if (!total) return 0;
-    return ((index % total) + total) % total;
-  };
-
-  const updateLightbox = () => {
-    const slide = slides[lightboxIndex];
-    const src = slide ? slide.dataset.full || slide.querySelector('img')?.src : '';
-    if (lightboxImage) {
-      lightboxImage.src = src || '';
-      lightboxImage.alt = slide ? slide.getAttribute('aria-label') || '' : '';
-    }
-    if (lightboxCaption) {
-      lightboxCaption.textContent = `${lightboxIndex + 1} / ${slides.length}`;
-    }
-  };
-
-  const openLightbox = (index) => {
-    lightboxIndex = normalizeIndex(index);
-    updateLightbox();
-    lightbox.classList.add('active');
-    lightbox.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeLightbox = () => {
-    lightbox.classList.remove('active');
-    lightbox.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    if (lightboxImage) {
-      lightboxImage.src = '';
-    }
-  };
-
-  slides.forEach((slide, index) => {
-    slide.addEventListener('click', () => openLightbox(index));
-  });
-
-  if (lightboxPrev) {
-    lightboxPrev.addEventListener('click', () => {
-      lightboxIndex = normalizeIndex(lightboxIndex - 1);
-      updateLightbox();
-    });
-  }
-
-  if (lightboxNext) {
-    lightboxNext.addEventListener('click', () => {
-      lightboxIndex = normalizeIndex(lightboxIndex + 1);
-      updateLightbox();
-    });
-  }
-
-  closeButtons.forEach((button) => {
-    button.addEventListener('click', closeLightbox);
-  });
-
-  lightbox.addEventListener('click', (event) => {
-    if (event.target === lightbox) {
-      closeLightbox();
-    }
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && lightbox.classList.contains('active')) {
-      closeLightbox();
-    }
-  });
-}
-
-function initProjectConsultationForm() {
-  const form = document.getElementById('projectConsultationForm');
-  if (!form) return;
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn ? submitBtn.textContent : '';
-
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Отправка...';
-    }
-
-    const formData = new FormData(form);
-    formData.append('action', 'bis_submit_project_consultation');
-
-    fetch('/wp-admin/admin-ajax.php', {
-      method: 'POST',
-      body: formData
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          showNotification('Спасибо! Мы свяжемся с вами в ближайшее время.', 'success');
-          form.reset();
-        } else {
-          showNotification('Ошибка отправки. Попробуйте позже.', 'error');
-        }
-      })
-      .catch(() => {
-        showNotification('Ошибка отправки. Попробуйте позже.', 'error');
-      })
-      .finally(() => {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
-        }
-      });
-  });
 }
