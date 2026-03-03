@@ -79,18 +79,34 @@ $has_hero_slider = !empty($hero_images);
       <p class="section-subtitle">Работаем с инженерными системами на разных типах площадок — от производственных комплексов до жилых объектов.</p>
     </div>
 
-    <div class="objects-grid">
-      <div class="object-card">
-        <h3>Промышленные</h3>
-        <p>Производственные здания, склады и чистые помещения.</p>
+    <div class="objects-slider-wrapper">
+      <div class="objects-grid">
+        <div class="object-card">
+          <h3>Промышленные</h3>
+          <p>Производственные здания, склады и чистые помещения.</p>
+        </div>
+        <div class="object-card">
+          <h3>Административные</h3>
+          <p>Офисы, общественные пространства и коммерческие здания.</p>
+        </div>
+        <div class="object-card">
+          <h3>Жилые</h3>
+          <p>Многоквартирные дома, апартаменты и частные резиденции.</p>
+        </div>
       </div>
-      <div class="object-card">
-        <h3>Административные</h3>
-        <p>Офисы, общественные пространства и коммерческие здания.</p>
-      </div>
-      <div class="object-card">
-        <h3>Жилые</h3>
-        <p>Многоквартирные дома, апартаменты и частные резиденции.</p>
+      
+      <div class="objects-slider-nav">
+        <button class="slider-prev" aria-label="Предыдущий объект">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="slider-dots objects-slider-dots"></div>
+        <button class="slider-next" aria-label="Следующий объект">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
