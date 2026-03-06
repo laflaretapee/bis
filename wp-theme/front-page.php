@@ -603,6 +603,11 @@ endif;
 </div>
 
 <?php $team_members = bis_get_team_members(); ?>
+<div class="section-header">
+    <!-- <span class="section-badge">Оборудование</span> -->
+    <h2 class="section-title">Наша команда</h2>
+    <p class="section-subtitle">Ведущие специалисты в области инженерных систем</p>
+  </div>
 <section class="structure-section team-section" id="structure" 
   <?php if (empty($team_members)) : ?>
     style="padding: 60px 0;"
@@ -625,7 +630,7 @@ style>
             <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-since="<?php echo esc_attr($since); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
               <div class="team-slide__content">
               <div class="team-header">
-                  <span class="team-label">Команда</span>
+                  <!-- <span class="team-label">Команда</span> -->
                   <div class="team-controls" style="
                     display: flex;
                     gap: 10px;

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   initCallbackModal(); // Добавьте эту строку
   initScrollEffects();
+  initFloatingSocialPanel();
   initHeroParallax();
   //initStatsCounter();
   initFormValidation();
@@ -563,6 +564,7 @@ function initMobileMenu() {
 // Эффекты при скролле
 function initScrollEffects() {
   const header = document.getElementById('header');
+  const floatingEstimateWrapper = document.querySelector('.floating-estimate-wrapper');
   const floatingEstimateBtn = document.querySelector('.floating-estimate-btn');
   let lastScroll = 0;
 
@@ -571,7 +573,13 @@ function initScrollEffects() {
     if (currentScroll > 50) header.classList.add('scrolled');
     else header.classList.remove('scrolled');
 
-    if (floatingEstimateBtn) {
+    if (floatingEstimateWrapper) {
+      if (currentScroll > 400) {
+        floatingEstimateWrapper.classList.add('visible');
+      } else {
+        floatingEstimateWrapper.classList.remove('visible');
+      }
+    } else if (floatingEstimateBtn) {
       if (currentScroll > 400) {
         floatingEstimateBtn.classList.add('visible');
       } else {
@@ -596,6 +604,35 @@ function initScrollEffects() {
   document.querySelectorAll(
     '.service-card, .case-card, .why-card, .task-item, .pnr-content, .pnr-why-content, .equipment-card, .brand-card'
   ).forEach(el => observer.observe(el));
+}
+
+function initFloatingSocialPanel() {
+  const panel = document.querySelector('[data-floating-social-panel]');
+  if (!panel) return;
+
+  const closeBtn = panel.querySelector('[data-floating-social-close]');
+  const openBtn = document.querySelector('[data-floating-social-open]');
+
+  const setHidden = (hidden) => {
+    panel.classList.toggle('is-hidden', hidden);
+    if (openBtn) {
+      openBtn.hidden = !hidden;
+    }
+  };
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      setHidden(true);
+    });
+  }
+
+  if (openBtn) {
+    openBtn.addEventListener('click', () => {
+      setHidden(false);
+    });
+  }
+
+  setHidden(panel.classList.contains('is-hidden'));
 }
 
 // Параллакс в hero по умолчанию

@@ -88,7 +88,26 @@
   </footer>
 
   <?php wp_footer(); ?>
-  
-  <button class="btn btn-primary open-estimate-modal floating-estimate-btn">Рассчитать смету и сроки</button>
+  <div class="floating-estimate-wrapper">
+    <div class="floating-socials-panel" data-floating-social-panel>
+      <div class="floating-socials-panel__head">
+        <span class="floating-socials-panel__title">Свяжитесь с нами</span>
+        <div class="floating-socials-panel__controls">
+          <button class="floating-socials-panel__control" type="button" data-floating-social-close aria-label="Скрыть виджет">x</button>
+        </div>
+      </div>
+      <p class="floating-socials-panel__text">Выберите удобный способ связи, и мы быстро ответим.</p>
+      <div class="floating-socials">
+        <a class="floating-socials__link floating-socials__link--telegram" href="https://t.me/+79264380770" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/telegram-white-32x32.png" alt="Telegram" width="32" height="32" loading="lazy">
+        </a>
+        <a class="floating-socials__link floating-socials__link--max" href="https://max.ru/u/f9LHodD0cOIYdHZd-s9_nqTN9t76kGjdQxmIoxXSFGhqRnW3d4TLAMEFfVs" target="_blank" rel="noopener noreferrer" aria-label="Max">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/MAX-white-32x32.png" alt="Max" width="32" height="32" loading="lazy">
+        </a>
+      </div>
+      <button class="open-estimate-modal floating-estimate-btn">Рассчитать смету и сроки</button>
+    </div>
+    <button class="floating-socials-open" type="button" data-floating-social-open hidden aria-label="Показать мессенджеры">+</button>
+  </div>
 </body>
 </html>
