@@ -4537,7 +4537,7 @@ select {
 
 .faq-container {
   max-width: 900px;
-  margin: 0 auto 60px;
+  margin: 0 auto 32px;
 }
 
 .faq-item {
@@ -4615,7 +4615,6 @@ select {
 
 .faq-cta {
   text-align: center;
-  padding: 40px 0 0;
 }
 
 .homepage-news__cta .btn,
