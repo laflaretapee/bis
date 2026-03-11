@@ -476,10 +476,23 @@ endif;
           <a class="experience-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
         </div>
       </div>
-    <?php endwhile; ?>
-    <?php wp_reset_postdata(); ?>
-  </div>
-  <?php else : ?>
+	    <?php endwhile; ?>
+	    <?php wp_reset_postdata(); ?>
+	  </div>
+	  <div class="experience-slider-nav">
+	    <button class="slider-prev" aria-label="Предыдущий ключевой проект">
+	      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+	        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+	      </svg>
+	    </button>
+	    <div class="slider-dots"></div>
+	    <button class="slider-next" aria-label="Следующий ключевой проект">
+	      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+	        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+	      </svg>
+	    </button>
+	  </div>
+	  <?php else : ?>
     <div class="team-empty">
       <span class="team-empty__label">Проекты</span>
       <p>Мы готовим презентацию ключевых проектов.</p>

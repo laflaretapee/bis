@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initPopupForm();
   initSmoothScroll();
   initEquipmentSlider();
+  initExperienceSlider();
   initGratitudeSlider();
   initGratitudeModal();
   initExperienceModal();
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       if (typeof initServicesSlider === 'function') initServicesSlider();
+      if (typeof initExperienceSlider === 'function') initExperienceSlider();
       if (typeof initObjectsSlider === 'function') initObjectsSlider();
     }, 250);
   });
@@ -1074,6 +1076,155 @@ function initServicesSlider() {
   goToSlide(0, 'auto');
 }
 
+function initExperienceSlider() {
+  const experienceSection = document.querySelector('.experience');
+  const experienceGrid = document.querySelector('.experience-grid');
+  const dotsContainer = document.querySelector('.experience-slider-nav .slider-dots');
+
+  if (!experienceGrid) return;
+
+  const experienceCards = experienceGrid.querySelectorAll('.experience-card');
+  if (experienceCards.length === 0) return;
+
+  const resetButton = (selector) => {
+    const btn = document.querySelector(selector);
+    if (btn) {
+      const clone = btn.cloneNode(true);
+      btn.parentNode.replaceChild(clone, btn);
+    }
+  };
+
+  const isMobile = window.innerWidth <= 768;
+
+  if (!isMobile) {
+    if (experienceGrid.dataset.sliderInitialized === 'true') {
+      if (experienceGrid._scrollHandler) {
+        experienceGrid.removeEventListener('scroll', experienceGrid._scrollHandler);
+        experienceGrid._scrollHandler = null;
+      }
+      if (experienceGrid._resizeObserver) {
+        experienceGrid._resizeObserver.disconnect();
+        experienceGrid._resizeObserver = null;
+      }
+      if (experienceGrid._scrollEndTimer) {
+        clearTimeout(experienceGrid._scrollEndTimer);
+        experienceGrid._scrollEndTimer = null;
+      }
+    }
+
+    experienceGrid.removeAttribute('data-slider-initialized');
+    experienceSection?.classList.remove('slider-enabled');
+    if (dotsContainer) dotsContainer.innerHTML = '';
+    resetButton('.experience-slider-nav .slider-prev');
+    resetButton('.experience-slider-nav .slider-next');
+    return;
+  }
+
+  if (experienceGrid.dataset.sliderInitialized === 'true') return;
+
+  experienceGrid.dataset.sliderInitialized = 'true';
+  experienceSection?.classList.add('slider-enabled');
+
+  const prevBtn = document.querySelector('.experience-slider-nav .slider-prev');
+  const nextBtn = document.querySelector('.experience-slider-nav .slider-next');
+
+  let currentSlide = 0;
+  const totalSlides = experienceCards.length;
+
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+    experienceCards.forEach((_, index) => {
+      const dot = document.createElement('div');
+      dot.className = 'slider-dot';
+      if (index === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(index));
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  const dots = dotsContainer ? dotsContainer.querySelectorAll('.slider-dot') : [];
+
+  function updateNavigation() {
+    if (prevBtn) prevBtn.disabled = currentSlide === 0;
+    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
+    dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
+  }
+
+  function getTargetLeft(index) {
+    const targetCard = experienceCards[index];
+    const maxScrollLeft = experienceGrid.scrollWidth - experienceGrid.clientWidth;
+    const offset = targetCard.offsetLeft - (experienceGrid.clientWidth - targetCard.offsetWidth) / 2;
+    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
+  }
+
+  function goToSlide(slideIndex, behavior = 'smooth') {
+    currentSlide = Math.max(0, Math.min(slideIndex, totalSlides - 1));
+    if (experienceGrid.scrollTo) {
+      experienceGrid.scrollTo({ left: getTargetLeft(currentSlide), behavior });
+    } else {
+      experienceGrid.scrollLeft = getTargetLeft(currentSlide);
+    }
+    updateNavigation();
+  }
+
+  const goPrev = () => {
+    if (currentSlide > 0) {
+      goToSlide(currentSlide - 1);
+    }
+  };
+
+  const goNext = () => {
+    if (currentSlide < totalSlides - 1) {
+      goToSlide(currentSlide + 1);
+    }
+  };
+
+  if (prevBtn) prevBtn.addEventListener('click', goPrev);
+  if (nextBtn) nextBtn.addEventListener('click', goNext);
+
+  const getClosestSlideIndex = () => {
+    const center = experienceGrid.scrollLeft + experienceGrid.clientWidth / 2;
+    let closestIndex = 0;
+    let minDiff = Number.POSITIVE_INFINITY;
+
+    experienceCards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const diff = Math.abs(cardCenter - center);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = index;
+      }
+    });
+
+    return closestIndex;
+  };
+
+  const handleScroll = () => {
+    experienceGrid._scrollEndTimer = setTimeout(() => {
+      const newIndex = getClosestSlideIndex();
+      if (newIndex !== currentSlide) {
+        currentSlide = newIndex;
+        updateNavigation();
+      }
+    }, 120);
+  };
+
+  experienceGrid.addEventListener('scroll', handleScroll, { passive: true });
+  experienceGrid._scrollHandler = handleScroll;
+
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      if (window.innerWidth <= 768) {
+        goToSlide(currentSlide, 'auto');
+      }
+    });
+    resizeObserver.observe(experienceGrid);
+    experienceGrid._resizeObserver = resizeObserver;
+  }
+
+  goToSlide(0, 'auto');
+}
+
 // Slider for gratitude letters
 function initGratitudeSlider() {
   const galleries = document.querySelectorAll('[data-gratitude-gallery]');
@@ -1300,6 +1451,7 @@ function initGratitudeModal() {
 window.addEventListener('resize', () => {
   initEquipmentSlider();
   initServicesSlider();
+  initExperienceSlider();
 });
 // Popup Form Functionality
 function initPopupForm() {
