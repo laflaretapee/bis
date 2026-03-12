@@ -921,308 +921,239 @@ function initSmoothScroll() {
   }
 }
 
-// Slider for Services
-function initServicesSlider() {
-  const servicesGrid = document.querySelector('.services-grid');
-  if (!servicesGrid) return;
+const CARD_SLIDER_MOBILE_BREAKPOINT = 768;
+const CARD_SLIDER_DESKTOP_BREAKPOINT = 1200;
 
-  const serviceCards = servicesGrid.querySelectorAll('.service-card');
-  const prevBtn = document.querySelector('.services-slider-nav .slider-prev');
-  const nextBtn = document.querySelector('.services-slider-nav .slider-next');
-  const dotsContainer = document.querySelector('.services-slider-nav .slider-dots');
+function cleanupCardSlider(track, section, nav, dotsContainer) {
+  if (!track) return;
 
-  if (serviceCards.length === 0) return;
-
-  const resetButton = (selector) => {
-    const btn = document.querySelector(selector);
-    if (btn) {
-      const clone = btn.cloneNode(true);
-      btn.parentNode.replaceChild(clone, btn);
+  const state = track._sliderState;
+  if (state) {
+    if (state.handleScroll) {
+      track.removeEventListener('scroll', state.handleScroll);
     }
-  };
-
-  const isMobile = window.innerWidth <= 768;
-
-  if (!isMobile) {
-    if (servicesGrid.dataset.sliderInitialized === 'true') {
-      if (servicesGrid._touchStartHandler) {
-        servicesGrid.removeEventListener('touchstart', servicesGrid._touchStartHandler);
-        servicesGrid._touchStartHandler = null;
-      }
-      if (servicesGrid._touchEndHandler) {
-        servicesGrid.removeEventListener('touchend', servicesGrid._touchEndHandler);
-        servicesGrid._touchEndHandler = null;
-      }
-      if (servicesGrid._scrollHandler) {
-        servicesGrid.removeEventListener('scroll', servicesGrid._scrollHandler);
-        servicesGrid._scrollHandler = null;
-      }
-      if (servicesGrid._resizeObserver) {
-        servicesGrid._resizeObserver.disconnect();
-        servicesGrid._resizeObserver = null;
-      }
-      if (servicesGrid._scrollEndTimer) {
-        clearTimeout(servicesGrid._scrollEndTimer);
-        servicesGrid._scrollEndTimer = null;
-      }
+    if (state.resizeObserver) {
+      state.resizeObserver.disconnect();
     }
-
-    servicesGrid.removeAttribute('data-slider-initialized');
-    if (dotsContainer) dotsContainer.innerHTML = '';
-    resetButton('.services-slider-nav .slider-prev');
-    resetButton('.services-slider-nav .slider-next');
-    return;
+    if (state.scrollEndTimer) {
+      clearTimeout(state.scrollEndTimer);
+    }
+    if (state.prevBtn && state.goPrev) {
+      state.prevBtn.removeEventListener('click', state.goPrev);
+      state.prevBtn.disabled = false;
+    }
+    if (state.nextBtn && state.goNext) {
+      state.nextBtn.removeEventListener('click', state.goNext);
+      state.nextBtn.disabled = false;
+    }
   }
 
-  if (servicesGrid.dataset.sliderInitialized === 'true') return;
+  track.removeAttribute('data-slider-initialized');
+  track.removeAttribute('data-slider-mode');
+  track.removeAttribute('data-current-slide');
+  track._sliderState = null;
 
-  servicesGrid.dataset.sliderInitialized = 'true';
-
-  let currentSlide = 0;
-  const totalSlides = serviceCards.length;
+  section?.classList.remove('slider-enabled');
+  nav?.classList.remove('is-visible');
 
   if (dotsContainer) {
     dotsContainer.innerHTML = '';
-    serviceCards.forEach((_, index) => {
-      const dot = document.createElement('div');
+  }
+}
+
+function initCardSlider({
+  sectionSelector,
+  trackSelector,
+  cardSelector,
+  navSelector
+}) {
+  const section = document.querySelector(sectionSelector);
+  if (!section) return;
+
+  const track = section.querySelector(trackSelector);
+  const nav = section.querySelector(navSelector);
+  const dotsContainer = nav?.querySelector('.slider-dots');
+
+  if (!track) return;
+
+  const cards = Array.from(track.querySelectorAll(cardSelector));
+  if (cards.length === 0) {
+    cleanupCardSlider(track, section, nav, dotsContainer);
+    return;
+  }
+
+  const isMobile = window.innerWidth <= CARD_SLIDER_MOBILE_BREAKPOINT;
+  const isWideDesktop = window.innerWidth >= CARD_SLIDER_DESKTOP_BREAKPOINT;
+  const isEnabled = isMobile || isWideDesktop;
+  const sliderMode = isWideDesktop ? 'desktop' : 'mobile';
+  const visibleSlides = isWideDesktop ? 3 : 1;
+  const maxStartIndex = Math.max(0, cards.length - visibleSlides);
+  const slidePositions = isWideDesktop
+    ? Array.from({ length: Math.ceil(cards.length / visibleSlides) }, (_, index) => Math.min(index * visibleSlides, maxStartIndex))
+    : cards.map((_, index) => index);
+  const maxSlideIndex = Math.max(0, slidePositions.length - 1);
+
+  if (!isEnabled) {
+    cleanupCardSlider(track, section, nav, dotsContainer);
+    return;
+  }
+
+  if (track.dataset.sliderInitialized === 'true' && track.dataset.sliderMode === sliderMode && track._sliderState?.refresh) {
+    track._sliderState.refresh();
+    return;
+  }
+
+  cleanupCardSlider(track, section, nav, dotsContainer);
+
+  section.classList.add('slider-enabled');
+  track.dataset.sliderInitialized = 'true';
+  track.dataset.sliderMode = sliderMode;
+
+  const prevBtn = nav?.querySelector('.slider-prev') || null;
+  const nextBtn = nav?.querySelector('.slider-next') || null;
+  let currentSlide = Math.min(Number(track.dataset.currentSlide) || 0, maxSlideIndex);
+  let dots = [];
+
+  const clampIndex = (index) => Math.max(0, Math.min(index, maxSlideIndex));
+  const getCardIndexForSlide = (index) => slidePositions[clampIndex(index)] ?? 0;
+
+  const getTargetLeft = (index) => {
+    const targetCard = cards[getCardIndexForSlide(index)];
+    if (!targetCard) return 0;
+
+    const maxScrollLeft = Math.max(0, track.scrollWidth - track.clientWidth);
+
+    if (sliderMode === 'desktop') {
+      return Math.max(0, Math.min(targetCard.offsetLeft, maxScrollLeft));
+    }
+
+    const offset = targetCard.offsetLeft - (track.clientWidth - targetCard.offsetWidth) / 2;
+    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
+  };
+
+  const updateNavigation = () => {
+    if (prevBtn) prevBtn.disabled = currentSlide === 0;
+    if (nextBtn) nextBtn.disabled = currentSlide === maxSlideIndex;
+    dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
+    nav?.classList.toggle('is-visible', maxSlideIndex > 0);
+  };
+
+  const goToSlide = (slideIndex, behavior = 'smooth') => {
+    currentSlide = clampIndex(slideIndex);
+    track.dataset.currentSlide = String(currentSlide);
+
+    const targetLeft = getTargetLeft(currentSlide);
+    if (track.scrollTo) {
+      track.scrollTo({ left: targetLeft, behavior });
+    } else {
+      track.scrollLeft = targetLeft;
+    }
+
+    updateNavigation();
+  };
+
+  const buildDots = () => {
+    if (!dotsContainer) return;
+
+    dotsContainer.innerHTML = '';
+    dots = [];
+
+    for (let index = 0; index <= maxSlideIndex; index += 1) {
+      const dot = document.createElement('button');
+      dot.type = 'button';
       dot.className = 'slider-dot';
-      if (index === 0) dot.classList.add('active');
+      dot.setAttribute('aria-label', `Перейти к слайду ${index + 1}`);
       dot.addEventListener('click', () => goToSlide(index));
       dotsContainer.appendChild(dot);
-    });
-  }
-
-  const dots = dotsContainer ? dotsContainer.querySelectorAll('.slider-dot') : [];
-
-  function updateNavigation() {
-    if (prevBtn) prevBtn.disabled = currentSlide === 0;
-    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
-    dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
-  }
-
-  function getTargetLeft(index) {
-    const targetCard = serviceCards[index];
-    const maxScrollLeft = servicesGrid.scrollWidth - servicesGrid.clientWidth;
-    const offset = targetCard.offsetLeft - (servicesGrid.clientWidth - targetCard.offsetWidth) / 2;
-    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
-  }
-
-  function goToSlide(slideIndex, behavior = 'smooth') {
-    currentSlide = Math.max(0, Math.min(slideIndex, totalSlides - 1));
-    if (servicesGrid.scrollTo) {
-      servicesGrid.scrollTo({ left: getTargetLeft(currentSlide), behavior });
-    } else {
-      servicesGrid.scrollLeft = getTargetLeft(currentSlide);
-    }
-    updateNavigation();
-  }
-
-  const goPrev = () => {
-    if (currentSlide > 0) {
-      goToSlide(currentSlide - 1);
+      dots.push(dot);
     }
   };
-
-  const goNext = () => {
-    if (currentSlide < totalSlides - 1) {
-      goToSlide(currentSlide + 1);
-    }
-  };
-
-  if (prevBtn) prevBtn.addEventListener('click', goPrev);
-  if (nextBtn) nextBtn.addEventListener('click', goNext);
 
   const getClosestSlideIndex = () => {
-    const center = servicesGrid.scrollLeft + servicesGrid.clientWidth / 2;
     let closestIndex = 0;
     let minDiff = Number.POSITIVE_INFINITY;
 
-    serviceCards.forEach((card, index) => {
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const diff = Math.abs(cardCenter - center);
+    for (let index = 0; index <= maxSlideIndex; index += 1) {
+      const diff = Math.abs(getTargetLeft(index) - track.scrollLeft);
       if (diff < minDiff) {
         minDiff = diff;
         closestIndex = index;
       }
-    });
+    }
 
     return closestIndex;
   };
 
   const handleScroll = () => {
-    servicesGrid._scrollEndTimer = setTimeout(() => {
+    if (track._sliderState?.scrollEndTimer) {
+      clearTimeout(track._sliderState.scrollEndTimer);
+    }
+
+    track._sliderState.scrollEndTimer = setTimeout(() => {
       const newIndex = getClosestSlideIndex();
       if (newIndex !== currentSlide) {
         currentSlide = newIndex;
+        track.dataset.currentSlide = String(currentSlide);
         updateNavigation();
       }
     }, 120);
   };
 
-  servicesGrid.addEventListener('scroll', handleScroll, { passive: true });
+  const goPrev = () => goToSlide(currentSlide - 1);
+  const goNext = () => goToSlide(currentSlide + 1);
 
-  servicesGrid._scrollHandler = handleScroll;
+  buildDots();
+
+  if (prevBtn) prevBtn.addEventListener('click', goPrev);
+  if (nextBtn) nextBtn.addEventListener('click', goNext);
+
+  track.addEventListener('scroll', handleScroll, { passive: true });
+
+  let resizeObserver = null;
+  const refresh = () => {
+    currentSlide = Math.min(Number(track.dataset.currentSlide) || currentSlide, maxSlideIndex);
+    goToSlide(currentSlide, 'auto');
+  };
 
   if (window.ResizeObserver) {
-    const resizeObserver = new ResizeObserver(() => {
-      if (window.innerWidth <= 768) {
-        goToSlide(currentSlide, 'auto');
-      }
+    resizeObserver = new ResizeObserver(() => {
+      refresh();
     });
-    resizeObserver.observe(servicesGrid);
-    servicesGrid._resizeObserver = resizeObserver;
+    resizeObserver.observe(track);
   }
 
-  goToSlide(0, 'auto');
+  track._sliderState = {
+    currentSlide,
+    goPrev,
+    goNext,
+    handleScroll,
+    prevBtn,
+    nextBtn,
+    refresh,
+    resizeObserver,
+    scrollEndTimer: null
+  };
+
+  refresh();
+}
+
+// Slider for Services
+function initServicesSlider() {
+  initCardSlider({
+    sectionSelector: '.services',
+    trackSelector: '.services-grid',
+    cardSelector: '.service-card',
+    navSelector: '.services-slider-nav'
+  });
 }
 
 function initExperienceSlider() {
-  const experienceSection = document.querySelector('.experience');
-  const experienceGrid = document.querySelector('.experience-grid');
-  const dotsContainer = document.querySelector('.experience-slider-nav .slider-dots');
-
-  if (!experienceGrid) return;
-
-  const experienceCards = experienceGrid.querySelectorAll('.experience-card');
-  if (experienceCards.length === 0) return;
-
-  const resetButton = (selector) => {
-    const btn = document.querySelector(selector);
-    if (btn) {
-      const clone = btn.cloneNode(true);
-      btn.parentNode.replaceChild(clone, btn);
-    }
-  };
-
-  const isMobile = window.innerWidth <= 768;
-
-  if (!isMobile) {
-    if (experienceGrid.dataset.sliderInitialized === 'true') {
-      if (experienceGrid._scrollHandler) {
-        experienceGrid.removeEventListener('scroll', experienceGrid._scrollHandler);
-        experienceGrid._scrollHandler = null;
-      }
-      if (experienceGrid._resizeObserver) {
-        experienceGrid._resizeObserver.disconnect();
-        experienceGrid._resizeObserver = null;
-      }
-      if (experienceGrid._scrollEndTimer) {
-        clearTimeout(experienceGrid._scrollEndTimer);
-        experienceGrid._scrollEndTimer = null;
-      }
-    }
-
-    experienceGrid.removeAttribute('data-slider-initialized');
-    experienceSection?.classList.remove('slider-enabled');
-    if (dotsContainer) dotsContainer.innerHTML = '';
-    resetButton('.experience-slider-nav .slider-prev');
-    resetButton('.experience-slider-nav .slider-next');
-    return;
-  }
-
-  if (experienceGrid.dataset.sliderInitialized === 'true') return;
-
-  experienceGrid.dataset.sliderInitialized = 'true';
-  experienceSection?.classList.add('slider-enabled');
-
-  const prevBtn = document.querySelector('.experience-slider-nav .slider-prev');
-  const nextBtn = document.querySelector('.experience-slider-nav .slider-next');
-
-  let currentSlide = 0;
-  const totalSlides = experienceCards.length;
-
-  if (dotsContainer) {
-    dotsContainer.innerHTML = '';
-    experienceCards.forEach((_, index) => {
-      const dot = document.createElement('div');
-      dot.className = 'slider-dot';
-      if (index === 0) dot.classList.add('active');
-      dot.addEventListener('click', () => goToSlide(index));
-      dotsContainer.appendChild(dot);
-    });
-  }
-
-  const dots = dotsContainer ? dotsContainer.querySelectorAll('.slider-dot') : [];
-
-  function updateNavigation() {
-    if (prevBtn) prevBtn.disabled = currentSlide === 0;
-    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
-    dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
-  }
-
-  function getTargetLeft(index) {
-    const targetCard = experienceCards[index];
-    const maxScrollLeft = experienceGrid.scrollWidth - experienceGrid.clientWidth;
-    const offset = targetCard.offsetLeft - (experienceGrid.clientWidth - targetCard.offsetWidth) / 2;
-    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
-  }
-
-  function goToSlide(slideIndex, behavior = 'smooth') {
-    currentSlide = Math.max(0, Math.min(slideIndex, totalSlides - 1));
-    if (experienceGrid.scrollTo) {
-      experienceGrid.scrollTo({ left: getTargetLeft(currentSlide), behavior });
-    } else {
-      experienceGrid.scrollLeft = getTargetLeft(currentSlide);
-    }
-    updateNavigation();
-  }
-
-  const goPrev = () => {
-    if (currentSlide > 0) {
-      goToSlide(currentSlide - 1);
-    }
-  };
-
-  const goNext = () => {
-    if (currentSlide < totalSlides - 1) {
-      goToSlide(currentSlide + 1);
-    }
-  };
-
-  if (prevBtn) prevBtn.addEventListener('click', goPrev);
-  if (nextBtn) nextBtn.addEventListener('click', goNext);
-
-  const getClosestSlideIndex = () => {
-    const center = experienceGrid.scrollLeft + experienceGrid.clientWidth / 2;
-    let closestIndex = 0;
-    let minDiff = Number.POSITIVE_INFINITY;
-
-    experienceCards.forEach((card, index) => {
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const diff = Math.abs(cardCenter - center);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = index;
-      }
-    });
-
-    return closestIndex;
-  };
-
-  const handleScroll = () => {
-    experienceGrid._scrollEndTimer = setTimeout(() => {
-      const newIndex = getClosestSlideIndex();
-      if (newIndex !== currentSlide) {
-        currentSlide = newIndex;
-        updateNavigation();
-      }
-    }, 120);
-  };
-
-  experienceGrid.addEventListener('scroll', handleScroll, { passive: true });
-  experienceGrid._scrollHandler = handleScroll;
-
-  if (window.ResizeObserver) {
-    const resizeObserver = new ResizeObserver(() => {
-      if (window.innerWidth <= 768) {
-        goToSlide(currentSlide, 'auto');
-      }
-    });
-    resizeObserver.observe(experienceGrid);
-    experienceGrid._resizeObserver = resizeObserver;
-  }
-
-  goToSlide(0, 'auto');
+  initCardSlider({
+    sectionSelector: '.experience',
+    trackSelector: '.experience-grid',
+    cardSelector: '.experience-card',
+    navSelector: '.experience-slider-nav'
+  });
 }
 
 // Slider for gratitude letters
@@ -1501,160 +1432,12 @@ function closePopup() {
 
 // Слайдер для оборудования
 function initEquipmentSlider() {
-  const equipmentSection = document.querySelector('.equipment-section');
-  const equipmentGrid = document.querySelector('.equipment-grid');
-  const dotsContainer = document.querySelector('.equipment-slider-nav .slider-dots');
-
-  if (!equipmentGrid) {
-    return;
-  }
-
-  const equipmentCards = equipmentGrid.querySelectorAll('.equipment-card');
-  if (equipmentCards.length === 0) return;
-
-  const resetButton = (selector) => {
-    const btn = document.querySelector(selector);
-    if (btn) {
-      const clone = btn.cloneNode(true);
-      btn.parentNode.replaceChild(clone, btn);
-    }
-  };
-
-  const isMobile = window.innerWidth <= 768;
-
-  if (!isMobile) {
-    if (equipmentGrid.dataset.sliderInitialized === 'true') {
-      if (equipmentGrid._touchStartHandler) {
-        equipmentGrid.removeEventListener('touchstart', equipmentGrid._touchStartHandler);
-        equipmentGrid._touchStartHandler = null;
-      }
-      if (equipmentGrid._touchEndHandler) {
-        equipmentGrid.removeEventListener('touchend', equipmentGrid._touchEndHandler);
-        equipmentGrid._touchEndHandler = null;
-      }
-      if (equipmentGrid._scrollHandler) {
-        equipmentGrid.removeEventListener('scroll', equipmentGrid._scrollHandler);
-        equipmentGrid._scrollHandler = null;
-      }
-      if (equipmentGrid._resizeObserver) {
-        equipmentGrid._resizeObserver.disconnect();
-        equipmentGrid._resizeObserver = null;
-      }
-      if (equipmentGrid._scrollEndTimer) {
-        clearTimeout(equipmentGrid._scrollEndTimer);
-        equipmentGrid._scrollEndTimer = null;
-      }
-    }
-
-    equipmentGrid.removeAttribute('data-slider-initialized');
-    equipmentSection?.classList.remove('slider-enabled');
-    if (dotsContainer) dotsContainer.innerHTML = '';
-    resetButton('.equipment-slider-nav .slider-prev');
-    resetButton('.equipment-slider-nav .slider-next');
-    return;
-  }
-
-  if (equipmentGrid.dataset.sliderInitialized === 'true') return;
-
-  equipmentGrid.dataset.sliderInitialized = 'true';
-  equipmentSection?.classList.add('slider-enabled');
-
-  const prevBtn = document.querySelector('.equipment-slider-nav .slider-prev');
-  const nextBtn = document.querySelector('.equipment-slider-nav .slider-next');
-
-  let currentSlide = 0;
-  const totalSlides = equipmentCards.length;
-
-  if (dotsContainer) {
-    dotsContainer.innerHTML = '';
-    equipmentCards.forEach((_, index) => {
-      const dot = document.createElement('div');
-      dot.className = 'slider-dot';
-      if (index === 0) dot.classList.add('active');
-      dot.addEventListener('click', () => goToSlide(index));
-      dotsContainer.appendChild(dot);
-    });
-  }
-
-  const dots = dotsContainer ? dotsContainer.querySelectorAll('.slider-dot') : [];
-
-  function updateNavigation() {
-    if (prevBtn) prevBtn.disabled = currentSlide === 0;
-    if (nextBtn) nextBtn.disabled = currentSlide === totalSlides - 1;
-    dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlide));
-  }
-
-  function getTargetLeft(index) {
-    const targetCard = equipmentCards[index];
-    const maxScrollLeft = equipmentGrid.scrollWidth - equipmentGrid.clientWidth;
-    const offset = targetCard.offsetLeft - (equipmentGrid.clientWidth - targetCard.offsetWidth) / 2;
-    return Math.max(0, Math.min(Math.round(offset), maxScrollLeft));
-  }
-
-  function goToSlide(slideIndex, behavior = 'smooth') {
-    currentSlide = Math.max(0, Math.min(slideIndex, totalSlides - 1));
-    if (equipmentGrid.scrollTo) {
-      equipmentGrid.scrollTo({
-        left: getTargetLeft(currentSlide),
-        behavior
-      });
-    } else {
-      equipmentGrid.scrollLeft = getTargetLeft(currentSlide);
-    }
-    updateNavigation();
-  }
-
-  const goPrev = () => {
-    if (currentSlide > 0) goToSlide(currentSlide - 1);
-  };
-
-  const goNext = () => {
-    if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
-  };
-
-  if (prevBtn) prevBtn.addEventListener('click', goPrev);
-  if (nextBtn) nextBtn.addEventListener('click', goNext);
-
-  const getClosestSlideIndex = () => {
-    const center = equipmentGrid.scrollLeft + equipmentGrid.clientWidth / 2;
-    let closestIndex = 0;
-    let minDiff = Number.POSITIVE_INFINITY;
-
-    equipmentCards.forEach((card, index) => {
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const diff = Math.abs(cardCenter - center);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = index;
-      }
-    });
-    return closestIndex;
-  };
-
-  const handleScroll = () => {
-    equipmentGrid._scrollEndTimer = setTimeout(() => {
-      const newIndex = getClosestSlideIndex();
-      if (newIndex !== currentSlide) {
-        currentSlide = newIndex;
-        updateNavigation();
-      }
-    }, 120);
-  };
-
-  equipmentGrid.addEventListener('scroll', handleScroll, { passive: true });
-  equipmentGrid._scrollHandler = handleScroll;
-
-  if (window.ResizeObserver) {
-    const resizeObserver = new ResizeObserver(() => {
-      if (window.innerWidth <= 768) {
-        goToSlide(currentSlide, 'auto');
-      }
-    });
-    resizeObserver.observe(equipmentGrid);
-    equipmentGrid._resizeObserver = resizeObserver;
-  }
-
-  goToSlide(0, 'auto');
+  initCardSlider({
+    sectionSelector: '.equipment-section',
+    trackSelector: '.equipment-grid',
+    cardSelector: '.equipment-card',
+    navSelector: '.equipment-slider-nav'
+  });
 }
 
 // Слайдер для объектов (мобильный)

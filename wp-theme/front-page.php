@@ -119,57 +119,59 @@ $has_hero_slider = !empty($hero_images);
     <h2 class="section-title">Комплексные решения для ваших систем</h2>
   </div>
 
-  <div class="services-grid">
-    <?php
-    $services = new WP_Query(array(
-      'post_type'      => 'bis_service',
-      'post_status'    => 'publish',
-      'posts_per_page' => -1,
-      'orderby'        => array('menu_order' => 'ASC', 'title' => 'ASC'),
-    ));
-    ?>
+  <div class="services-slider-shell">
+    <div class="services-grid">
+      <?php
+      $services = new WP_Query(array(
+        'post_type'      => 'bis_service',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => array('menu_order' => 'ASC', 'title' => 'ASC'),
+      ));
+      ?>
 
-    <?php if ($services->have_posts()) : ?>
-      <?php while ($services->have_posts()) : $services->the_post(); ?>
-        <?php
-        $service_id = get_the_ID();
-        $image_url = bis_get_service_image_url($service_id);
-        $description = get_post_meta($service_id, 'bis_service_description', true);
-        ?>
-        <div class="service-card">
-          <div class="service-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
-          <div class="service-content">
-            <div class="service-content-main">
-              <h3><?php the_title(); ?></h3>
-              <?php if (!empty($description)) : ?>
-                <p class="experience-description"><?php echo esc_html($description); ?></p>
-              <?php endif; ?>
+      <?php if ($services->have_posts()) : ?>
+        <?php while ($services->have_posts()) : $services->the_post(); ?>
+          <?php
+          $service_id = get_the_ID();
+          $image_url = bis_get_service_image_url($service_id);
+          $description = get_post_meta($service_id, 'bis_service_description', true);
+          ?>
+          <div class="service-card">
+            <div class="service-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+            <div class="service-content">
+              <div class="service-content-main">
+                <h3><?php the_title(); ?></h3>
+                <?php if (!empty($description)) : ?>
+                  <p class="experience-description"><?php echo esc_html($description); ?></p>
+                <?php endif; ?>
+              </div>
+              <button class="btn btn-primary order-btn" data-service="<?php echo esc_attr(get_the_title()); ?>">Заказать</button>
             </div>
-            <button class="btn btn-primary order-btn" data-service="<?php echo esc_attr(get_the_title()); ?>">Заказать</button>
           </div>
+        <?php endwhile; ?>
+        <?php wp_reset_postdata(); ?>
+      <?php else : ?>
+        <div class="team-empty">
+          <span class="team-empty__label">Услуги</span>
+          <p>Мы готовим презентацию услуг.</p>
         </div>
-      <?php endwhile; ?>
-      <?php wp_reset_postdata(); ?>
-    <?php else : ?>
-      <div class="team-empty">
-        <span class="team-empty__label">Услуги</span>
-        <p>Мы готовим презентацию услуг.</p>
-      </div>
-    <?php endif; ?>
-  </div>
+      <?php endif; ?>
+    </div>
 
-  <div class="services-slider-nav">
-    <button class="slider-prev" aria-label="Предыдущая услуга">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <div class="slider-dots"></div>
-    <button class="slider-next" aria-label="Следующая услуга">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+    <div class="services-slider-nav">
+      <button class="slider-prev" aria-label="Предыдущая услуга">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="slider-dots"></div>
+      <button class="slider-next" aria-label="Следующая услуга">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div class="popup-overlay" id="popupOverlay">
@@ -455,44 +457,46 @@ endif;
   ?>
 
   <?php if ($featured_projects->have_posts()) : ?>
-  <div class="experience-grid">
-    <?php while ($featured_projects->have_posts()) : $featured_projects->the_post(); ?>
-      <?php
-      $project_id = get_the_ID();
-      $image_url = bis_get_project_image_url($project_id);
-      $description = bis_get_project_description($project_id);
-      ?>
-      <div class="experience-card"
-           data-image="<?php echo esc_url($image_url); ?>"
-           data-link="<?php echo esc_url(get_permalink($project_id)); ?>"
-           data-featured="1">
-        <div class="experience-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
-        <div class="experience-content">
-          <span class="experience-badge">Ключевой проект</span>
-          <h3><?php the_title(); ?></h3>
-          <?php if (!empty($description)) : ?>
-            <p class="experience-description"><?php echo esc_html($description); ?></p>
-          <?php endif; ?>
-          <a class="experience-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
+  <div class="experience-slider-shell">
+    <div class="experience-grid">
+      <?php while ($featured_projects->have_posts()) : $featured_projects->the_post(); ?>
+        <?php
+        $project_id = get_the_ID();
+        $image_url = bis_get_project_image_url($project_id);
+        $description = bis_get_project_description($project_id);
+        ?>
+        <div class="experience-card"
+             data-image="<?php echo esc_url($image_url); ?>"
+             data-link="<?php echo esc_url(get_permalink($project_id)); ?>"
+             data-featured="1">
+          <div class="experience-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+          <div class="experience-content">
+            <span class="experience-badge">Ключевой проект</span>
+            <h3><?php the_title(); ?></h3>
+            <?php if (!empty($description)) : ?>
+              <p class="experience-description"><?php echo esc_html($description); ?></p>
+            <?php endif; ?>
+            <a class="experience-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
+          </div>
         </div>
-      </div>
-	    <?php endwhile; ?>
-	    <?php wp_reset_postdata(); ?>
-	  </div>
-	  <div class="experience-slider-nav">
-	    <button class="slider-prev" aria-label="Предыдущий ключевой проект">
-	      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-	        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-	      </svg>
-	    </button>
-	    <div class="slider-dots"></div>
-	    <button class="slider-next" aria-label="Следующий ключевой проект">
-	      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-	        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-	      </svg>
-	    </button>
-	  </div>
-	  <?php else : ?>
+      <?php endwhile; ?>
+      <?php wp_reset_postdata(); ?>
+    </div>
+    <div class="experience-slider-nav">
+      <button class="slider-prev" aria-label="Предыдущий ключевой проект">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="slider-dots"></div>
+      <button class="slider-next" aria-label="Следующий ключевой проект">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <?php else : ?>
     <div class="team-empty">
       <span class="team-empty__label">Проекты</span>
       <p>Мы готовим презентацию ключевых проектов.</p>
