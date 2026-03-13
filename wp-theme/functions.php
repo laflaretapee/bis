@@ -45,6 +45,73 @@ function bis_theme_setup() {
 }
 add_action('after_setup_theme', 'bis_theme_setup');
 
+function bis_get_social_share_image_url() {
+    if (is_singular() && has_post_thumbnail()) {
+        $thumbnail_url = get_the_post_thumbnail_url(get_queried_object_id(), 'full');
+        if ($thumbnail_url) {
+            return $thumbnail_url;
+        }
+    }
+
+    return get_template_directory_uri() . '/assets/img/bis-black.png';
+}
+
+function bis_output_social_meta_tags() {
+    if (is_admin() || is_feed() || is_robots() || is_trackback()) {
+        return;
+    }
+
+    $title = wp_get_document_title();
+    $description = get_bloginfo('description');
+
+    if (is_singular()) {
+        $post = get_queried_object();
+
+        if ($post instanceof WP_Post) {
+            $excerpt = has_excerpt($post) ? get_the_excerpt($post) : wp_strip_all_tags(get_the_content(null, false, $post));
+            if (!empty($excerpt)) {
+                $description = wp_trim_words($excerpt, 30, '...');
+            }
+        }
+    }
+
+    if (empty($description)) {
+        $description = 'БИС: комплексные пусконаладочные работы, техническое обслуживание и сопровождение инженерных систем';
+    }
+
+    $url = home_url(add_query_arg(array(), $GLOBALS['wp']->request ?? ''));
+    if (is_singular()) {
+        $url = get_permalink();
+    }
+    if (empty($url)) {
+        $url = home_url('/');
+    }
+
+    $image_url = bis_get_social_share_image_url();
+    $default_image_path = get_template_directory() . '/assets/img/bis-black.png';
+    $default_image_size = file_exists($default_image_path) ? getimagesize($default_image_path) : false;
+
+    echo "\n";
+    echo '<meta property="og:locale" content="ru_RU">' . "\n";
+    echo '<meta property="og:type" content="' . (is_singular() ? 'article' : 'website') . '">' . "\n";
+    echo '<meta property="og:title" content="' . esc_attr($title) . '">' . "\n";
+    echo '<meta property="og:description" content="' . esc_attr($description) . '">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url($url) . '">' . "\n";
+    echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '">' . "\n";
+    echo '<meta property="og:image" content="' . esc_url($image_url) . '">' . "\n";
+
+    if ($default_image_size && !empty($default_image_size[0]) && !empty($default_image_size[1])) {
+        echo '<meta property="og:image:width" content="' . intval($default_image_size[0]) . '">' . "\n";
+        echo '<meta property="og:image:height" content="' . intval($default_image_size[1]) . '">' . "\n";
+    }
+
+    echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+    echo '<meta name="twitter:title" content="' . esc_attr($title) . '">' . "\n";
+    echo '<meta name="twitter:description" content="' . esc_attr($description) . '">' . "\n";
+    echo '<meta name="twitter:image" content="' . esc_url($image_url) . '">' . "\n";
+}
+add_action('wp_head', 'bis_output_social_meta_tags', 5);
+
 /**
  * Registers the "Новости" admin section with full editor, featured image and excerpt support.
  */

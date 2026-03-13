@@ -26,7 +26,7 @@
     );
     ?>
     <div class="footer-content">
-      <div class="footer-section">
+      <div class="footer-section footer-section--contacts">
         <h3>ООО «БИС — Баланс Инженерных Систем»</h3>
         <p>ИНН 7722323589</p>
       </div>
@@ -44,9 +44,9 @@
       <div class="footer-section">
         <h3>Контакты</h3>
         <p style="display: flex; align-items: center; gap: 12px;">
-          <a href="tel:+79264380770">+7 (926) 438-07-70</a>
+          <a class="footer-phone" href="tel:+79264380770">+7 (926) 438-07-70</a>
         </p>
-        <p><a href="tel:+79169861187">+7 (916) 986-11-87</a></p>
+        <p><a class="footer-phone" href="tel:+79169861187">+7 (916) 986-11-87</a></p>
         
         <p><a href="mailto:office@bis-rf.ru">office@bis-rf.ru</a></p>
         <p style="display: flex; align-items: center; gap: 12px;margin-top: 20px;">

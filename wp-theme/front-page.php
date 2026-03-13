@@ -806,8 +806,8 @@ $news_query = new WP_Query(array(
             <div class="contact-icon">📞</div>
             <div class="contact-item-content">
               <h4>Телефон</h4>
-              <a href="tel:+79264380770">+7 (926) 438-07-70</a><br>
-              <a href="tel:+79169861187">+7 (916) 986-11-87</a>
+              <a class="footer-phone"  href="tel:+79264380770">+7 (926) 438-07-70</a><br>
+              <a class="footer-phone" href="tel:+79169861187">+7 (916) 986-11-87</a>
             </div>
           </div>
           <div class="contact-item">

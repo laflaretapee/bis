@@ -1669,6 +1669,12 @@ select {
   color: white;
 }
 
+.footer-phone {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-kerning: none;
+}
+
 .document-links {
   list-style: none;
   margin: 0;
