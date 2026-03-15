@@ -23,6 +23,8 @@ $project_types = get_terms(array(
 
 if (is_wp_error($project_types)) {
     $project_types = array();
+} else {
+    $project_types = bis_sort_project_type_terms($project_types);
 }
 
 $selected_type_term = null;
@@ -100,6 +102,7 @@ $projects = new WP_Query($projects_args);
                     $project_type_names = array();
 
                     if (is_array($project_type_terms) && !is_wp_error($project_type_terms)) {
+                        $project_type_terms = bis_sort_project_type_terms($project_type_terms);
                         foreach ($project_type_terms as $project_type_term) {
                             $project_type_names[] = $project_type_term->name;
                         }

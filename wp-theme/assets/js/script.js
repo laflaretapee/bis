@@ -922,7 +922,7 @@ function initSmoothScroll() {
 }
 
 const CARD_SLIDER_MOBILE_BREAKPOINT = 768;
-const CARD_SLIDER_DESKTOP_BREAKPOINT = 1200;
+const CARD_SLIDER_DESKTOP_BREAKPOINT = 769;
 
 function cleanupCardSlider(track, section, nav, dotsContainer) {
   if (!track) return;

@@ -5155,7 +5155,7 @@ select {
   display: flex;
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 769px) {
   .services.slider-enabled .services-grid,
   .equipment-section.slider-enabled .equipment-grid,
   .experience.slider-enabled .experience-grid {
@@ -8938,3 +8938,85 @@ body.post-type-archive-bis_news {
   }
 }
 
+
+
+/* mobile-slider-arrows-in-view */
+@media (max-width: 768px) {
+  .services-slider-shell,
+  .equipment-park,
+  .experience-slider-shell,
+  .objects-slider-wrapper,
+  .gratitude-slider-wrapper {
+    position: relative;
+  }
+
+  .services-slider-nav.is-visible,
+  .equipment-section.slider-enabled .equipment-slider-nav.is-visible,
+  .experience.slider-enabled .experience-slider-nav.is-visible,
+  .objects-slider-nav {
+    position: absolute;
+    inset: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .services-slider-nav .slider-prev,
+  .services-slider-nav .slider-next,
+  .equipment-slider-nav .slider-prev,
+  .equipment-slider-nav .slider-next,
+  .experience-slider-nav .slider-prev,
+  .experience-slider-nav .slider-next,
+  .objects-slider-nav .slider-prev,
+  .objects-slider-nav .slider-next,
+  .gratitude-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: auto;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+    opacity: 0.96;
+    z-index: 4;
+  }
+
+  .services-slider-nav .slider-prev,
+  .equipment-slider-nav .slider-prev,
+  .experience-slider-nav .slider-prev,
+  .objects-slider-nav .slider-prev,
+  .gratitude-prev {
+    left: 12px;
+  }
+
+  .services-slider-nav .slider-next,
+  .equipment-slider-nav .slider-next,
+  .experience-slider-nav .slider-next,
+  .objects-slider-nav .slider-next,
+  .gratitude-next {
+    right: 12px;
+  }
+
+  .services-slider-nav .slider-dots,
+  .equipment-slider-nav .slider-dots,
+  .experience-slider-nav .slider-dots,
+  .objects-slider-nav .slider-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    pointer-events: auto;
+  }
+
+  .gratitude-slider-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'slider';
+  }
+}

@@ -230,6 +230,145 @@ function bis_register_project_taxonomies() {
 }
 add_action('init', 'bis_register_project_taxonomies');
 
+function bis_normalize_project_type_label($value) {
+    $value = trim(wp_strip_all_tags((string) $value));
+    if (function_exists('mb_strtolower')) {
+        return mb_strtolower($value, 'UTF-8');
+    }
+
+    return strtolower($value);
+}
+
+function bis_get_project_type_default_order_map() {
+    return array(
+        'промышленные'         => 10,
+        'промышленные объекты' => 10,
+        'promyshlennye'        => 10,
+        'industrial'           => 10,
+        'административные'     => 20,
+        'administrativnye'     => 20,
+        'administrative'       => 20,
+        'жилые'        => 30,
+        'zhilye'               => 30,
+        'residential'          => 30,
+    );
+}
+
+function bis_get_project_type_order_value($term) {
+    if (!($term instanceof WP_Term)) {
+        return 1000;
+    }
+
+    $custom_order = get_term_meta($term->term_id, 'bis_project_type_order', true);
+    if ($custom_order !== '' && is_numeric($custom_order)) {
+        return max(0, (int) $custom_order);
+    }
+
+    $fallback_map = bis_get_project_type_default_order_map();
+    $candidates = array(
+        bis_normalize_project_type_label($term->name),
+        bis_normalize_project_type_label($term->slug),
+        bis_normalize_project_type_label(sanitize_title($term->name)),
+    );
+
+    foreach ($candidates as $candidate) {
+        if (isset($fallback_map[$candidate])) {
+            return $fallback_map[$candidate];
+        }
+    }
+
+    return 1000;
+}
+
+function bis_sort_project_type_terms($terms) {
+    if (!is_array($terms) || empty($terms)) {
+        return $terms;
+    }
+
+    usort($terms, function ($left, $right) {
+        $left_order = bis_get_project_type_order_value($left);
+        $right_order = bis_get_project_type_order_value($right);
+
+        if ($left_order === $right_order) {
+            return strcmp(
+                bis_normalize_project_type_label($left->name),
+                bis_normalize_project_type_label($right->name)
+            );
+        }
+
+        return $left_order <=> $right_order;
+    });
+
+    return $terms;
+}
+
+function bis_project_type_add_order_field() {
+    ?>
+    <div class="form-field term-order-wrap">
+        <label for="bis-project-type-order">Порядок вывода</label>
+        <input type="number" min="0" step="1" name="bis_project_type_order" id="bis-project-type-order" value="">
+        <p>Меньшее значение выводится раньше. По умолчанию: промышленные → административные → жилые.</p>
+    </div>
+    <?php
+}
+add_action('bis_project_type_add_form_fields', 'bis_project_type_add_order_field');
+
+function bis_project_type_edit_order_field($term) {
+    $order = get_term_meta($term->term_id, 'bis_project_type_order', true);
+    ?>
+    <tr class="form-field term-order-wrap">
+        <th scope="row"><label for="bis-project-type-order">Порядок вывода</label></th>
+        <td>
+            <input type="number" min="0" step="1" name="bis_project_type_order" id="bis-project-type-order" value="<?php echo esc_attr($order); ?>">
+            <p class="description">Меньшее значение выводится раньше. Если поле пустое, используется базовый порядок типов.</p>
+        </td>
+    </tr>
+    <?php
+}
+add_action('bis_project_type_edit_form_fields', 'bis_project_type_edit_order_field');
+
+function bis_save_project_type_order($term_id) {
+    if (!current_user_can('manage_categories')) {
+        return;
+    }
+
+    if (!isset($_POST['bis_project_type_order'])) {
+        return;
+    }
+
+    $order = sanitize_text_field(wp_unslash($_POST['bis_project_type_order']));
+
+    if ($order === '') {
+        delete_term_meta($term_id, 'bis_project_type_order');
+        return;
+    }
+
+    update_term_meta($term_id, 'bis_project_type_order', max(0, (int) $order));
+}
+add_action('created_bis_project_type', 'bis_save_project_type_order');
+add_action('edited_bis_project_type', 'bis_save_project_type_order');
+
+function bis_project_type_columns($columns) {
+    $columns['bis_project_type_order'] = 'Порядок';
+    return $columns;
+}
+add_filter('manage_edit-bis_project_type_columns', 'bis_project_type_columns');
+
+function bis_project_type_custom_column($content, $column_name, $term_id) {
+    if ('bis_project_type_order' !== $column_name) {
+        return $content;
+    }
+
+    $term = get_term($term_id, 'bis_project_type');
+    if (!($term instanceof WP_Term)) {
+        return '';
+    }
+
+    return (string) bis_get_project_type_order_value($term);
+}
+add_filter('manage_bis_project_type_custom_column', 'bis_project_type_custom_column', 10, 3);
+
+
 function bis_projects_filter_request($query_vars) {
     if (isset($query_vars['pagename']) && 'projects' === $query_vars['pagename']) {
         if (isset($query_vars['year'])) {
