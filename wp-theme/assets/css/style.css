@@ -2594,7 +2594,7 @@ select {
     /* Firefox */
     -ms-overflow-style: none;
     /* IE/Edge */
-    padding-bottom: 16px;
+    padding: 0 54px 64px;
     gap: 16px;
   }
 
@@ -2603,19 +2603,19 @@ select {
   }
 
   .object-card {
-    flex: 0 0 calc(100vw - 60px);
-    width: calc(100vw - 60px);
+    flex: 0 0 calc(100vw - 108px);
+    width: calc(100vw - 108px);
     scroll-snap-align: center;
     padding: 32px 24px;
   }
 
   .objects-slider-nav {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin-top: 24px;
+    display: block;
+    position: absolute;
+    inset: 0;
+    margin-top: 0;
     width: 100%;
+    pointer-events: none;
   }
 
   .objects-slider-dots {
@@ -2623,13 +2623,31 @@ select {
     gap: 8px;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    left: 50%;
+    bottom: 4px;
+    transform: translateX(-50%);
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    pointer-events: auto;
   }
 }
 
 @media (max-width: 480px) {
+  .objects-slider-wrapper {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+
+  .objects-grid {
+    padding: 0 50px 60px;
+  }
+
   .object-card {
-    flex: 0 0 calc(100vw - 40px);
-    width: calc(100vw - 40px);
+    flex: 0 0 calc(100vw - 100px);
+    width: calc(100vw - 100px);
     padding: 24px 20px;
   }
 
@@ -3457,9 +3475,13 @@ select {
 }
 
 .gratitude-nav:disabled {
-  opacity: 0.4;
+  opacity: 1;
   cursor: not-allowed;
   transform: none;
+  color: #94a3b8;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  box-shadow: none;
 }
 
 .gratitude-modal {
@@ -3647,15 +3669,20 @@ select {
 
 .slider-prev:disabled,
 .slider-next:disabled {
-  opacity: 0.5;
+  opacity: 1;
   cursor: not-allowed;
   transform: none;
+  color: #94a3b8;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  box-shadow: none;
 }
 
 .slider-prev:disabled:hover,
 .slider-next:disabled:hover {
-  background: white;
-  color: var(--primary);
+  background: #f8fafc;
+  color: #94a3b8;
+  border-color: #cbd5e1;
 }
 
 .slider-dots {
@@ -3715,7 +3742,7 @@ select {
     gap: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 40px 20px;
+    padding: 40px 54px 68px;
     /* Добавляем отступы сверху и снизу */
     margin: 0;
     scroll-behavior: smooth;
@@ -3727,11 +3754,11 @@ select {
   }
 
   .equipment-card {
-    flex: 0 0 calc(100vw - 40px);
+    flex: 0 0 calc(100vw - 108px);
     /* Карточка занимает всю ширину экрана минус отступы */
     scroll-snap-align: center;
     /* Центрируем карточку */
-    margin: 0 10px;
+    margin: 0;
     /* Отступы между карточками */
     opacity: 1;
     transform: scale(1);
@@ -3761,7 +3788,7 @@ select {
 
   /* Скрываем неактивные карточки через скролл */
   .equipment-card:not(:first-child) {
-    margin-left: 20px;
+    margin-left: 24px;
   }
 
   .equipment-grid .equipment-card.fade-in {
@@ -3779,17 +3806,17 @@ select {
   }
 
   .equipment-grid {
-    padding: 30px 0;
+    padding: 30px 50px 64px;
   }
 
   .equipment-card {
-    flex: 0 0 calc(100vw - 32px);
-    margin: 0 8px;
+    flex: 0 0 calc(100vw - 100px);
+    margin: 0;
     min-height: 380px;
   }
 
   .equipment-card:not(:first-child) {
-    margin-left: 16px;
+    margin-left: 20px;
   }
 
   .equipment-section.slider-enabled .equipment-slider-nav.is-visible {
@@ -3998,6 +4025,24 @@ select {
   gap: 12px;
 }
 
+.experience-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.service-card,
+.equipment-card,
+.experience-card {
+  min-height: 100%;
+}
+
+.service-content,
+.equipment-content,
+.experience-content {
+  flex: 1 1 auto;
+}
+
 .service-content-main {
   gap: 12px;
   flex-direction: column;
@@ -4029,6 +4074,7 @@ select {
 }
 
 .experience-cta {
+  padding-top: 32px;
   text-align: center;
   display: flex;
   justify-content: center;
@@ -4083,7 +4129,7 @@ select {
     gap: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 40px 20px;
+    padding: 40px 54px 68px;
     margin: 0 0 40px;
     max-width: none;
     scroll-behavior: smooth;
@@ -4095,15 +4141,15 @@ select {
   }
 
   .experience-card {
-    flex: 0 0 calc(100vw - 40px);
+    flex: 0 0 calc(100vw - 108px);
     scroll-snap-align: center;
-    margin: 0 10px;
+    margin: 0;
     max-width: none;
     width: auto;
   }
 
   .experience-card:not(:first-child) {
-    margin-left: 20px;
+    margin-left: 24px;
   }
 
   .experience-card:hover {
@@ -4146,17 +4192,17 @@ select {
   }
 
   .experience-grid {
-    padding: 30px 16px;
+    padding: 30px 50px 64px;
     margin-bottom: 0 !important;
   }
 
   .experience-card {
-    flex: 0 0 calc(100vw - 32px);
-    margin: 0 8px;
+    flex: 0 0 calc(100vw - 100px);
+    margin: 0;
   }
 
   .experience-card:not(:first-child) {
-    margin-left: 16px;
+    margin-left: 20px;
   }
 
   .experience.slider-enabled .experience-slider-nav.is-visible {
@@ -5140,19 +5186,18 @@ select {
 .equipment-slider-nav,
 .experience-slider-nav {
   display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 24px;
-  min-height: 48px;
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  min-height: 0;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .services-slider-nav.is-visible,
 .equipment-slider-nav.is-visible,
 .experience-slider-nav.is-visible {
-  display: flex;
+  display: block;
 }
 
 @media (min-width: 769px) {
@@ -5160,12 +5205,13 @@ select {
   .equipment-section.slider-enabled .equipment-grid,
   .experience.slider-enabled .experience-grid {
     display: flex;
+    align-items: stretch;
     flex-wrap: nowrap;
     overflow-x: auto;
-    gap: 32px;
+    gap: 28px;
     max-width: none;
     margin: 0;
-    padding: 0;
+    padding: 0 72px 64px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -5180,8 +5226,9 @@ select {
   .services.slider-enabled .service-card,
   .equipment-section.slider-enabled .equipment-card,
   .experience.slider-enabled .experience-card {
-    flex: 0 0 calc((100% - 64px) / 3);
-    min-width: calc((100% - 64px) / 3);
+    flex: 0 0 calc((100% - 200px) / 3);
+    min-width: calc((100% - 200px) / 3);
+    max-width: 340px;
     margin: 0;
     scroll-snap-align: start;
   }
@@ -5193,11 +5240,13 @@ select {
   .experience-slider-shell .experience-slider-nav .slider-prev,
   .experience-slider-shell .experience-slider-nav .slider-next {
     position: absolute;
-    top: calc(50% - 28px);
+    top: calc(50% - 42px);
     transform: translateY(-50%);
-    width: 56px;
-    height: 56px;
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+    width: 42px;
+    height: 42px;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
+    pointer-events: auto;
+    z-index: 4;
   }
 
   .services-slider-shell .services-slider-nav .slider-prev:hover,
@@ -5206,7 +5255,7 @@ select {
   .equipment-park .equipment-slider-nav .slider-next:hover,
   .experience-slider-shell .experience-slider-nav .slider-prev:hover,
   .experience-slider-shell .experience-slider-nav .slider-next:hover {
-    transform: translateY(-50%) scale(1.08);
+    transform: translateY(-50%) scale(1.05);
   }
 
   .services-slider-shell .services-slider-nav .slider-prev:disabled,
@@ -5230,13 +5279,29 @@ select {
   .services-slider-shell .services-slider-nav .slider-prev,
   .equipment-park .equipment-slider-nav .slider-prev,
   .experience-slider-shell .experience-slider-nav .slider-prev {
-    left: -24px;
+    left: 18px;
   }
 
   .services-slider-shell .services-slider-nav .slider-next,
   .equipment-park .equipment-slider-nav .slider-next,
   .experience-slider-shell .experience-slider-nav .slider-next {
-    right: -24px;
+    right: 18px;
+  }
+
+  .services-slider-shell .services-slider-nav .slider-dots,
+  .equipment-park .equipment-slider-nav .slider-dots,
+  .experience-slider-shell .experience-slider-nav .slider-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    pointer-events: auto;
   }
 }
 
@@ -5262,7 +5327,7 @@ select {
     gap: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 40px 20px;
+    padding: 40px 54px 68px;
     /* Добавляем отступы сверху и снизу */
     margin: 0;
     scroll-behavior: smooth;
@@ -5274,11 +5339,11 @@ select {
   }
 
   .service-card {
-    flex: 0 0 calc(100vw - 40px);
+    flex: 0 0 calc(100vw - 108px);
     /* Карточка занимает всю ширину экрана минус отступы */
     scroll-snap-align: center;
     /* Центрируем карточку */
-    margin: 0 10px;
+    margin: 0;
     /* Отступы между карточками */
     opacity: 1;
     transform: scale(1);
@@ -5305,7 +5370,7 @@ select {
 
   /* Скрываем неактивные карточки через скролл */
   .service-card:not(:first-child) {
-    margin-left: 20px;
+    margin-left: 24px;
   }
 
   /* Улучшаем отображение контента на мобильных */
@@ -5343,18 +5408,18 @@ select {
   }
 
   .services-grid {
-    padding: 30px 16px;
+    padding: 30px 50px 64px;
   }
 
   .service-card {
-    flex: 0 0 calc(100vw - 32px);
+    flex: 0 0 calc(100vw - 100px);
     /* Учитываем меньшие отступы */
-    margin: 0 8px;
+    margin: 0;
     min-height: 380px;
   }
 
   .service-card:not(:first-child) {
-    margin-left: 16px;
+    margin-left: 20px;
   }
 
   .services-slider-nav.is-visible {
@@ -7574,8 +7639,12 @@ body.post-type-archive-bis_news {
 }
 
 .team-nav:disabled {
-  opacity: 0.4;
+  opacity: 1;
   cursor: not-allowed;
+  color: #94a3b8;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  box-shadow: none;
 }
 
 .team-empty {
@@ -8974,10 +9043,12 @@ body.post-type-archive-bis_news {
   .objects-slider-nav .slider-next,
   .gratitude-nav {
     position: absolute;
-    top: 50%;
+    top: calc(50% - 38px);
     transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
     pointer-events: auto;
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
     opacity: 0.96;
     z-index: 4;
   }
@@ -8987,7 +9058,7 @@ body.post-type-archive-bis_news {
   .experience-slider-nav .slider-prev,
   .objects-slider-nav .slider-prev,
   .gratitude-prev {
-    left: 12px;
+    left: 10px;
   }
 
   .services-slider-nav .slider-next,
@@ -8995,7 +9066,7 @@ body.post-type-archive-bis_news {
   .experience-slider-nav .slider-next,
   .objects-slider-nav .slider-next,
   .gratitude-next {
-    right: 12px;
+    right: 10px;
   }
 
   .services-slider-nav .slider-dots,
@@ -9004,11 +9075,11 @@ body.post-type-archive-bis_news {
   .objects-slider-nav .slider-dots {
     position: absolute;
     left: 50%;
-    bottom: 10px;
+    bottom: 4px;
     transform: translateX(-50%);
     display: flex;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 7px 10px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.92);
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
@@ -9018,5 +9089,28 @@ body.post-type-archive-bis_news {
   .gratitude-slider-wrapper {
     grid-template-columns: 1fr;
     grid-template-areas: 'slider';
+  }
+}
+
+@media (max-width: 768px) {
+  .projects-page .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .projects-page .projects-grid .experience-card {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .projects-page .projects-grid .experience-card:not(:first-child) {
+    margin-left: 0;
   }
 }

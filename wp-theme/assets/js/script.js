@@ -1191,10 +1191,15 @@ function initGratitudeSlider() {
       return rect.width + getGap();
     };
 
-    const normalizeIndex = (index) => {
+    const clampIndex = (index) => {
       const total = slides.length;
       if (!total) return 0;
-      return ((index % total) + total) % total;
+      return Math.max(0, Math.min(index, total - 1));
+    };
+
+    const updateNavigation = () => {
+      if (prevBtn) prevBtn.disabled = activeIndex === 0;
+      if (nextBtn) nextBtn.disabled = activeIndex === slides.length - 1;
     };
 
     const updateDots = () => {
@@ -1212,12 +1217,13 @@ function initGratitudeSlider() {
       if (!slideStep || Number.isNaN(slideStep)) {
         return;
       }
-      activeIndex = normalizeIndex(index);
+      activeIndex = clampIndex(index);
       track.scrollTo({
         left: activeIndex * slideStep,
         behavior: 'smooth'
       });
       updateDots();
+      updateNavigation();
     };
 
     if (prevBtn) {
@@ -1248,8 +1254,9 @@ function initGratitudeSlider() {
       }
       const index = Math.round(track.scrollLeft / slideStep);
       if (index !== activeIndex) {
-        activeIndex = normalizeIndex(index);
+        activeIndex = clampIndex(index);
         updateDots();
+        updateNavigation();
       }
     });
 
@@ -1261,6 +1268,7 @@ function initGratitudeSlider() {
 
     slideStep = computeSlideStep();
     updateDots();
+    updateNavigation();
   });
 }
 
