@@ -1420,13 +1420,12 @@ select {
 .contact-item {
   display: flex;
   gap: 16px;
-  align-items: start;
+  align-items: center;
 }
 
 .contact-icon {
   width: 48px;
   height: 48px;
-  background: rgba(111, 200, 214, 0.1);
   border-radius: 12px;
   display: flex;
   align-items: center;
