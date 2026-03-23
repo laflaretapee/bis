@@ -52,7 +52,11 @@ if ($selected_type !== '') {
     );
 }
 
-$projects = new WP_Query($projects_args);
+$projects = get_posts($projects_args);
+
+if ($selected_type === '') {
+    $projects = bis_sort_project_posts($projects);
+}
 ?>
 
 <main class="projects-page">
@@ -91,8 +95,8 @@ $projects = new WP_Query($projects_args);
 
     <section class="projects-list">
         <div class="experience-grid projects-grid">
-            <?php if ($projects->have_posts()) : ?>
-                <?php while ($projects->have_posts()) : $projects->the_post(); ?>
+            <?php if (!empty($projects)) : ?>
+                <?php foreach ($projects as $post) : setup_postdata($post); ?>
                     <?php
                     $project_id = get_the_ID();
                     $image_url = bis_get_project_image_url($project_id);
@@ -124,7 +128,7 @@ $projects = new WP_Query($projects_args);
                             <a class="experience-more" href="<?php echo esc_url(get_permalink($project_id)); ?>">Подробнее<span aria-hidden="true">→</span></a>
                         </div>
                     </div>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
             <?php else : ?>
                 <div class="team-empty">
                     <span class="team-empty__label">Проекты</span>

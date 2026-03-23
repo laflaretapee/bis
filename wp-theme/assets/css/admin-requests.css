@@ -11,6 +11,23 @@
     margin-top: 20px;
 }
 
+.bis-requests-settings {
+    margin: 20px 0 24px;
+    padding: 20px 24px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.bis-requests-settings h2 {
+    margin: 0 0 10px;
+}
+
+.bis-requests-settings .description {
+    margin-bottom: 12px;
+}
+
 .bis-requests-table {
     border-radius: 8px;
     overflow: hidden;
@@ -72,6 +89,7 @@
 
 .column-actions {
     text-align: right;
+    width: 110px;
 }
 
 .bis-badge {
@@ -144,6 +162,19 @@
     color: #2d3748;
 }
 
+.bis-messenger-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bis-messenger-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex: 0 0 18px;
+}
+
 .bis-detail-comment {
     margin-top: 20px;
 }
@@ -175,12 +206,32 @@
     transition: color 0.2s;
 }
 
+.bis-request-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
 .toggle-row:hover {
     color: var(--bis-blue);
 }
 
-.toggle-row .dashicons {
+.toggle-row .dashicons,
+.delete-request .dashicons {
     font-size: 20px;
+}
+
+.delete-request {
+    background: none !important;
+    border: none;
+    cursor: pointer;
+    color: #dc2626;
+    transition: color 0.2s;
+}
+
+.delete-request:hover {
+    color: #991b1b;
 }
 
 .bis-empty,

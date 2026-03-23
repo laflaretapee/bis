@@ -975,7 +975,4 @@ $news_query = new WP_Query(array(
     <a href="#contact" class="btn btn-primary">Получить консультацию</a>
   </div>
 </section>
-
-
-<?php get_template_part('estimate-modal'); ?>
 <?php get_footer(); ?>

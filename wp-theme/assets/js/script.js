@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initRevenueChart();
   initProjectConsultationForm();
   initObjectsSlider();
+  syncUniformCardHeights();
 
   let resizeTimer;
   window.addEventListener('resize', () => {
@@ -33,9 +34,40 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof initServicesSlider === 'function') initServicesSlider();
       if (typeof initExperienceSlider === 'function') initExperienceSlider();
       if (typeof initObjectsSlider === 'function') initObjectsSlider();
+      if (typeof syncUniformCardHeights === 'function') syncUniformCardHeights();
     }, 250);
   });
 });
+
+window.addEventListener('load', () => {
+  if (typeof syncUniformCardHeights === 'function') syncUniformCardHeights();
+});
+
+function syncUniformCardHeights() {
+  const containers = document.querySelectorAll('.equipment-grid, .experience-grid, .projects-grid');
+
+  containers.forEach((container) => {
+    const cards = Array.from(container.children).filter((card) => (
+      card.classList.contains('equipment-card') ||
+      card.classList.contains('experience-card')
+    ));
+
+    cards.forEach((card) => {
+      card.style.height = '';
+    });
+
+    if (cards.length < 2) return;
+
+    let maxHeight = 0;
+    cards.forEach((card) => {
+      maxHeight = Math.max(maxHeight, card.offsetHeight);
+    });
+
+    cards.forEach((card) => {
+      card.style.height = `${maxHeight}px`;
+    });
+  });
+}
 
 function applyBisCondensedStyling(root = document.body) {
   if (!root) return;
@@ -857,7 +889,7 @@ function showNotification(message, type = 'info') {
 
   Object.assign(notification.style, {
     position: 'fixed',
-    bottom: '32px',
+    top: '32px',
     right: '32px',
     padding: '16px 24px',
     background: type === 'success' ? '#10b981' : '#2563eb',

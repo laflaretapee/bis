@@ -84,6 +84,7 @@
     </div>
   </footer>
 
+  <?php get_template_part('estimate-modal'); ?>
   <?php wp_footer(); ?>
   <div class="floating-estimate-wrapper">
     <div class="floating-socials-panel" data-floating-social-panel>

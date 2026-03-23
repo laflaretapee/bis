@@ -1,13 +1,16 @@
 <?php
 function bis_theme_scripts() {
+    $style_version = filemtime(get_template_directory() . '/assets/css/style.css');
+    $script_version = filemtime(get_template_directory() . '/assets/js/script.js');
+
     // Enqueue Google Fonts
     wp_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap', array(), null);
 
     // Enqueue Main Stylesheet
-    wp_enqueue_style('bis-style', get_template_directory_uri() . '/assets/css/style.css', array(), '20251203120000');
+    wp_enqueue_style('bis-style', get_template_directory_uri() . '/assets/css/style.css', array(), $style_version);
 
     // Enqueue Main Script
-    wp_enqueue_script('bis-script', get_template_directory_uri() . '/assets/js/script.js', array(), '20251203120000', true);
+    wp_enqueue_script('bis-script', get_template_directory_uri() . '/assets/js/script.js', array(), $script_version, true);
 
     // Enqueue Slider Script
     if (is_front_page()) {
@@ -300,6 +303,46 @@ function bis_sort_project_type_terms($terms) {
     });
 
     return $terms;
+}
+
+function bis_get_project_type_sort_order_for_post($post_id) {
+    $terms = get_the_terms($post_id, 'bis_project_type');
+    if (!is_array($terms) || empty($terms) || is_wp_error($terms)) {
+        return 1000;
+    }
+
+    $terms = bis_sort_project_type_terms($terms);
+    $primary_term = reset($terms);
+
+    return bis_get_project_type_order_value($primary_term);
+}
+
+function bis_sort_project_posts($posts) {
+    if (!is_array($posts) || count($posts) < 2) {
+        return $posts;
+    }
+
+    usort($posts, function ($left, $right) {
+        $left_order = bis_get_project_type_sort_order_for_post($left->ID);
+        $right_order = bis_get_project_type_sort_order_for_post($right->ID);
+
+        if ($left_order !== $right_order) {
+            return $left_order <=> $right_order;
+        }
+
+        $left_menu_order = (int) get_post_field('menu_order', $left->ID);
+        $right_menu_order = (int) get_post_field('menu_order', $right->ID);
+        if ($left_menu_order !== $right_menu_order) {
+            return $left_menu_order <=> $right_menu_order;
+        }
+
+        return strcmp(
+            bis_normalize_project_type_label(get_the_title($left->ID)),
+            bis_normalize_project_type_label(get_the_title($right->ID))
+        );
+    });
+
+    return $posts;
 }
 
 function bis_project_type_add_order_field() {
@@ -2347,13 +2390,125 @@ function bis_register_requests_cpt() {
 }
 add_action('init', 'bis_register_requests_cpt');
 
+function bis_get_request_notification_default_recipients() {
+    return array(
+        'office@bis-rf.ru',
+        'o.moskaleva@bis-rf.ru',
+    );
+}
+
+function bis_normalize_request_notification_recipients($value) {
+    if (is_array($value)) {
+        $raw_items = $value;
+    } else {
+        $raw_items = preg_split('/[\r\n,;]+/', (string) $value);
+    }
+
+    $emails = array();
+    foreach ($raw_items as $item) {
+        $email = sanitize_email(trim((string) $item));
+        if ($email !== '' && is_email($email)) {
+            $emails[] = $email;
+        }
+    }
+
+    return array_values(array_unique($emails));
+}
+
+function bis_get_request_notification_recipients() {
+    $stored = get_option('bis_request_notification_emails', array());
+    $emails = bis_normalize_request_notification_recipients($stored);
+
+    if (empty($emails)) {
+        return bis_get_request_notification_default_recipients();
+    }
+
+    return $emails;
+}
+
+function bis_send_request_notification($post_id) {
+    $recipients = bis_get_request_notification_recipients();
+    if (empty($recipients)) {
+        return false;
+    }
+
+    $request_type = get_post_meta($post_id, 'bis_request_type', true);
+    $type_label = ('consultation' === $request_type) ? 'Консультация по проекту' : 'Смета и сроки';
+
+    $name = get_post_meta($post_id, 'bis_name', true);
+    $phone = get_post_meta($post_id, 'bis_phone', true);
+    $email = get_post_meta($post_id, 'bis_email', true);
+    $messenger = get_post_meta($post_id, 'bis_messenger', true);
+    $comment = get_post_meta($post_id, 'bis_comment', true);
+    $company = get_post_meta($post_id, 'bis_company', true);
+    $position = get_post_meta($post_id, 'bis_position', true);
+    $topic = get_post_meta($post_id, 'bis_topic', true);
+    $details = get_post_meta($post_id, 'bis_details', true);
+    $project = get_post_meta($post_id, 'bis_project_title', true);
+    $date = get_post_meta($post_id, 'bis_date', true);
+    $file_id = (int) get_post_meta($post_id, 'bis_file_id', true);
+    $file_path = $file_id ? get_attached_file($file_id) : '';
+
+    $lines = array(
+        'Новая заявка с сайта БИС',
+        '',
+        'Тип: ' . $type_label,
+        'Дата: ' . $date,
+        'Имя: ' . $name,
+        'Телефон: ' . $phone,
+        'Email: ' . $email,
+    );
+
+    if ($messenger !== '') {
+        $lines[] = 'Предпочтительный контакт: ' . $messenger;
+    }
+
+    if ($project !== '') {
+        $lines[] = 'Проект: ' . $project;
+    }
+
+    if ($company !== '') {
+        $lines[] = 'Компания: ' . $company;
+    }
+
+    if ($position !== '') {
+        $lines[] = 'Должность: ' . $position;
+    }
+
+    if ($topic !== '') {
+        $lines[] = 'Тема: ' . $topic;
+    }
+
+    if ($comment !== '') {
+        $lines[] = 'Комментарий: ' . $comment;
+    }
+
+    if ($details !== '' && $details !== $comment) {
+        $lines[] = 'Подробности: ' . $details;
+    }
+
+    if ($file_path && file_exists($file_path)) {
+        $lines[] = 'Во вложении: ' . basename($file_path);
+    }
+
+    $subject = sprintf('[%s] Новая заявка: %s', wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES), $type_label);
+    $headers = array('Content-Type: text/plain; charset=UTF-8');
+    $attachments = array();
+
+    if ($file_path && file_exists($file_path)) {
+        $attachments[] = $file_path;
+    }
+
+    return wp_mail($recipients, $subject, implode("\n", $lines), $headers, $attachments);
+}
+
 // AJAX Handler for Estimate Submission
 function bis_submit_estimate() {
-    $name = sanitize_text_field($_POST['name']);
-    $phone = sanitize_text_field($_POST['phone']);
-    $email = sanitize_email($_POST['email']);
-    $messenger = sanitize_text_field($_POST['messenger']);
-    $comment = sanitize_textarea_field($_POST['comment']);
+    $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+    $phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
+    $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+    $messenger = isset($_POST['messenger']) ? sanitize_text_field(wp_unslash($_POST['messenger'])) : '';
+    $comment = isset($_POST['comment']) ? sanitize_textarea_field(wp_unslash($_POST['comment'])) : '';
 
     if (empty($name) || empty($phone) || empty($email)) {
         wp_send_json_error(array('message' => 'Required fields missing'));
@@ -2391,6 +2546,8 @@ function bis_submit_estimate() {
                 update_post_meta($post_id, 'bis_file_id', $attachment_id);
             }
         }
+
+        bis_send_request_notification($post_id);
 
         wp_send_json_success(array('message' => 'Request saved', 'upload_error' => $upload_error));
     } else {
@@ -2444,6 +2601,7 @@ function bis_submit_project_consultation() {
     ));
 
     if ($post_id) {
+        bis_send_request_notification($post_id);
         wp_send_json_success(array('message' => 'Request saved'));
     }
 
@@ -2490,9 +2648,30 @@ function bis_requests_menu() {
 add_action('admin_menu', 'bis_requests_menu');
 
 function bis_requests_page() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    if (isset($_POST['bis_request_notification_save']) && check_admin_referer('bis_request_notification_nonce')) {
+        $raw_emails = isset($_POST['bis_request_notification_emails']) ? wp_unslash($_POST['bis_request_notification_emails']) : '';
+        $emails = bis_normalize_request_notification_recipients($raw_emails);
+        update_option('bis_request_notification_emails', $emails);
+        echo '<div class="updated"><p>Получатели уведомлений по заявкам сохранены.</p></div>';
+    }
+
+    $notification_emails = implode("\n", bis_get_request_notification_recipients());
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">Заявки</h1>
+        <form class="bis-requests-settings" method="post">
+            <?php wp_nonce_field('bis_request_notification_nonce'); ?>
+            <h2>Получатели email-уведомлений</h2>
+            <p class="description">Укажите email-адреса, на которые нужно отправлять копии новых заявок. По одному адресу на строку.</p>
+            <textarea name="bis_request_notification_emails" rows="4" class="large-text code"><?php echo esc_textarea($notification_emails); ?></textarea>
+            <p class="submit">
+                <button type="submit" name="bis_request_notification_save" class="button button-primary">Сохранить получателей</button>
+            </p>
+        </form>
         <div id="bis-requests-app">
             <div class="bis-requests-list" id="bis-requests-list">
                 <!-- Requests will be loaded here via JS -->
@@ -2508,6 +2687,8 @@ function bis_get_requests() {
     if (!current_user_can('manage_options')) {
         wp_send_json_error();
     }
+
+    check_ajax_referer('bis_requests_admin', 'nonce');
 
     $args = array(
         'post_type' => 'bis_request',
@@ -2565,6 +2746,8 @@ function bis_mark_read() {
         wp_send_json_error();
     }
 
+    check_ajax_referer('bis_requests_admin', 'nonce');
+
     $post_id = intval($_POST['id']);
     if (!$post_id) {
         wp_send_json_error();
@@ -2575,13 +2758,55 @@ function bis_mark_read() {
 }
 add_action('wp_ajax_bis_mark_read', 'bis_mark_read');
 
+function bis_delete_request() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error();
+    }
+
+    check_ajax_referer('bis_requests_admin', 'nonce');
+
+    $post_id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+    if (!$post_id || 'bis_request' !== get_post_type($post_id)) {
+        wp_send_json_error();
+    }
+
+    $file_id = (int) get_post_meta($post_id, 'bis_file_id', true);
+    if ($file_id) {
+        wp_delete_attachment($file_id, true);
+    }
+
+    $deleted = wp_delete_post($post_id, true);
+    if (!$deleted) {
+        wp_send_json_error();
+    }
+
+    wp_send_json_success(array('count' => bis_get_new_requests_count()));
+}
+add_action('wp_ajax_bis_delete_request', 'bis_delete_request');
+
 // Enqueue Admin Scripts for Requests Page
 function bis_requests_admin_scripts($hook) {
     if ('toplevel_page_bis-requests' !== $hook) {
         return;
     }
-    wp_enqueue_script('bis-requests-script', get_template_directory_uri() . '/assets/js/admin-requests.js', array('jquery'), '1.0', true);
-    wp_enqueue_style('bis-requests-style', get_template_directory_uri() . '/assets/css/admin-requests.css', array(), '1.0');
+    $script_version = filemtime(get_template_directory() . '/assets/js/admin-requests.js');
+    $style_version = filemtime(get_template_directory() . '/assets/css/admin-requests.css');
+
+    wp_enqueue_script('bis-requests-script', get_template_directory_uri() . '/assets/js/admin-requests.js', array('jquery'), $script_version, true);
+    wp_enqueue_style('bis-requests-style', get_template_directory_uri() . '/assets/css/admin-requests.css', array(), $style_version);
+    wp_localize_script('bis-requests-script', 'bisRequestsData', array(
+        'nonce' => wp_create_nonce('bis_requests_admin'),
+        'icons' => array(
+            'telegram' => get_template_directory_uri() . '/assets/img/telegram-32x32.png',
+            'max' => get_template_directory_uri() . '/assets/img/MAX-32x32.png',
+            'whatsapp' => get_template_directory_uri() . '/assets/img/free-icon-whatsapp-5968841.png',
+        ),
+        'strings' => array(
+            'empty' => 'Нет заявок',
+            'delete_confirm' => 'Удалить заявку без возможности восстановления?',
+            'delete_error' => 'Не удалось удалить заявку. Попробуйте ещё раз.',
+        ),
+    ));
 }
 add_action('admin_enqueue_scripts', 'bis_requests_admin_scripts');
 

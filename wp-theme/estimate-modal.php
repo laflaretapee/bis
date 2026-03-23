@@ -36,7 +36,7 @@
             <label for="estimateMessenger">Куда прислать расчет?</label>
             <div class="select-wrapper">
               <select id="estimateMessenger" name="messenger">
-                <option value="WhatsApp">WhatsApp</option>
+                <option value="MAX">MAX</option>
                 <option value="Telegram">Telegram</option>
                 <option value="Phone">По телефону</option>
               </select>
