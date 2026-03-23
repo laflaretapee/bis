@@ -840,6 +840,7 @@ $news_query = new WP_Query(array(
             <label for="message">Сообщение</label>
             <textarea id="message" name="message" required></textarea>
           </div>
+          <?php echo do_shortcode('[hcaptcha auto="true" force="true"]'); ?>
           <button type="submit" class="btn btn-primary" style="
     width: 100%;
     display: flex;

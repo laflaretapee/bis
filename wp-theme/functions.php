@@ -11,6 +11,9 @@ function bis_theme_scripts() {
 
     // Enqueue Main Script
     wp_enqueue_script('bis-script', get_template_directory_uri() . '/assets/js/script.js', array(), $script_version, true);
+    wp_localize_script('bis-script', 'bisSiteConfig', array(
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+    ));
 
     // Enqueue Slider Script
     if (is_front_page()) {
@@ -41,6 +44,73 @@ function bis_theme_scripts() {
     }
 }
 add_action('wp_enqueue_scripts', 'bis_theme_scripts');
+
+function bis_get_runtime_setting($key, $default = '') {
+    $env_value = getenv($key);
+    if ($env_value !== false && $env_value !== '') {
+        return $env_value;
+    }
+
+    if (defined($key)) {
+        $constant_value = constant($key);
+        if ($constant_value !== null && $constant_value !== '') {
+            return $constant_value;
+        }
+    }
+
+    return $default;
+}
+
+function bis_get_smtp_settings() {
+    return array(
+        'host'      => trim((string) bis_get_runtime_setting('BIS_SMTP_HOST')),
+        'port'      => (int) bis_get_runtime_setting('BIS_SMTP_PORT'),
+        'user'      => trim((string) bis_get_runtime_setting('BIS_SMTP_USER')),
+        'pass'      => trim((string) bis_get_runtime_setting('BIS_SMTP_PASS')),
+        'secure'    => trim((string) bis_get_runtime_setting('BIS_SMTP_SECURE')),
+        'from'      => trim((string) bis_get_runtime_setting('BIS_SMTP_FROM_EMAIL')),
+        'from_name' => trim((string) bis_get_runtime_setting('BIS_SMTP_FROM_NAME')),
+        'auth'      => strtolower(trim((string) bis_get_runtime_setting('BIS_SMTP_AUTH'))),
+    );
+}
+
+function bis_configure_phpmailer($phpmailer) {
+    $settings = bis_get_smtp_settings();
+
+    if ($settings['host'] === '' || $settings['from'] === '') {
+        return;
+    }
+
+    $phpmailer->isSMTP();
+    $phpmailer->Host = $settings['host'];
+    $phpmailer->Port = $settings['port'] > 0 ? $settings['port'] : 465;
+    $phpmailer->SMTPAuth = $settings['auth'] !== 'false';
+    $phpmailer->Username = $settings['user'] !== '' ? $settings['user'] : $settings['from'];
+    $phpmailer->Password = $settings['pass'];
+    $phpmailer->CharSet = 'UTF-8';
+
+    if (in_array($settings['secure'], array('ssl', 'tls'), true)) {
+        $phpmailer->SMTPSecure = $settings['secure'];
+    } else {
+        $phpmailer->SMTPSecure = '';
+    }
+
+    $phpmailer->From = $settings['from'];
+    $phpmailer->FromName = $settings['from_name'] !== '' ? $settings['from_name'] : get_bloginfo('name');
+}
+add_action('phpmailer_init', 'bis_configure_phpmailer');
+
+function bis_smtp_from_email($email) {
+    $settings = bis_get_smtp_settings();
+    return $settings['from'] !== '' ? $settings['from'] : $email;
+}
+add_filter('wp_mail_from', 'bis_smtp_from_email');
+
+function bis_smtp_from_name($name) {
+    $settings = bis_get_smtp_settings();
+    return $settings['from_name'] !== '' ? $settings['from_name'] : $name;
+}
+add_filter('wp_mail_from_name', 'bis_smtp_from_name');
 
 function bis_theme_setup() {
     add_theme_support('title-tag');
@@ -2390,6 +2460,64 @@ function bis_register_requests_cpt() {
 }
 add_action('init', 'bis_register_requests_cpt');
 
+function bis_parse_size_to_bytes($value) {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return 0;
+    }
+
+    $unit = strtolower(substr($value, -1));
+    $bytes = (float) $value;
+
+    switch ($unit) {
+        case 'g':
+            $bytes *= 1024;
+        case 'm':
+            $bytes *= 1024;
+        case 'k':
+            $bytes *= 1024;
+    }
+
+    return (int) $bytes;
+}
+
+function bis_is_request_larger_than_post_max_size() {
+    $content_length = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+    $post_max_size = bis_parse_size_to_bytes(ini_get('post_max_size'));
+
+    return $content_length > 0 && $post_max_size > 0 && $content_length > $post_max_size;
+}
+
+function bis_get_upload_error_message($error_code) {
+    switch ((int) $error_code) {
+        case UPLOAD_ERR_INI_SIZE:
+        case UPLOAD_ERR_FORM_SIZE:
+            return 'Файл слишком большой для загрузки на сервер.';
+        case UPLOAD_ERR_PARTIAL:
+            return 'Файл загрузился не полностью. Повторите попытку.';
+        case UPLOAD_ERR_NO_TMP_DIR:
+            return 'На сервере не настроена временная директория для загрузки файлов.';
+        case UPLOAD_ERR_CANT_WRITE:
+            return 'Сервер не смог сохранить файл.';
+        case UPLOAD_ERR_EXTENSION:
+            return 'Загрузка файла остановлена расширением PHP.';
+        default:
+            return 'Не удалось загрузить файл.';
+    }
+}
+
+function bis_get_request_type_label($request_type) {
+    $type_labels = array(
+        'consultation' => 'Консультация по проекту',
+        'estimate'     => 'Смета и сроки',
+        'contact'      => 'Форма контактов',
+        'order'        => 'Заявка на услугу',
+        'callback'     => 'Обратный звонок',
+    );
+
+    return isset($type_labels[$request_type]) ? $type_labels[$request_type] : 'Заявка с сайта';
+}
+
 function bis_get_request_notification_default_recipients() {
     return array(
         'office@bis-rf.ru',
@@ -2433,7 +2561,12 @@ function bis_send_request_notification($post_id) {
     }
 
     $request_type = get_post_meta($post_id, 'bis_request_type', true);
+    $type_label = bis_get_request_type_label($request_type);
     $type_label = ('consultation' === $request_type) ? 'Консультация по проекту' : 'Смета и сроки';
+
+    if (!in_array($request_type, array('consultation', 'estimate'), true)) {
+        $type_label = bis_get_request_type_label($request_type);
+    }
 
     $name = get_post_meta($post_id, 'bis_name', true);
     $phone = get_post_meta($post_id, 'bis_phone', true);
@@ -2502,16 +2635,82 @@ function bis_send_request_notification($post_id) {
     return wp_mail($recipients, $subject, implode("\n", $lines), $headers, $attachments);
 }
 
-// AJAX Handler for Estimate Submission
-function bis_submit_estimate() {
+function bis_submit_general_request() {
     $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
     $phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
-    $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+    $message = isset($_POST['message']) ? sanitize_textarea_field(wp_unslash($_POST['message'])) : '';
+    $service = isset($_POST['service']) ? sanitize_text_field(wp_unslash($_POST['service'])) : '';
+    $request_type = isset($_POST['request_type']) ? sanitize_key(wp_unslash($_POST['request_type'])) : 'contact';
+
+    if (!in_array($request_type, array('contact', 'order', 'callback'), true)) {
+        $request_type = 'contact';
+    }
+
+    if ($name === '' || $phone === '') {
+        wp_send_json_error(array('message' => 'Заполните обязательные поля: имя и телефон.'));
+    }
+
+    if ('contact' === $request_type && $message === '') {
+        wp_send_json_error(array('message' => 'Заполните поле сообщения.'));
+    }
+
+    $post_title = $name . ' - ' . $phone;
+    if ($service !== '') {
+        $post_title .= ' - ' . $service;
+    }
+
+    $post_id = wp_insert_post(array(
+        'post_title' => $post_title,
+        'post_type' => 'bis_request',
+        'post_status' => 'publish',
+        'meta_input' => array(
+            'bis_name' => $name,
+            'bis_phone' => $phone,
+            'bis_comment' => $message,
+            'bis_topic' => $service,
+            'bis_request_type' => $request_type,
+            'bis_status' => 'new',
+            'bis_date' => current_time('mysql'),
+        ),
+    ));
+
+    if (!$post_id || is_wp_error($post_id)) {
+        wp_send_json_error(array('message' => 'Не удалось сохранить заявку.'));
+    }
+
+    $mail_sent = bis_send_request_notification($post_id);
+    if (!$mail_sent) {
+        wp_send_json_error(array('message' => 'Заявка сохранена, но письмо не отправилось. Проверьте SMTP.'));
+    }
+
+    wp_send_json_success(array('message' => 'Заявка отправлена.'));
+}
+add_action('wp_ajax_bis_submit_general_request', 'bis_submit_general_request');
+add_action('wp_ajax_nopriv_bis_submit_general_request', 'bis_submit_general_request');
+
+// AJAX Handler for Estimate Submission
+function bis_submit_estimate() {
+    if (bis_is_request_larger_than_post_max_size()) {
+        wp_send_json_error(array('message' => 'Размер данных формы превышает лимит сервера. Уменьшите файл или увеличьте `post_max_size` и `upload_max_filesize`.'));
+    }
+
+    $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+    $phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
+    $raw_email = isset($_POST['email']) ? wp_unslash($_POST['email']) : '';
+    $email = sanitize_email($raw_email);
     $messenger = isset($_POST['messenger']) ? sanitize_text_field(wp_unslash($_POST['messenger'])) : '';
     $comment = isset($_POST['comment']) ? sanitize_textarea_field(wp_unslash($_POST['comment'])) : '';
 
-    if (empty($name) || empty($phone) || empty($email)) {
-        wp_send_json_error(array('message' => 'Required fields missing'));
+    if ($name === '' || $phone === '' || trim((string) $raw_email) === '') {
+        wp_send_json_error(array('message' => 'Заполните обязательные поля: имя, телефон и email.'));
+    }
+
+    if (!is_email($email)) {
+        wp_send_json_error(array('message' => 'Укажите корректный email.'));
+    }
+
+    if (!empty($_FILES['project_doc']['name']) && isset($_FILES['project_doc']['error']) && (int) $_FILES['project_doc']['error'] !== UPLOAD_ERR_OK) {
+        wp_send_json_error(array('message' => bis_get_upload_error_message($_FILES['project_doc']['error'])));
     }
 
     $post_id = wp_insert_post(array(
@@ -2547,7 +2746,13 @@ function bis_submit_estimate() {
             }
         }
 
-        bis_send_request_notification($post_id);
+        $mail_sent = bis_send_request_notification($post_id);
+        if (!$mail_sent) {
+            wp_send_json_error(array(
+                'message' => 'Заявка сохранена, но письмо не отправилось. Проверьте SMTP.',
+                'upload_error' => $upload_error,
+            ));
+        }
 
         wp_send_json_success(array('message' => 'Request saved', 'upload_error' => $upload_error));
     } else {

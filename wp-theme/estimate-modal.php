@@ -42,6 +42,8 @@
               </select>
             </div>
           </div>
+          <?php echo do_shortcode('[hcaptcha auto="true" force="true"]'); ?>
+
           <button type="submit" class="btn btn-primary btn-block">Рассчитать смету и сроки</button>
           <p class="form-consent">Нажимая на кнопку, вы даете согласие на обработку своих персональных данных и соглашаетесь с Политикой конфиденциальности сайта</p>
         </form>

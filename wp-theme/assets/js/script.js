@@ -43,6 +43,44 @@ window.addEventListener('load', () => {
   if (typeof syncUniformCardHeights === 'function') syncUniformCardHeights();
 });
 
+const bisAjaxUrl = window.bisSiteConfig?.ajaxUrl || '/wp-admin/admin-ajax.php';
+
+function resetHCaptcha(form) {
+  if (!form) return;
+
+  form.querySelectorAll('textarea[name="h-captcha-response"], input[name="h-captcha-response"]').forEach((field) => {
+    field.value = '';
+  });
+
+  if (typeof window.hcaptcha === 'undefined' || typeof window.hcaptcha.reset !== 'function') {
+    return;
+  }
+
+  const widgets = form.querySelectorAll('.h-captcha, .hcaptcha_widget, [data-hcaptcha-widget-id]');
+  if (!widgets.length) {
+    try {
+      window.hcaptcha.reset();
+    } catch (error) {
+      console.warn('hCaptcha reset failed', error);
+    }
+    return;
+  }
+
+  widgets.forEach((widget) => {
+    const widgetId = widget.dataset.hcaptchaWidgetId || widget.getAttribute('data-hcaptcha-widget-id') || widget.dataset.widgetId;
+
+    try {
+      if (widgetId !== null && widgetId !== undefined && widgetId !== '') {
+        window.hcaptcha.reset(widgetId);
+      } else {
+        window.hcaptcha.reset();
+      }
+    } catch (error) {
+      console.warn('hCaptcha reset failed', error);
+    }
+  });
+}
+
 function syncUniformCardHeights() {
   const containers = document.querySelectorAll('.equipment-grid, .experience-grid, .projects-grid');
 
@@ -274,6 +312,7 @@ function initCallbackModal() {
     callbackOverlay.classList.remove('active');
     if (callbackForm) {
       callbackForm.reset();
+      resetHCaptcha(callbackForm);
       const inputs = callbackForm.querySelectorAll('input, textarea');
       inputs.forEach(input => clearError(input));
     }
@@ -494,31 +533,75 @@ function initRevenueChart() {
   pointsGroup.innerHTML = '';
 }
 
+function submitAjaxForm(form, action, extraData = {}, options = {}) {
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalText = submitBtn ? submitBtn.textContent : '';
+  const formData = new FormData(form);
+
+  formData.append('action', action);
+  Object.entries(extraData).forEach(([key, value]) => {
+    formData.append(key, value);
+  });
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправка...';
+    submitBtn.style.opacity = '0.6';
+  }
+
+  fetch(bisAjaxUrl, {
+    method: 'POST',
+    body: formData
+  })
+    .then(response => response.json())
+    .then((data) => {
+      if (!data.success) {
+        throw new Error(data.data?.message || 'Ошибка отправки. Попробуйте позже.');
+      }
+
+      if (submitBtn) {
+        submitBtn.textContent = '✓ Отправлено!';
+        submitBtn.style.background = '#10b981';
+      }
+
+      if (typeof options.onSuccess === 'function') {
+        options.onSuccess(data);
+      } else {
+        form.reset();
+        resetHCaptcha(form);
+      }
+
+      showNotification(options.successMessage || 'Спасибо! Ваша заявка отправлена.', 'success');
+    })
+    .catch((error) => {
+      showNotification(error.message || 'Ошибка отправки. Попробуйте позже.', 'error');
+      resetHCaptcha(form);
+    })
+    .finally(() => {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        submitBtn.style.background = '';
+        submitBtn.style.opacity = '';
+      }
+    });
+}
+
 // Функция отправки формы обратного звонка
 function submitCallbackForm(data, form) {
-  const submitBtn = form.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Отправка...';
-  submitBtn.style.opacity = '0.6';
-
-  setTimeout(() => {
-    submitBtn.textContent = '✓ Отправлено!';
-    submitBtn.style.background = '#10b981';
-
-    form.reset();
-    closeCallbackModal();
-
-    showNotification('Спасибо! Мы перезвоним вам в течение 15 минут.', 'success');
-
-    setTimeout(() => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-      submitBtn.style.background = '';
-      submitBtn.style.opacity = '';
-    }, 3000);
-  }, 1500);
+  submitAjaxForm(form, 'bis_submit_general_request', {
+    request_type: data.type || 'callback'
+  }, {
+    successMessage: 'Спасибо! Мы перезвоним вам в течение 15 минут.',
+    onSuccess: () => {
+      form.reset();
+      resetHCaptcha(form);
+      const overlay = document.getElementById('callbackOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+      }
+    }
+  });
 }
 
 function openMenuDrawer() {
@@ -760,9 +843,9 @@ function initFormValidation() {
       e.preventDefault();
 
       const formData = {
-        name: form.querySelector('[id$="name"]').value,
-        phone: form.querySelector('[id$="phone"]').value,
-        message: form.querySelector('[id$="message"]').value,
+        name: form.querySelector('[name="name"]').value,
+        phone: form.querySelector('[name="phone"]').value,
+        message: form.querySelector('[name="message"]').value,
         service: form.querySelector('#orderService')?.value || '',
         isOrder: form.id === 'orderForm'
       };
@@ -844,7 +927,7 @@ function validateForm(data) {
     isValid = false;
   }
 
-  if (!data.message && !data.isOrder) {
+  if (!data.message && !data.isOrder && data.type !== 'callback') {
     isValid = false;
   }
 
@@ -853,32 +936,19 @@ function validateForm(data) {
 
 // Отправка формы
 function submitForm(data, form) {
-  const submitBtn = form.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
+  submitAjaxForm(form, 'bis_submit_general_request', {
+    request_type: data.isOrder ? 'order' : 'contact'
+  }, {
+    successMessage: 'Спасибо! Ваша заявка отправлена. Мы свяжемся с вами в ближайшее время.',
+    onSuccess: () => {
+      form.reset();
+      resetHCaptcha(form);
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Отправка...';
-  submitBtn.style.opacity = '0.6';
-
-  setTimeout(() => {
-    submitBtn.textContent = '✓ Отправлено!';
-    submitBtn.style.background = '#10b981';
-
-    form.reset();
-
-    if (form.id === 'orderForm') {
-      closePopup();
+      if (form.id === 'orderForm') {
+        closePopup();
+      }
     }
-
-    showNotification('Спасибо! Ваша заявка отправлена. Мы свяжемся с вами в ближайшее время.', 'success');
-
-    setTimeout(() => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-      submitBtn.style.background = '';
-      submitBtn.style.opacity = '';
-    }, 3000);
-  }, 1500);
+  });
 }
 
 // Уведомления
@@ -2232,7 +2302,7 @@ function initEstimateModal() {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Отправка...';
 
-      fetch('/wp-admin/admin-ajax.php', {
+      fetch(bisAjaxUrl, {
         method: 'POST',
         body: formData
       })
@@ -2245,20 +2315,23 @@ function initEstimateModal() {
             setTimeout(() => {
               closeEstimateModal();
               estimateForm.reset();
+              resetHCaptcha(estimateForm);
               submitBtn.disabled = false;
               submitBtn.textContent = originalText;
               submitBtn.style.background = '';
               showNotification('Спасибо! Мы свяжемся с вами в течение 2 дней.', 'success');
             }, 1500);
           } else {
-            showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+            showNotification(data.data?.message || 'Ошибка отправки. Попробуйте позже.', 'error');
+            resetHCaptcha(estimateForm);
             submitBtn.disabled = false;
             submitBtn.textContent = originalText;
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          showNotification('Ошибка отправки. Попробуйте позже.', 'error');
+          resetHCaptcha(estimateForm);
+          showNotification(error.message || 'Ошибка отправки. Попробуйте позже.', 'error');
           submitBtn.disabled = false;
           submitBtn.textContent = originalText;
         });
@@ -2279,6 +2352,9 @@ function initEstimateModal() {
     closeTimeout = setTimeout(() => {
       estimateOverlay.classList.remove('active', 'closing');
       document.body.style.overflow = '';
+      if (estimateForm) {
+        resetHCaptcha(estimateForm);
+      }
     }, ANIMATION_DURATION);
   }
 }
