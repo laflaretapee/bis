@@ -3,22 +3,22 @@
 
 ```bash
 ### .env.mysql
-MYSQL_DATABASE=cs903938_1zyfg
-MYSQL_USER=cs903938
+MYSQL_DATABASE=db
+MYSQL_USER=user
 MYSQL_PASSWORD=pwd
 MYSQL_ROOT_PASSWORD=rootpwd
 
 ### .env.pma
 PMA_HOST=mysql
 PMA_PORT=3306
-PMA_USER=cs903938
-PMA_PASSWORD=pwd
+PMA_USER=user
+PMA_PASSWORD=rootpwd
 
 ### .env.wordpress
 WORDPRESS_DB_HOST=mysql:3306
-WORDPRESS_DB_USER=cs903938
+WORDPRESS_DB_USER=user
 WORDPRESS_DB_PASSWORD=pwd
-WORDPRESS_DB_NAME=cs903938_1zyfg
+WORDPRESS_DB_NAME=db
 ```
 
 После настройки переменных окружения необходимо собрать контейнеры.
