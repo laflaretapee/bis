@@ -14,15 +14,15 @@
         <form class="contact-form" id="estimateForm">
           <div class="form-group">
             <label for="estimateName">Имя *</label>
-            <input type="text" id="estimateName" name="name" required placeholder="Ваше имя">
+            <input type="text" id="estimateName" name="name" required placeholder="Ваше имя" autocomplete="name">
           </div>
           <div class="form-group">
             <label for="estimatePhone">Телефон *</label>
-            <input type="tel" id="estimatePhone" name="phone" required placeholder="+7 (___) ___-__-__">
+            <input type="tel" id="estimatePhone" name="phone" required placeholder="+7 (___) ___-__-__" autocomplete="tel">
           </div>
           <div class="form-group">
             <label for="estimateEmail">Email *</label>
-            <input type="email" id="estimateEmail" name="email" required placeholder="example@mail.ru">
+            <input type="email" id="estimateEmail" name="email" required placeholder="example@mail.ru" autocomplete="email">
           </div>
           <div class="form-group">
             <label for="estimateFile">Проектная документация</label>
@@ -38,7 +38,7 @@
               <select id="estimateMessenger" name="messenger">
                 <option value="MAX">MAX</option>
                 <option value="Telegram">Telegram</option>
-                <option value="Phone">По телефону</option>
+                <option value="По телефону">По телефону</option>
               </select>
             </div>
           </div>

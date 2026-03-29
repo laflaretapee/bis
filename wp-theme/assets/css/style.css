@@ -1501,7 +1501,7 @@ select {
 
 .contact-form button {
   justify-content: center;
-  width: 100%;
+  min-width: 100%;
 }
 
 /* Contact form strict style */
@@ -1524,13 +1524,13 @@ select {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 0;
-  /* color: #f8fafc; */
+  color: #0f172a;
   padding: 12px 14px;
 }
 
 .contact .form-group input::placeholder,
 .contact .form-group textarea::placeholder {
-  color: rgba(248, 250, 252, 0.4);
+  color: rgba(15, 23, 42, 0.45);
 }
 
 .contact .form-group input:focus,
@@ -2528,7 +2528,7 @@ select {
 
 .object-card {
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 0px;
   padding: 40px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   transition: all 0.3s ease;
@@ -2710,7 +2710,7 @@ select {
 .task-item {
   background: white;
   padding: 40px 32px;
-  border-radius: 20px;
+  border-radius: 0px;
   border: 1px solid var(--border);
   text-align: center;
   transition: all 0.3s ease;
@@ -6586,7 +6586,7 @@ select {
 }
 
 .estimate-form-container h2 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: var(--font-weight-bold);
   margin-bottom: 20px;
   line-height: 1.3;

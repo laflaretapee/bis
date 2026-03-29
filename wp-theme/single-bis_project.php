@@ -167,27 +167,27 @@ get_header();
 
                         <div class="project-consultation__field">
                             <label for="projectName">ФИО *</label>
-                            <input type="text" id="projectName" name="name" required>
+                            <input type="text" id="projectName" name="name" required placeholder="Ваше имя" autocomplete="name">
                         </div>
 
                         <div class="project-consultation__field">
                             <label for="projectPhone">Телефон *</label>
-                            <input type="tel" id="projectPhone" name="phone" required>
+                            <input type="tel" id="projectPhone" name="phone" required placeholder="+7 (___) ___-__-__" autocomplete="tel">
                         </div>
 
                         <div class="project-consultation__field">
                             <label for="projectEmail">Рабочий E-mail *</label>
-                            <input type="email" id="projectEmail" name="email" required>
+                            <input type="email" id="projectEmail" name="email" required placeholder="example@company.ru" autocomplete="email">
                         </div>
 
                         <div class="project-consultation__field">
                             <label for="projectCompany">Компания *</label>
-                            <input type="text" id="projectCompany" name="company" required>
+                            <input type="text" id="projectCompany" name="company" required placeholder="Название компании" autocomplete="organization">
                         </div>
 
                         <div class="project-consultation__field">
                             <label for="projectPosition">Должность *</label>
-                            <input type="text" id="projectPosition" name="position" required>
+                            <input type="text" id="projectPosition" name="position" required placeholder="Ваша должность" autocomplete="organization-title">
                         </div>
 
                         <div class="project-consultation__field">

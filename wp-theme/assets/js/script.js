@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initRevenueChart();
   initProjectConsultationForm();
   initObjectsSlider();
+  initPhoneMasks();
   syncUniformCardHeights();
 
   let resizeTimer;
@@ -45,6 +46,31 @@ window.addEventListener('load', () => {
 
 const bisAjaxUrl = window.bisSiteConfig?.ajaxUrl || '/wp-admin/admin-ajax.php';
 
+function getHCaptchaContainers(scope = document) {
+  return Array.from(scope.querySelectorAll('.h-captcha, h-captcha'));
+}
+
+function rerenderHCaptchaWidget(widget) {
+  if (!widget) return;
+
+  const form = widget.closest('form');
+  const currentId = form?.dataset?.hCaptchaId || '';
+
+  if (window.hCaptcha && Array.isArray(window.hCaptcha.foundForms) && currentId) {
+    window.hCaptcha.foundForms = window.hCaptcha.foundForms.filter((foundForm) => foundForm.hCaptchaId !== currentId);
+  }
+
+  if (form) {
+    form.removeAttribute('data-h-captcha-id');
+  }
+
+  widget.innerHTML = '';
+
+  if (typeof window.hCaptchaBindEvents === 'function') {
+    window.hCaptchaBindEvents(widget);
+  }
+}
+
 function resetHCaptcha(form) {
   if (!form) return;
 
@@ -52,33 +78,121 @@ function resetHCaptcha(form) {
     field.value = '';
   });
 
-  if (typeof window.hcaptcha === 'undefined' || typeof window.hcaptcha.reset !== 'function') {
+  const widgets = getHCaptchaContainers(form);
+  if (!widgets.length) {
     return;
   }
 
-  const widgets = form.querySelectorAll('.h-captcha, .hcaptcha_widget, [data-hcaptcha-widget-id]');
-  if (!widgets.length) {
-    try {
-      window.hcaptcha.reset();
-    } catch (error) {
-      console.warn('hCaptcha reset failed', error);
-    }
+  if (typeof window.hCaptchaBindEvents === 'function') {
+    widgets.forEach((widget) => {
+      try {
+        rerenderHCaptchaWidget(widget);
+      } catch (error) {
+        console.warn('hCaptcha reset failed', error);
+      }
+    });
+    return;
+  }
+
+  if (typeof window.hCaptchaReset !== 'function') {
     return;
   }
 
   widgets.forEach((widget) => {
-    const widgetId = widget.dataset.hcaptchaWidgetId || widget.getAttribute('data-hcaptcha-widget-id') || widget.dataset.widgetId;
-
     try {
-      if (widgetId !== null && widgetId !== undefined && widgetId !== '') {
-        window.hcaptcha.reset(widgetId);
-      } else {
-        window.hcaptcha.reset();
-      }
+      window.hCaptchaReset(widget);
     } catch (error) {
       console.warn('hCaptcha reset failed', error);
     }
   });
+}
+
+function formatRussianPhone(value) {
+  let digits = value.replace(/\D/g, '');
+
+  if (digits.startsWith('7') || digits.startsWith('8')) {
+    digits = digits.slice(1);
+  }
+
+  digits = digits.substring(0, 10);
+
+  const parts = {
+    area: digits.substring(0, 3),
+    central: digits.substring(3, 6),
+    line1: digits.substring(6, 8),
+    line2: digits.substring(8, 10)
+  };
+
+  let formatted = '+7';
+
+  if (parts.area) {
+    formatted += ` (${parts.area}`;
+    if (parts.area.length === 3) {
+      formatted += ')';
+    }
+  }
+
+  if (parts.central) {
+    formatted += ` ${parts.central}`;
+  }
+
+  if (parts.line1) {
+    formatted += `-${parts.line1}`;
+  }
+
+  if (parts.line2) {
+    formatted += `-${parts.line2}`;
+  }
+
+  if (!parts.area) {
+    formatted += ' ';
+  }
+
+  return formatted.trimEnd();
+}
+
+function isValidRussianPhone(value) {
+  const digits = value.replace(/\D/g, '');
+  return digits.length === 11 && digits.startsWith('7');
+}
+
+function attachPhoneMask(input) {
+  if (!input || input.dataset.phoneMaskBound === 'true') return;
+
+  input.dataset.phoneMaskBound = 'true';
+
+  input.addEventListener('focus', () => {
+    if (!input.value.trim()) {
+      input.value = '+7 ';
+    }
+  });
+
+  input.addEventListener('input', (event) => {
+    event.target.value = formatRussianPhone(event.target.value);
+  });
+
+  input.addEventListener('blur', () => {
+    const digits = input.value.replace(/\D/g, '');
+    if (digits.length <= 1) {
+      input.value = '';
+    }
+  });
+}
+
+function initPhoneMasks(root = document) {
+  root.querySelectorAll('input[type="tel"]').forEach(attachPhoneMask);
+}
+
+function resetFormState(form, { clearErrors = false } = {}) {
+  if (!form) return;
+
+  form.reset();
+  resetHCaptcha(form);
+
+  if (!clearErrors) return;
+
+  const inputs = form.querySelectorAll('input, textarea, select');
+  inputs.forEach((input) => clearError(input));
 }
 
 function syncUniformCardHeights() {
@@ -293,7 +407,7 @@ function initCallbackModal() {
         type: 'callback'
       };
 
-      if (validateForm(formData)) {
+      if (validateFormFields(callbackForm) && validateForm(formData)) {
         submitCallbackForm(formData, callbackForm);
       }
     });
@@ -311,10 +425,7 @@ function initCallbackModal() {
   function closeCallbackModal() {
     callbackOverlay.classList.remove('active');
     if (callbackForm) {
-      callbackForm.reset();
-      resetHCaptcha(callbackForm);
-      const inputs = callbackForm.querySelectorAll('input, textarea');
-      inputs.forEach(input => clearError(input));
+      resetFormState(callbackForm, { clearErrors: true });
     }
   }
 }
@@ -567,8 +678,7 @@ function submitAjaxForm(form, action, extraData = {}, options = {}) {
       if (typeof options.onSuccess === 'function') {
         options.onSuccess(data);
       } else {
-        form.reset();
-        resetHCaptcha(form);
+        resetFormState(form);
       }
 
       showNotification(options.successMessage || 'Спасибо! Ваша заявка отправлена.', 'success');
@@ -594,8 +704,7 @@ function submitCallbackForm(data, form) {
   }, {
     successMessage: 'Спасибо! Мы перезвоним вам в течение 15 минут.',
     onSuccess: () => {
-      form.reset();
-      resetHCaptcha(form);
+      resetFormState(form);
       const overlay = document.getElementById('callbackOverlay');
       if (overlay) {
         overlay.classList.remove('active');
@@ -850,7 +959,7 @@ function initFormValidation() {
         isOrder: form.id === 'orderForm'
       };
 
-      if (validateForm(formData)) {
+      if (validateFormFields(form) && validateForm(formData)) {
         submitForm(formData, form);
       }
     });
@@ -867,15 +976,17 @@ function initFormValidation() {
 
 // Валидация отдельного поля
 function validateField(field) {
-  const value = field.value.trim();
+  const value = typeof field.value === 'string' ? field.value.trim() : '';
   let isValid = true;
 
-  if (field.hasAttribute('required') && !value) {
+  if (field.type === 'checkbox' && field.hasAttribute('required') && !field.checked) {
+    isValid = false;
+    showError(field, 'Необходимо подтвердить согласие');
+  } else if (field.hasAttribute('required') && !value) {
     isValid = false;
     showError(field, 'Это поле обязательно для заполнения');
   } else if (field.type === 'tel' && value) {
-    const phoneRegex = /^[\d\s\+\-\(\)]+$/;
-    if (!phoneRegex.test(value) || value.length < 10) {
+    if (!isValidRussianPhone(value)) {
       isValid = false;
       showError(field, 'Введите корректный номер телефона');
     } else {
@@ -889,6 +1000,20 @@ function validateField(field) {
 }
 
 // Показать ошибку
+function validateFormFields(form) {
+  if (!form) return true;
+
+  let isValid = true;
+
+  form.querySelectorAll('input:not([readonly]), textarea, select').forEach((field) => {
+    if (!validateField(field)) {
+      isValid = false;
+    }
+  });
+
+  return isValid;
+}
+
 function showError(field, message) {
   field.classList.add('error');
   field.style.borderColor = '#ef4444';
@@ -925,6 +1050,8 @@ function validateForm(data) {
 
   if (!data.phone) {
     isValid = false;
+  } else if (!isValidRussianPhone(data.phone)) {
+    isValid = false;
   }
 
   if (!data.message && !data.isOrder && data.type !== 'callback') {
@@ -941,8 +1068,7 @@ function submitForm(data, form) {
   }, {
     successMessage: 'Спасибо! Ваша заявка отправлена. Мы свяжемся с вами в ближайшее время.',
     onSuccess: () => {
-      form.reset();
-      resetHCaptcha(form);
+      resetFormState(form);
 
       if (form.id === 'orderForm') {
         closePopup();
@@ -1533,9 +1659,7 @@ function closePopup() {
     document.body.style.overflow = '';
     const orderForm = document.getElementById('orderForm');
     if (orderForm) {
-      orderForm.reset();
-      const inputs = orderForm.querySelectorAll('input, textarea');
-      inputs.forEach(input => clearError(input));
+      resetFormState(orderForm, { clearErrors: true });
     }
   }
 }
@@ -2228,70 +2352,16 @@ function initEstimateModal() {
   });
 
   if (estimatePhone) {
-    const formatPhone = (value) => {
-      let digits = value.replace(/\D/g, '');
-      if (digits.startsWith('7') || digits.startsWith('8')) {
-        digits = digits.slice(1);
-      }
-      digits = digits.substring(0, 10);
-
-      const parts = {
-        area: digits.substring(0, 3),
-        central: digits.substring(3, 6),
-        line1: digits.substring(6, 8),
-        line2: digits.substring(8, 10)
-      };
-
-      let formatted = '+7';
-      if (parts.area) {
-        formatted += ` (${parts.area}`;
-        if (parts.area.length === 3) {
-          formatted += ')';
-        }
-      }
-
-      if (parts.central) {
-        formatted += ` ${parts.central}`;
-      }
-
-      if (parts.line1) {
-        formatted += `-${parts.line1}`;
-      }
-
-      if (parts.line2) {
-        formatted += `-${parts.line2}`;
-      }
-
-      if (!parts.area) {
-        formatted += ' ';
-      }
-
-      return formatted.trimEnd();
-    };
-
-    const handlePhoneInput = (event) => {
-      event.target.value = formatPhone(event.target.value);
-    };
-
-    estimatePhone.addEventListener('focus', () => {
-      if (!estimatePhone.value.trim()) {
-        estimatePhone.value = '+7 ';
-      }
-    });
-
-    estimatePhone.addEventListener('input', handlePhoneInput);
-
-    estimatePhone.addEventListener('blur', () => {
-      const digits = estimatePhone.value.replace(/\D/g, '');
-      if (digits.length <= 1) {
-        estimatePhone.value = '';
-      }
-    });
+    attachPhoneMask(estimatePhone);
   }
 
   if (estimateForm) {
     estimateForm.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      if (!validateFormFields(estimateForm)) {
+        return;
+      }
 
       const formData = new FormData(estimateForm);
       formData.append('action', 'bis_submit_estimate');
@@ -2313,9 +2383,7 @@ function initEstimateModal() {
             submitBtn.style.background = '#10b981';
 
             setTimeout(() => {
-              closeEstimateModal();
-              estimateForm.reset();
-              resetHCaptcha(estimateForm);
+              closeEstimateModal({ resetForm: true });
               submitBtn.disabled = false;
               submitBtn.textContent = originalText;
               submitBtn.style.background = '';
@@ -2345,15 +2413,15 @@ function initEstimateModal() {
     document.body.style.overflow = 'hidden';
   }
 
-  function closeEstimateModal() {
+  function closeEstimateModal({ resetForm = true } = {}) {
     if (!estimateOverlay.classList.contains('active')) return;
     estimateOverlay.classList.add('closing');
     clearTimeout(closeTimeout);
     closeTimeout = setTimeout(() => {
       estimateOverlay.classList.remove('active', 'closing');
       document.body.style.overflow = '';
-      if (estimateForm) {
-        resetHCaptcha(estimateForm);
+      if (estimateForm && resetForm) {
+        resetFormState(estimateForm);
       }
     }, ANIMATION_DURATION);
   }
@@ -2453,6 +2521,11 @@ function initProjectConsultationForm() {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+
+    if (!validateFormFields(form)) {
+      return;
+    }
+
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn ? submitBtn.textContent : '';
 
@@ -2472,7 +2545,7 @@ function initProjectConsultationForm() {
       .then(data => {
         if (data.success) {
           showNotification('Спасибо! Мы свяжемся с вами в ближайшее время.', 'success');
-          form.reset();
+          resetFormState(form);
         } else {
           showNotification('Ошибка отправки. Попробуйте позже.', 'error');
         }

@@ -187,11 +187,11 @@ $has_hero_slider = !empty($hero_images);
         <input type="hidden" id="orderService" name="service" value="">
         <div class="form-group">
           <label for="orderName">Имя</label>
-          <input type="text" id="orderName" name="name" required placeholder="Ваше имя">
+          <input type="text" id="orderName" name="name" required placeholder="Ваше имя" autocomplete="name">
         </div>
         <div class="form-group">
           <label for="orderPhone">Телефон</label>
-          <input type="tel" id="orderPhone" name="phone" required placeholder="+7 (___) ___-__-__">
+          <input type="tel" id="orderPhone" name="phone" required placeholder="+7 (___) ___-__-__" autocomplete="tel">
         </div>
         <div class="form-group">
           <label for="orderMessage">Комментарий</label>
@@ -601,12 +601,12 @@ endif;
     <form class="contact-form" id="callbackForm">
       <div class="form-group">
         <label for="callbackName">Имя</label>
-        <input type="text" id="callbackName" name="name" required placeholder="Ваше имя">
+        <input type="text" id="callbackName" name="name" required placeholder="Ваше имя" autocomplete="name">
       </div>
       
       <div class="form-group">
         <label for="callbackPhone">Телефон</label>
-        <input type="tel" id="callbackPhone" name="phone" required placeholder="+7 (___) ___-__-__">
+        <input type="tel" id="callbackPhone" name="phone" required placeholder="+7 (___) ___-__-__" autocomplete="tel">
       </div>
       
       <div class="form-group">
@@ -830,15 +830,15 @@ $news_query = new WP_Query(array(
         <form class="contact-form" id="contactForm">
           <div class="form-group">
             <label for="name">Имя</label>
-            <input type="text" id="name" name="name" required>
+            <input type="text" id="name" name="name" required placeholder="Ваше имя" autocomplete="name">
           </div>
           <div class="form-group">
             <label for="phone">Телефон</label>
-            <input type="tel" id="phone" name="phone" required>
+            <input type="tel" id="phone" name="phone" required placeholder="+7 (___) ___-__-__" autocomplete="tel">
           </div>
           <div class="form-group">
             <label for="message">Сообщение</label>
-            <textarea id="message" name="message" required></textarea>
+            <textarea id="message" name="message" required placeholder="Кратко опишите ваш вопрос" autocomplete="off"></textarea>
           </div>
           <?php echo do_shortcode('[hcaptcha auto="true" force="true"]'); ?>
           <button type="submit" class="btn btn-primary" style="
