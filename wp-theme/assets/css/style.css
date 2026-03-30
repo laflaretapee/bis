@@ -9044,6 +9044,14 @@ body.post-type-archive-bis_news {
   background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
 }
 
+.floating-socials__link--phone {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+}
+
+.floating-socials__link--email {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
 .floating-socials__link:hover {
   transform: translateY(-1px);
   border-color: rgba(255, 255, 255, 0.35);

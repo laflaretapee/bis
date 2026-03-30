@@ -1,4 +1,7 @@
 <?php
+/*
+Template Name: Главная
+*/
 get_header();
 $hero_images = get_option('bis_hero_slider_images', array());
 $has_hero_slider = !empty($hero_images);

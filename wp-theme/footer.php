@@ -102,6 +102,15 @@
         <a class="floating-socials__link floating-socials__link--max" href="https://max.ru/u/f9LHodD0cOIYdHZd-s9_nqTN9t76kGjdQxmIoxXSFGhqRnW3d4TLAMEFfVs" target="_blank" rel="noopener noreferrer" aria-label="Max">
           <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/MAX-white-32x32.png" alt="Max" width="32" height="32" loading="lazy">
         </a>
+        <a class="floating-socials__link floating-socials__link--phone" href="tel:+79264380770" aria-label="Позвонить: +7 (926) 438-07-70">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/phone-call.png" alt="Позвонить" width="32" height="32" loading="lazy">
+        </a>
+        <a class="floating-socials__link floating-socials__link--phone" href="tel:+79169861187" aria-label="Позвонить: +7 (916) 986-11-87">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/phone-call.png" alt="Позвонить" width="32" height="32" loading="lazy">
+        </a>
+        <a class="floating-socials__link floating-socials__link--email" href="mailto:office@bis-rf.ru" aria-label="Написать: office@bis-rf.ru">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/email.png" alt="Email" width="32" height="32" loading="lazy">
+        </a>
       </div>
       <button class="open-estimate-modal floating-estimate-btn">Рассчитать смету и сроки</button>
     </div>
