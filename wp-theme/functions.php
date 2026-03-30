@@ -129,7 +129,7 @@ function bis_smtp_from_name($name) {
 add_filter('wp_mail_from_name', 'bis_smtp_from_name');
 
 function bis_theme_setup() {
-    add_theme_support('title-tag');
+    // add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
 }
 add_action('after_setup_theme', 'bis_theme_setup');
@@ -199,7 +199,7 @@ function bis_output_social_meta_tags() {
     echo '<meta name="twitter:description" content="' . esc_attr($description) . '">' . "\n";
     echo '<meta name="twitter:image" content="' . esc_url($image_url) . '">' . "\n";
 }
-add_action('wp_head', 'bis_output_social_meta_tags', 5);
+// add_action('wp_head', 'bis_output_social_meta_tags', 5);
 
 /**
  * Registers the "Новости" admin section with full editor, featured image and excerpt support.
