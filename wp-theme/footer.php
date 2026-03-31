@@ -22,7 +22,6 @@
         'label' => 'Уведомление о соответствии ЛИЦЕНЗИИ МЧС',
         'file' => 'Уведомление_о_соответствии_ЛИЦЕНЗИИ_МЧС.pdf',
       ),
-      
     );
     ?>
     <div class="footer-content">
@@ -47,9 +46,8 @@
           <a class="footer-phone" href="tel:+79264380770">+7 (926) 438-07-70</a>
         </p>
         <p><a class="footer-phone" href="tel:+79169861187">+7 (916) 986-11-87</a></p>
-        
         <p><a href="mailto:office@bis-rf.ru">office@bis-rf.ru</a></p>
-        <p style="display: flex; align-items: center; gap: 12px;margin-top: 20px;">
+        <p style="display: flex; align-items: center; gap: 12px; margin-top: 20px;">
           <a href="https://t.me/+79264380770" target="_blank" rel="noopener" aria-label="Telegram" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; transition: opacity 0.3s ease;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
             <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/telegram-white-32x32.png" alt="Telegram" style="width: 100%; height: 100%; object-fit: contain;">
           </a>
@@ -95,21 +93,17 @@
         </div>
       </div>
       <p class="floating-socials-panel__text">Выберите удобный способ связи, и мы быстро ответим.</p>
+      <div class="floating-socials-panel__contacts">
+        <a class="floating-socials-panel__contact" href="tel:+79264380770">+7 (926) 438-07-70</a>
+        <a class="floating-socials-panel__contact" href="tel:+79169861187">+7 (916) 986-11-87</a>
+        <a class="floating-socials-panel__contact" href="mailto:office@bis-rf.ru">office@bis-rf.ru</a>
+      </div>
       <div class="floating-socials">
         <a class="floating-socials__link floating-socials__link--telegram" href="https://t.me/+79264380770" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
           <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/telegram-white-32x32.png" alt="Telegram" width="32" height="32" loading="lazy">
         </a>
         <a class="floating-socials__link floating-socials__link--max" href="https://max.ru/u/f9LHodD0cOIYdHZd-s9_nqTN9t76kGjdQxmIoxXSFGhqRnW3d4TLAMEFfVs" target="_blank" rel="noopener noreferrer" aria-label="Max">
           <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/MAX-white-32x32.png" alt="Max" width="32" height="32" loading="lazy">
-        </a>
-        <a class="floating-socials__link floating-socials__link--phone" href="tel:+79264380770" aria-label="Позвонить: +7 (926) 438-07-70">
-          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/phone-call.png" alt="Позвонить" width="32" height="32" loading="lazy">
-        </a>
-        <a class="floating-socials__link floating-socials__link--phone" href="tel:+79169861187" aria-label="Позвонить: +7 (916) 986-11-87">
-          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/phone-call.png" alt="Позвонить" width="32" height="32" loading="lazy">
-        </a>
-        <a class="floating-socials__link floating-socials__link--email" href="mailto:office@bis-rf.ru" aria-label="Написать: office@bis-rf.ru">
-          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/email.png" alt="Email" width="32" height="32" loading="lazy">
         </a>
       </div>
       <button class="open-estimate-modal floating-estimate-btn">Рассчитать смету и сроки</button>
