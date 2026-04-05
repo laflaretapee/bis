@@ -3796,6 +3796,12 @@ select {
 }
 
 @media (max-width: 480px) {
+
+  .service-image,
+  .equipment-image {
+    height: 224px !important;
+  }
+
   .equipment-section {
     padding: 60px 16px;
   }
@@ -8870,6 +8876,7 @@ body.post-type-archive-bis_news {
   }
 
   .team-slide__photo {
+    max-height: 384px;
     min-height: 384px;
     order: -1;
   }
@@ -9128,6 +9135,7 @@ body.post-type-archive-bis_news {
   line-height: 1;
   cursor: pointer;
   padding: 0;
+  padding-bottom: 4px;
   box-shadow: 0 10px 22px -16px rgba(43, 185, 194, 0.95);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
