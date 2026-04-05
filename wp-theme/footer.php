@@ -94,8 +94,8 @@
       </div>
       <p class="floating-socials-panel__text">Выберите удобный способ связи, и мы быстро ответим.</p>
       <div class="floating-socials-panel__contacts">
-        <a class="floating-socials-panel__contact" href="tel:+79264380770">+7 (926) 438-07-70</a>
-        <a class="floating-socials-panel__contact" href="tel:+79169861187">+7 (916) 986-11-87</a>
+        <a class="floating-socials-panel__contact footer-phone" href="tel:+79264380770">+7 (926) 438-07-70</a>
+        <a class="floating-socials-panel__contact footer-phone" href="tel:+79169861187">+7 (916) 986-11-87</a>
         <a class="floating-socials-panel__contact" href="mailto:office@bis-rf.ru">office@bis-rf.ru</a>
       </div>
       <div class="floating-socials">

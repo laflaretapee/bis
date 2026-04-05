@@ -9037,11 +9037,15 @@ body.post-type-archive-bis_news {
   color: #121826;
   font-size: 15px;
   line-height: 1.35;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
+  display: block;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-kerning: none;
   transition: color 0.2s ease;
 }
+
+
 
 .floating-socials-panel__contact:hover {
   color: var(--primary);
