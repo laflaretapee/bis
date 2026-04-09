@@ -1950,6 +1950,22 @@ function bis_get_team_members() {
     return $filtered;
 }
 
+function bis_get_phone_href($phone) {
+    $phone = trim((string) $phone);
+    if ($phone === '') {
+        return '';
+    }
+
+    $digits = preg_replace('/\D+/', '', $phone);
+    if ($digits === '') {
+        return '';
+    }
+
+    $prefix = strpos($phone, '+') === 0 ? '+' : '';
+
+    return 'tel:' . $prefix . $digits;
+}
+
 /**
  * Registers gratitude letters custom post type for thank-you scans.
  */
@@ -2146,8 +2162,11 @@ function bis_team_page() {
             $long = isset($member['long']) ? wp_kses_post($member['long']) : '';
             $photo = isset($member['photo']) ? esc_url_raw($member['photo']) : '';
             $modal_photo = isset($member['modal_photo']) ? esc_url_raw($member['modal_photo']) : '';
+            $qr_code = isset($member['qr_code']) ? esc_url_raw($member['qr_code']) : '';
+            $contact_phone = isset($member['contact_phone']) ? sanitize_text_field($member['contact_phone']) : '';
+            $contact_email = isset($member['contact_email']) ? sanitize_email($member['contact_email']) : '';
 
-            if ($name === '' && $role === '' && $since === '' && $short === '' && $long === '' && $photo === '' && $modal_photo === '') {
+            if ($name === '' && $role === '' && $since === '' && $short === '' && $long === '' && $photo === '' && $modal_photo === '' && $qr_code === '' && $contact_phone === '' && $contact_email === '') {
                 continue;
             }
 
@@ -2159,6 +2178,9 @@ function bis_team_page() {
                 'long' => $long,
                 'photo' => $photo,
                 'modal_photo' => $modal_photo,
+                'qr_code' => $qr_code,
+                'contact_phone' => $contact_phone,
+                'contact_email' => $contact_email,
             );
         }
 
@@ -2187,6 +2209,9 @@ function bis_team_page() {
                     $long = isset($member['long']) ? $member['long'] : '';
                     $photo = isset($member['photo']) ? $member['photo'] : '';
                     $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
+                    $qr_code = isset($member['qr_code']) ? $member['qr_code'] : '';
+                    $contact_phone = isset($member['contact_phone']) ? $member['contact_phone'] : '';
+                    $contact_email = isset($member['contact_email']) ? $member['contact_email'] : '';
                     ?>
                     <li class="team-member-item" data-index="<?php echo esc_attr($index); ?>">
                         <div class="team-member-card">
@@ -2235,11 +2260,38 @@ function bis_team_page() {
                                     <label>В команде с</label>
                                     <input type="text" value="<?php echo esc_attr($since); ?>" data-field="since" name="team_members[<?php echo esc_attr($index); ?>][since]" placeholder="2021">
                                 </div>
-                                <div class="team-field">
+                                <div class="team-member-contact-grid">
+                                    <div class="team-member-media team-member-media--qr">
+                                        <div class="team-member-preview team-member-preview--qr <?php echo $qr_code ? '' : 'is-empty'; ?>" data-preview="qr_code" data-placeholder="Нет QR-кода" style="background-image: url('<?php echo esc_url($qr_code); ?>');">
+                                            <?php if (!$qr_code) : ?>
+                                                <span class="team-member-placeholder">Нет QR-кода</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="team-member-controls">
+                                            <label>QR-код контакта</label>
+                                            <input type="text" value="<?php echo esc_url($qr_code); ?>" data-field="qr_code" name="team_members[<?php echo esc_attr($index); ?>][qr_code]" placeholder="https://">
+                                            <div class="team-member-buttons">
+                                                <button type="button" class="button team-photo-upload" data-photo-type="qr_code">Выбрать</button>
+                                                <button type="button" class="button team-photo-clear" data-photo-type="qr_code">Убрать</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="team-member-contact-fields">
+                                        <div class="team-field">
+                                            <label>Телефон</label>
+                                            <input type="text" value="<?php echo esc_attr($contact_phone); ?>" data-field="contact_phone" name="team_members[<?php echo esc_attr($index); ?>][contact_phone]" placeholder="+7 (926) 438-07-70">
+                                        </div>
+                                        <div class="team-field">
+                                            <label>Email</label>
+                                            <input type="email" value="<?php echo esc_attr($contact_email); ?>" data-field="contact_email" name="team_members[<?php echo esc_attr($index); ?>][contact_email]" placeholder="office@bis-rf.ru">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="team-field team-field--full">
                                     <label>Короткое описание для слайда</label>
                                     <textarea rows="4" data-field="short" name="team_members[<?php echo esc_attr($index); ?>][short]" placeholder="Короткая история/резюме"><?php echo esc_textarea($short); ?></textarea>
                                 </div>
-                                <div class="team-field">
+                                <div class="team-field team-field--full">
                                     <label>Подробное описание для модального окна</label>
                                     <textarea rows="6" data-field="long" name="team_members[<?php echo esc_attr($index); ?>][long]" placeholder="Подробный текст"><?php echo esc_textarea($long); ?></textarea>
                                 </div>
@@ -2247,7 +2299,10 @@ function bis_team_page() {
                         </div>
 
                         <div class="team-member-actions">
-                            <button type="button" class="button link-delete team-member-remove">Удалить сотрудника</button>
+                            <div class="team-member-actions__buttons">
+                                <button type="submit" name="bis_team_save" class="button button-primary team-member-save">Сохранить</button>
+                                <button type="button" class="button link-delete team-member-remove">Удалить сотрудника</button>
+                            </div>
                             <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
                         </div>
                     </li>
@@ -2307,11 +2362,36 @@ function bis_team_page() {
                             <label>В команде с</label>
                             <input type="text" value="" data-field="since" placeholder="2021">
                         </div>
-                        <div class="team-field">
+                        <div class="team-member-contact-grid">
+                            <div class="team-member-media team-member-media--qr">
+                                <div class="team-member-preview team-member-preview--qr is-empty" data-preview="qr_code" data-placeholder="Нет QR-кода">
+                                    <span class="team-member-placeholder">Нет QR-кода</span>
+                                </div>
+                                <div class="team-member-controls">
+                                    <label>QR-код контакта</label>
+                                    <input type="text" value="" data-field="qr_code" placeholder="https://">
+                                    <div class="team-member-buttons">
+                                        <button type="button" class="button team-photo-upload" data-photo-type="qr_code">Выбрать</button>
+                                        <button type="button" class="button team-photo-clear" data-photo-type="qr_code">Убрать</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="team-member-contact-fields">
+                                <div class="team-field">
+                                    <label>Телефон</label>
+                                    <input type="text" value="" data-field="contact_phone" placeholder="+7 (926) 438-07-70">
+                                </div>
+                                <div class="team-field">
+                                    <label>Email</label>
+                                    <input type="email" value="" data-field="contact_email" placeholder="office@bis-rf.ru">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="team-field team-field--full">
                             <label>Короткое описание для слайда</label>
                             <textarea rows="4" data-field="short" placeholder="Короткая история/резюме"></textarea>
                         </div>
-                        <div class="team-field">
+                        <div class="team-field team-field--full">
                             <label>Подробное описание для модального окна</label>
                             <textarea rows="6" data-field="long" placeholder="Подробный текст"></textarea>
                         </div>
@@ -2319,7 +2399,10 @@ function bis_team_page() {
                 </div>
 
                 <div class="team-member-actions">
-                    <button type="button" class="button link-delete team-member-remove">Удалить сотрудника</button>
+                    <div class="team-member-actions__buttons">
+                        <button type="submit" name="bis_team_save" class="button button-primary team-member-save">Сохранить</button>
+                        <button type="button" class="button link-delete team-member-remove">Удалить сотрудника</button>
+                    </div>
                     <span class="dashicons dashicons-move handle" aria-hidden="true"></span>
                 </div>
             </li>

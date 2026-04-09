@@ -163,6 +163,11 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                             $long = isset($member['long']) ? $member['long'] : '';
                             $photo = isset($member['photo']) ? $member['photo'] : '';
                             $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
+                            $qr_code = isset($member['qr_code']) ? $member['qr_code'] : '';
+                            $contact_phone = isset($member['contact_phone']) ? $member['contact_phone'] : '';
+                            $contact_email = isset($member['contact_email']) ? $member['contact_email'] : '';
+                            $contact_phone_href = bis_get_phone_href($contact_phone);
+                            $contact_email_href = sanitize_email($contact_email);
                             $modal_photo = $modal_photo ? $modal_photo : $photo;
                             ?>
                             <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-since="<?php echo esc_attr($since); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
@@ -190,6 +195,25 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
                                             <span class="team-since">В команде с <?php echo esc_html($since); ?></span>
                                         <?php endif; ?>
                                     </div>
+                                    <?php if ($qr_code || $contact_phone_href || $contact_email_href) : ?>
+                                        <div class="team-contact-card<?php echo $qr_code ? '' : ' team-contact-card--no-qr'; ?>">
+                                            <?php if ($qr_code) : ?>
+                                                <div class="team-contact-card__qr">
+                                                    <img src="<?php echo esc_url($qr_code); ?>" alt="<?php echo esc_attr($name ? 'QR-код контакта: ' . $name : 'QR-код контакта'); ?>" loading="lazy">
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if ($contact_phone_href || $contact_email_href) : ?>
+                                                <div class="team-contact-card__details">
+                                                    <?php if ($contact_phone_href) : ?>
+                                                        <a class="floating-socials-panel__contact team-contact-card__link" href="<?php echo esc_url($contact_phone_href); ?>"><?php echo esc_html($contact_phone); ?></a>
+                                                    <?php endif; ?>
+                                                    <?php if ($contact_email_href) : ?>
+                                                        <a class="floating-socials-panel__contact team-contact-card__link" href="mailto:<?php echo esc_attr($contact_email_href); ?>"><?php echo esc_html($contact_email); ?></a>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <button class="btn btn-outline team-more" type="button" data-team-more>Подробнее</button>
                                 </div>
                                 <div class="team-slide__photo" style="background-image: url('<?php echo esc_url($photo); ?>');"></div>

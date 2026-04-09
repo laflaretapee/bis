@@ -14,19 +14,21 @@
   background: #fff;
   border: 1px solid #dcdcde;
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px;
 }
 
 .team-member-card {
   display: grid;
-  grid-template-columns: minmax(220px, 260px) minmax(220px, 260px) minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
 }
 
 .team-member-media {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
 .team-member-preview {
@@ -57,18 +59,65 @@
 
 .team-member-controls input[type="text"] {
   width: 100%;
+  box-sizing: border-box;
+}
+
+.team-member-controls input[type="email"] {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .team-member-buttons {
   display: flex;
   gap: 8px;
   margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .team-member-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+  align-content: start;
+}
+
+.team-member-contact-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  grid-column: 1 / -1;
+  padding: 16px;
+  border: 1px solid #dcdcde;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.team-member-media--qr .team-member-preview--qr {
+  aspect-ratio: 1 / 1;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.team-member-contact-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.team-field {
+  min-width: 0;
+}
+
+.team-field--full {
+  grid-column: 1 / -1;
+}
+
+.team-field input[type="text"],
+.team-field input[type="email"],
+.team-field textarea {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .team-field label {
@@ -81,7 +130,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.team-member-actions__buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .team-member-actions .handle {
@@ -101,10 +160,26 @@
   .team-member-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .team-member-fields {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 782px) {
   .team-member-card {
+    grid-template-columns: 1fr;
+  }
+
+  .team-member-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .team-member-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-member-contact-fields {
     grid-template-columns: 1fr;
   }
 

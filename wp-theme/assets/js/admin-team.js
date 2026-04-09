@@ -10,6 +10,7 @@
     const updatePreview = (item, field, url) => {
       const preview = item.find(`[data-preview="${field}"]`);
       if (!preview.length) return;
+      const placeholderText = preview.data('placeholder') || 'Нет фото';
 
       if (url) {
         preview.css('background-image', `url('${url}')`).removeClass('is-empty');
@@ -17,7 +18,7 @@
       } else {
         preview.css('background-image', 'none').addClass('is-empty');
         if (!preview.find('.team-member-placeholder').length) {
-          preview.append('<span class="team-member-placeholder">Нет фото</span>');
+          preview.append(`<span class="team-member-placeholder">${placeholderText}</span>`);
         }
       }
     };
@@ -78,6 +79,11 @@
     });
 
     list.on('click', '.team-member-remove', function () {
+      const shouldDelete = window.confirm('Удалить сотрудника? Это действие нельзя отменить.');
+      if (!shouldDelete) {
+        return;
+      }
+
       $(this).closest('.team-member-item').remove();
       updateIndices();
     });
