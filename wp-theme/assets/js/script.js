@@ -1,4 +1,63 @@
 // Инициализация при загрузке страницы
+const siteLoaderStart = performance.now();
+let siteLoaderHideQueued = false;
+let siteLoaderProgress = 0;
+let siteLoaderProgressTimer;
+
+function setSiteLoaderPercent(value) {
+  const percent = document.querySelector('[data-loader-percent]');
+  if (!percent) return;
+
+  siteLoaderProgress = Math.max(0, Math.min(100, Math.round(value)));
+  percent.textContent = `${siteLoaderProgress}%`;
+}
+
+function startSiteLoaderProgress() {
+  setSiteLoaderPercent(0);
+
+  siteLoaderProgressTimer = window.setInterval(() => {
+    if (siteLoaderHideQueued) return;
+
+    const nextValue = siteLoaderProgress + Math.max(1, Math.round((92 - siteLoaderProgress) * 0.08));
+    setSiteLoaderPercent(Math.min(92, nextValue));
+  }, 120);
+}
+
+function hideSiteLoader() {
+  const loader = document.getElementById('siteLoader');
+  if (!loader || siteLoaderHideQueued || loader.classList.contains('is-hidden')) return;
+
+  siteLoaderHideQueued = true;
+  window.clearInterval(siteLoaderProgressTimer);
+  setSiteLoaderPercent(100);
+
+  const minVisibleTime = 350;
+  const elapsed = performance.now() - siteLoaderStart;
+  const delay = Math.max(0, minVisibleTime - elapsed);
+
+  window.setTimeout(() => {
+    loader.classList.add('is-hidden');
+    loader.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('site-loading');
+
+    window.setTimeout(() => {
+      loader.remove();
+    }, 500);
+  }, delay);
+}
+
+if (document.readyState === 'complete') {
+  hideSiteLoader();
+} else {
+  startSiteLoaderProgress();
+  window.addEventListener('load', hideSiteLoader, { once: true });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted || document.readyState === 'complete') {
+      hideSiteLoader();
+    }
+  }, { once: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // applyBisCondensedStyling();
   initTypingEffect();

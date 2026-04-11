@@ -12,7 +12,21 @@
   <!-- Yandex.Metrika counter -->
   <!-- /Yandex.Metrika counter -->
 </head>
-<body <?php body_class(); ?>>
+<body <?php body_class('site-loading'); ?>>
+  <?php wp_body_open(); ?>
+  <div class="site-loader" id="siteLoader" role="status" aria-live="polite" aria-label="Loading page">
+    <div class="site-loader__inner">
+      <div class="site-loader__mark" aria-hidden="true">
+        <span class="site-loader__ring"></span>
+        <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/LOGOLOGO11.png" alt="" class="site-loader__logo">
+      </div>
+      <div class="site-loader__progress" aria-hidden="true">
+        <span class="site-loader__line"></span>
+        <span class="site-loader__percent" data-loader-percent>0%</span>
+      </div>
+    </div>
+  </div>
+  <noscript><style>.site-loader{display:none!important}body.site-loading{overflow:auto}</style></noscript>
   <!-- Header -->
   <header class="header" id="header">
     <div class="header-content">

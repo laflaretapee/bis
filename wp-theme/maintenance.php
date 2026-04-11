@@ -23,7 +23,20 @@ if ($phone_href && '+' !== substr($phone_href, 0, 1)) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri() . '/assets/css/style.css'); ?>">
 </head>
-<body class="maintenance-body">
+<body class="maintenance-body site-loading">
+    <div class="site-loader" id="siteLoader" role="status" aria-live="polite" aria-label="Loading page">
+        <div class="site-loader__inner">
+            <div class="site-loader__mark" aria-hidden="true">
+                <span class="site-loader__ring"></span>
+                <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/LOGOLOGO11.png" alt="" class="site-loader__logo">
+            </div>
+            <div class="site-loader__progress" aria-hidden="true">
+                <span class="site-loader__line"></span>
+                <span class="site-loader__percent" data-loader-percent>0%</span>
+            </div>
+        </div>
+    </div>
+    <noscript><style>.site-loader{display:none!important}body.site-loading{overflow:auto}</style></noscript>
     <main class="maintenance">
         <div class="maintenance__bg" aria-hidden="true"></div>
         <div class="maintenance__card" role="main">
@@ -69,5 +82,59 @@ if ($phone_href && '+' !== substr($phone_href, 0, 1)) {
             <?php endif; ?>
         </div>
     </main>
+    <script>
+        (function () {
+            const started = performance.now();
+            let queued = false;
+            let progress = 0;
+            let progressTimer;
+
+            function setPercent(value) {
+                const percent = document.querySelector('[data-loader-percent]');
+                if (!percent) return;
+
+                progress = Math.max(0, Math.min(100, Math.round(value)));
+                percent.textContent = progress + '%';
+            }
+
+            function startProgress() {
+                setPercent(0);
+
+                progressTimer = window.setInterval(function () {
+                    if (queued) return;
+
+                    const nextValue = progress + Math.max(1, Math.round((92 - progress) * 0.08));
+                    setPercent(Math.min(92, nextValue));
+                }, 120);
+            }
+
+            function hideLoader() {
+                const loader = document.getElementById('siteLoader');
+                if (!loader || queued || loader.classList.contains('is-hidden')) return;
+
+                queued = true;
+                window.clearInterval(progressTimer);
+                setPercent(100);
+                const delay = Math.max(0, 350 - (performance.now() - started));
+
+                window.setTimeout(function () {
+                    loader.classList.add('is-hidden');
+                    loader.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('site-loading');
+
+                    window.setTimeout(function () {
+                        loader.remove();
+                    }, 500);
+                }, delay);
+            }
+
+            if (document.readyState === 'complete') {
+                hideLoader();
+            } else {
+                startProgress();
+                window.addEventListener('load', hideLoader, { once: true });
+            }
+        })();
+    </script>
 </body>
 </html>
