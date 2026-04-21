@@ -272,6 +272,145 @@ function bis_register_projects_cpt() {
 }
 add_action('init', 'bis_register_projects_cpt');
 
+function bis_get_latin_slug_post_types() {
+    return array('bis_news', 'bis_project');
+}
+
+function bis_should_force_latin_slug($post_type) {
+    return in_array($post_type, bis_get_latin_slug_post_types(), true);
+}
+
+function bis_transliterate_to_latin_slug($value) {
+    $value = html_entity_decode(wp_strip_all_tags((string) $value), ENT_QUOTES, 'UTF-8');
+
+    if ($value === '') {
+        return '';
+    }
+
+    $map = array(
+        'А' => 'A',   'Б' => 'B',   'В' => 'V',   'Г' => 'G',   'Д' => 'D',
+        'Е' => 'E',   'Ё' => 'Yo',  'Ж' => 'Zh',  'З' => 'Z',   'И' => 'I',
+        'Й' => 'Y',   'К' => 'K',   'Л' => 'L',   'М' => 'M',   'Н' => 'N',
+        'О' => 'O',   'П' => 'P',   'Р' => 'R',   'С' => 'S',   'Т' => 'T',
+        'У' => 'U',   'Ф' => 'F',   'Х' => 'Kh',  'Ц' => 'Ts',  'Ч' => 'Ch',
+        'Ш' => 'Sh',  'Щ' => 'Shch','Ъ' => '',    'Ы' => 'Y',   'Ь' => '',
+        'Э' => 'E',   'Ю' => 'Yu',  'Я' => 'Ya',
+        'а' => 'a',   'б' => 'b',   'в' => 'v',   'г' => 'g',   'д' => 'd',
+        'е' => 'e',   'ё' => 'yo',  'ж' => 'zh',  'з' => 'z',   'и' => 'i',
+        'й' => 'y',   'к' => 'k',   'л' => 'l',   'м' => 'm',   'н' => 'n',
+        'о' => 'o',   'п' => 'p',   'р' => 'r',   'с' => 's',   'т' => 't',
+        'у' => 'u',   'ф' => 'f',   'х' => 'kh',  'ц' => 'ts',  'ч' => 'ch',
+        'ш' => 'sh',  'щ' => 'shch','ъ' => '',    'ы' => 'y',   'ь' => '',
+        'э' => 'e',   'ю' => 'yu',  'я' => 'ya',
+    );
+
+    $value = strtr($value, $map);
+    $value = remove_accents($value);
+
+    if (function_exists('iconv')) {
+        $transliterated = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+        if ($transliterated !== false) {
+            $value = $transliterated;
+        }
+    }
+
+    $value = strtolower($value);
+    $value = preg_replace('/[^a-z0-9]+/', '-', $value);
+    $value = trim((string) $value, '-');
+
+    return sanitize_title($value);
+}
+
+function bis_build_forced_latin_slug($post_type, $title, $post_id = 0, $post_status = 'publish', $post_parent = 0) {
+    $base_slug = bis_transliterate_to_latin_slug($title);
+
+    if ($base_slug === '') {
+        $fallback_map = array(
+            'bis_news' => 'news-item',
+            'bis_project' => 'project',
+        );
+        $base_slug = isset($fallback_map[$post_type]) ? $fallback_map[$post_type] : 'entry';
+    }
+
+    return wp_unique_post_slug($base_slug, $post_id, $post_status, $post_type, $post_parent);
+}
+
+function bis_force_latin_slug_on_save($data, $postarr) {
+    if (empty($data['post_type']) || !bis_should_force_latin_slug($data['post_type'])) {
+        return $data;
+    }
+
+    if (in_array($data['post_status'], array('auto-draft', 'trash'), true)) {
+        return $data;
+    }
+
+    $title = isset($data['post_title']) ? trim((string) $data['post_title']) : '';
+    if ($title === '') {
+        return $data;
+    }
+
+    $post_id = !empty($postarr['ID']) ? (int) $postarr['ID'] : 0;
+    $post_parent = isset($data['post_parent']) ? (int) $data['post_parent'] : 0;
+
+    $data['post_name'] = bis_build_forced_latin_slug(
+        $data['post_type'],
+        $title,
+        $post_id,
+        $data['post_status'],
+        $post_parent
+    );
+
+    return $data;
+}
+add_filter('wp_insert_post_data', 'bis_force_latin_slug_on_save', 20, 2);
+
+function bis_migrate_existing_latin_slugs() {
+    $current_version = (int) get_option('bis_slug_migration_version', 0);
+    $target_version = 1;
+
+    if ($current_version >= $target_version) {
+        return;
+    }
+
+    $post_ids = get_posts(array(
+        'post_type'      => bis_get_latin_slug_post_types(),
+        'post_status'    => array('publish', 'future', 'draft', 'pending', 'private'),
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'orderby'        => 'ID',
+        'order'          => 'ASC',
+    ));
+
+    if (!empty($post_ids)) {
+        foreach ($post_ids as $post_id) {
+            $post = get_post($post_id);
+            if (!($post instanceof WP_Post) || !bis_should_force_latin_slug($post->post_type)) {
+                continue;
+            }
+
+            $new_slug = bis_build_forced_latin_slug(
+                $post->post_type,
+                $post->post_title,
+                $post->ID,
+                $post->post_status,
+                $post->post_parent
+            );
+
+            if ($new_slug === '' || $new_slug === $post->post_name) {
+                continue;
+            }
+
+            wp_update_post(array(
+                'ID' => $post->ID,
+                'post_name' => $new_slug,
+            ));
+        }
+    }
+
+    update_option('bis_slug_migration_version', $target_version, false);
+}
+add_action('init', 'bis_migrate_existing_latin_slugs', 99);
+
 function bis_register_project_taxonomies() {
     $type_labels = array(
         'name'              => 'Типы проектов',

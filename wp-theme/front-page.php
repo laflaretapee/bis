@@ -779,7 +779,7 @@ $news_query = new WP_Query(array(
 ));
 ?>
 
-<section class="homepage-news" id="news"  style="display: none;">
+<section class="homepage-news" id="news">
   <div class="homepage-news__container">
   <div class="homepage-news__header">
       <!-- <span class="section-badge">Новости</span> -->
