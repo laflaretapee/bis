@@ -10,8 +10,7 @@ $page_id = get_the_ID();
 $banner_title = get_post_meta($page_id, 'bis_page_banner_title', true);
 $banner_subtitle = get_post_meta($page_id, 'bis_page_banner_subtitle', true);
 $banner_title = $banner_title ? $banner_title : get_the_title();
-$banner_image = get_post_meta($page_id, 'bis_page_banner_image', true);
-$banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page_id, 'full');
+$banner_image = bis_get_page_banner_image_url($page_id);
 $selected_type = isset($_GET['project_type']) ? sanitize_title(wp_unslash($_GET['project_type'])) : '';
 
 $project_types = get_terms(array(
@@ -62,7 +61,9 @@ if ($selected_type === '') {
 <main class="projects-page">
     <section class="news-hero news-hero--page">
         <?php if ($banner_image) : ?>
-            <div class="news-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+            <div class="news-hero__media">
+                <img src="<?php echo esc_url($banner_image); ?>" alt="<?php echo esc_attr($banner_title); ?>" decoding="async">
+            </div>
         <?php endif; ?>
         <div class="news-hero__overlay">
             <div class="mw-1400px projects-page-hero__content">
@@ -113,7 +114,9 @@ if ($selected_type === '') {
                     }
                     ?>
                     <div class="experience-card">
-                        <div class="experience-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+                        <div class="experience-image">
+                            <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
+                        </div>
                         <div class="experience-content">
                             <?php if ($is_featured) : ?>
                                 <span class="experience-badge">Ключевой проект</span>

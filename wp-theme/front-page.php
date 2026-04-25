@@ -11,13 +11,19 @@ $has_hero_slider = !empty($hero_images);
     <?php if ($has_hero_slider) : ?>
       <div class="hero-slider">
         <?php foreach ($hero_images as $index => $image) : ?>
-          <div class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?>" style="background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)), url('<?php echo esc_url($image); ?>') center/cover no-repeat;"></div>
+          <div class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?>">
+            <img src="<?php echo esc_url($image); ?>" alt="" decoding="async" fetchpriority="<?php echo $index === 0 ? 'high' : 'low'; ?>">
+          </div>
         <?php endforeach; ?>
       </div>
     <?php else : ?>
       <div class="hero-parallax" aria-hidden="true">
-        <div class="parallax-layer parallax-layer--back" data-speed="0.12" style="background-image: url('<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer2.png');"></div>
-        <div class="parallax-layer parallax-layer--front" data-speed="0.2" style="background-image: url('<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer1.png');"></div>
+        <div class="parallax-layer parallax-layer--back" data-speed="0.12">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer2.png" alt="" decoding="async">
+        </div>
+        <div class="parallax-layer parallax-layer--front" data-speed="0.2">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer1.png" alt="" decoding="async">
+        </div>
       </div>
     <?php endif; ?>
     <div class="grid-pattern"></div>
@@ -57,15 +63,21 @@ $has_hero_slider = !empty($hero_images);
 
         <div class="tasks-grid">
             <div class="task-item">
-                <div class="task-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/z1.webp');"></div>
+                <div class="task-image">
+                    <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/z1.webp" alt="" loading="lazy" decoding="async">
+                </div>
                 <p>Сбалансировать расчетные и фактические параметры систем микроклимата</p>
             </div>
             <div class="task-item">
-                <div class="task-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/z2.webp');"></div>
+                <div class="task-image">
+                    <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/z2.webp" alt="" loading="lazy" decoding="async">
+                </div>
                 <p>Обеспечить оптимальную работу и эффективность работы оборудования</p>
             </div>
             <div class="task-item">
-                <div class="task-image" style="background-image: url('<?php echo get_template_directory_uri(); ?>/assets/img/z3.webp');"></div>
+                <div class="task-image">
+                    <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/z3.webp" alt="" loading="lazy" decoding="async">
+                </div>
                 <p>Понять и решить технические задачи, возникающие на объекте</p>
             </div>
         </div>
@@ -141,7 +153,9 @@ $has_hero_slider = !empty($hero_images);
           $description = get_post_meta($service_id, 'bis_service_description', true);
           ?>
           <div class="service-card">
-            <div class="service-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+            <div class="service-image">
+              <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
+            </div>
             <div class="service-content">
               <div class="service-content-main">
                 <h3><?php the_title(); ?></h3>
@@ -327,7 +341,9 @@ $has_hero_slider = !empty($hero_images);
           $description = get_post_meta($equipment_id, 'bis_equipment_description', true);
           ?>
           <div class="equipment-card">
-            <div class="equipment-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+            <div class="equipment-image">
+              <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
+            </div>
             <div class="equipment-content">
               <h3><?php the_title(); ?></h3>
               <?php if (!empty($description)) : ?>
@@ -472,7 +488,9 @@ endif;
              data-image="<?php echo esc_url($image_url); ?>"
              data-link="<?php echo esc_url(get_permalink($project_id)); ?>"
              data-featured="1">
-          <div class="experience-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+          <div class="experience-image">
+            <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
+          </div>
           <div class="experience-content">
             <span class="experience-badge">Ключевой проект</span>
             <h3><?php the_title(); ?></h3>
@@ -565,7 +583,9 @@ endif;
                data-image="<?php echo esc_url($image_url); ?>"
                data-link="<?php echo esc_url(get_the_permalink($project_id)); ?>"
                data-featured="<?php echo $is_featured ? '1' : '0'; ?>">
-            <div class="all-case-image" style="background-image: url('<?php echo esc_url($image_url); ?>');"></div>
+            <div class="all-case-image">
+              <img src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
+            </div>
             <div class="experience-content">
               <?php if ($is_featured) : ?>
                 <span class="experience-badge">Ключевой проект</span>

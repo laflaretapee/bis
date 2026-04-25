@@ -7,7 +7,9 @@
     </button>
     <div class="estimate-modal-content">
       <div class="estimate-image">
-        <div class="estimate-image__media" style="background-image: linear-gradient(135deg, rgba(15,23,42,0.35), rgba(15,23,42,0.15)), url('<?php echo get_template_directory_uri(); ?>/assets/img/1.webp');"></div>
+        <div class="estimate-image__media">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/1.webp" alt="" decoding="async">
+        </div>
       </div>
       <div class="estimate-form-container">
         <h2>Вы получите исчерпывающую смету с точностью до 95% в течение 2 дней</h2>

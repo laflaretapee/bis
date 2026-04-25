@@ -11,14 +11,15 @@ $banner_title = get_post_meta($page_id, 'bis_page_banner_title', true);
 $banner_subtitle = get_post_meta($page_id, 'bis_page_banner_subtitle', true);
 $banner_title = $banner_title ? $banner_title : get_the_title();
 $banner_subtitle = $banner_subtitle ? $banner_subtitle : '«БИС — Баланс Инженерных Систем» — инжиниринговая команда полного цикла: проектируем, запускаем и сопровождаем инженерные системы.';
-$banner_image = get_post_meta($page_id, 'bis_page_banner_image', true);
-$banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page_id, 'full');
+$banner_image = bis_get_page_banner_image_url($page_id);
 ?>
 
 <main class="about-page">
     <section class="news-hero news-hero--page">
         <?php if ($banner_image) : ?>
-            <div class="news-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+            <div class="news-hero__media">
+                <img src="<?php echo esc_url($banner_image); ?>" alt="<?php echo esc_attr($banner_title); ?>" decoding="async">
+            </div>
         <?php endif; ?>
         <div class="news-hero__overlay">
             <h1 class="news-hero__title"><?php echo esc_html($banner_title); ?></h1>

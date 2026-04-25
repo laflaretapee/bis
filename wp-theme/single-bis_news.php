@@ -8,7 +8,9 @@ get_header();
             <?php $cover = bis_get_news_image_url(get_the_ID()); ?>
 
             <section class="news-hero news-hero--single">
-                <div class="news-hero__media" style="background-image: url('<?php echo esc_url($cover); ?>');"></div>
+                <div class="news-hero__media">
+                    <img src="<?php echo esc_url($cover); ?>" alt="<?php the_title_attribute(); ?>" decoding="async">
+                </div>
                 <div class="news-hero__overlay">
                     <h1 class="news-hero__title"><?php the_title(); ?></h1>
                 </div>

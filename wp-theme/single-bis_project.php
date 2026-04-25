@@ -46,7 +46,7 @@ get_header();
             }
 
             $all_projects = get_posts(array(
-                'post_type' => 'bis_projects',
+                'post_type' => 'bis_project',
                 'posts_per_page' => -1,
                 'orderby' => array('menu_order' => 'ASC', 'title' => 'ASC'),
                 'fields' => 'ids',
@@ -61,7 +61,9 @@ get_header();
             ?>
 
             <section class="project-hero">
-                <div class="project-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+                <div class="project-hero__media">
+                    <img src="<?php echo esc_url($banner_image); ?>" alt="<?php echo esc_attr($banner_title); ?>" decoding="async">
+                </div>
                 <div class="project-hero__overlay">
                     <div class="project-hero__inner">
                         <h1 class="project-hero__title"><?php echo esc_html($banner_title); ?></h1>

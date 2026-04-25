@@ -26,16 +26,15 @@ $banner_title = $banner_title ? $banner_title : ($news_page_id ? get_the_title($
 if (!$banner_subtitle) {
     $banner_subtitle = 'Комплексная экспертиза в инженерных системах, исследования и практические кейсы — рассказываем о проектах и жизни команды «БИС — Баланс Инженерных Систем».';
 }
-$banner_image = $news_page_id ? get_post_meta($news_page_id, 'bis_page_banner_image', true) : '';
-if (!$banner_image && $news_page_id) {
-    $banner_image = get_the_post_thumbnail_url($news_page_id, 'full');
-}
+$banner_image = $news_page_id ? bis_get_page_banner_image_url($news_page_id) : '';
 ?>
 
 <main class="news-archive-page">
     <section class="news-hero">
         <?php if ($banner_image) : ?>
-            <div class="news-hero__media" style="background-image: url('<?php echo esc_url($banner_image); ?>');"></div>
+            <div class="news-hero__media">
+                <img src="<?php echo esc_url($banner_image); ?>" alt="<?php echo esc_attr($banner_title); ?>" decoding="async">
+            </div>
         <?php endif; ?>
         <div class="news-hero__overlay">
             <h1 class="news-hero__title"><?php echo esc_html($banner_title); ?></h1>
