@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 // Register Custom Post Type for Requests
 function bis_register_requests_cpt() {

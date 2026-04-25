@@ -1,9 +1,9 @@
 <?php
 
-function bis_get_project_image_url($post_id) {
-    $banner = get_post_meta($post_id, 'bis_project_banner_image', true);
-    if ($banner) {
-        return bis_get_optimized_image_url($banner, 'bis-card');
+function bis_get_project_preview_image_url($post_id) {
+    $preview = get_post_meta($post_id, 'bis_project_preview_image', true);
+    if ($preview) {
+        return bis_get_optimized_image_url($preview, 'bis-card');
     }
 
     $legacy = get_post_meta($post_id, 'bis_project_image', true);
@@ -11,7 +11,16 @@ function bis_get_project_image_url($post_id) {
         return bis_get_optimized_image_url($legacy, 'bis-card');
     }
 
+    $banner = get_post_meta($post_id, 'bis_project_banner_image', true);
+    if ($banner) {
+        return bis_get_optimized_image_url($banner, 'bis-card');
+    }
+
     return bis_get_post_thumbnail_optimized_url($post_id, 'bis-card');
+}
+
+function bis_get_project_image_url($post_id) {
+    return bis_get_project_preview_image_url($post_id);
 }
 
 function bis_get_project_details($post_id) {
@@ -26,6 +35,11 @@ function bis_get_project_banner_image($post_id) {
     $banner = get_post_meta($post_id, 'bis_project_banner_image', true);
     if ($banner) {
         return bis_get_optimized_image_url($banner, 'bis-banner');
+    }
+
+    $preview = get_post_meta($post_id, 'bis_project_preview_image', true);
+    if ($preview) {
+        return bis_get_optimized_image_url($preview, 'bis-banner');
     }
 
     $legacy = get_post_meta($post_id, 'bis_project_image', true);
@@ -116,6 +130,29 @@ function bis_get_team_members() {
     }
 
     return $filtered;
+}
+
+function bis_get_team_member_photo_url($member, $size = 'bis-team') {
+    if (!is_array($member)) {
+        return '';
+    }
+
+    $photo = isset($member['photo']) ? $member['photo'] : '';
+    return bis_get_optimized_image_url($photo, $size);
+}
+
+function bis_get_team_member_modal_photo_url($member, $size = 'bis-team-modal') {
+    if (!is_array($member)) {
+        return '';
+    }
+
+    $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
+    if ($modal_photo) {
+        return bis_get_optimized_image_url($modal_photo, $size);
+    }
+
+    $photo = isset($member['photo']) ? $member['photo'] : '';
+    return bis_get_optimized_image_url($photo, $size);
 }
 
 function bis_get_phone_href($phone) {

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 // Hero Slider Settings
 function bis_hero_slider_menu() {

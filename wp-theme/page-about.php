@@ -162,16 +162,15 @@ $banner_image = bis_get_page_banner_image_url($page_id);
                             $since = isset($member['since']) ? $member['since'] : '';
                             $short = isset($member['short']) ? $member['short'] : '';
                             $long = isset($member['long']) ? $member['long'] : '';
-                            $photo = isset($member['photo']) ? $member['photo'] : '';
-                            $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
+                            $photo = bis_get_team_member_photo_url($member);
+                            $modal_photo = bis_get_team_member_modal_photo_url($member);
                             $qr_code = isset($member['qr_code']) ? $member['qr_code'] : '';
                             $contact_phone = isset($member['contact_phone']) ? $member['contact_phone'] : '';
                             $contact_email = isset($member['contact_email']) ? $member['contact_email'] : '';
                             $contact_phone_href = bis_get_phone_href($contact_phone);
                             $contact_email_href = sanitize_email($contact_email);
-                            $modal_photo = $modal_photo ? $modal_photo : $photo;
                             ?>
-                            <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-since="<?php echo esc_attr($since); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
+                            <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-since="<?php echo esc_attr($since); ?>" data-slide-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
                                 <div class="team-slide__content">
                                     <div class="team-header">
                                         <span class="team-label">Команда</span>
@@ -217,7 +216,7 @@ $banner_image = bis_get_page_banner_image_url($page_id);
                                     <?php endif; ?>
                                     <button class="btn btn-outline team-more" type="button" data-team-more>Подробнее</button>
                                 </div>
-                                <div class="team-slide__photo" style="background-image: url('<?php echo esc_url($photo); ?>');"></div>
+                                <div class="team-slide__photo" data-team-photo aria-hidden="true"></div>
                                 <div class="team-slide__long" hidden>
                                     <?php echo wp_kses_post(wpautop($long)); ?>
                                 </div>

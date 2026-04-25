@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 function bis_register_news_cpt() {
     $labels = array(
@@ -1078,6 +1078,7 @@ function bis_project_details_metabox($post) {
     wp_nonce_field('bis_project_details_nonce', 'bis_project_details_nonce_field');
 
     $is_key = get_post_meta($post->ID, 'bis_project_is_featured', true);
+    $preview_image = get_post_meta($post->ID, 'bis_project_preview_image', true);
     $banner_image = get_post_meta($post->ID, 'bis_project_banner_image', true);
     $banner_title = get_post_meta($post->ID, 'bis_project_banner_title', true);
     $banner_blocks = get_post_meta($post->ID, 'bis_project_banner_blocks', true);
@@ -1130,6 +1131,7 @@ function bis_project_details_metabox($post) {
 
     $legacy_image = get_post_meta($post->ID, 'bis_project_image', true);
     $thumbnail_url = get_the_post_thumbnail_url($post->ID, 'full');
+    $preview_fallback = $preview_image ? $preview_image : ($legacy_image ? $legacy_image : ($banner_image ? $banner_image : $thumbnail_url));
     $banner_preview = $banner_image ? $banner_image : ($legacy_image ? $legacy_image : $thumbnail_url);
     ?>
     <div class="bis-project-box">
@@ -1140,6 +1142,23 @@ function bis_project_details_metabox($post) {
             </div>
             <div class="bis-project-box__status <?php echo $is_key ? 'is-featured' : ''; ?>" data-featured-badge>
                 <?php echo $is_key ? 'Ключевой проект' : 'Обычный проект'; ?>
+            </div>
+        </div>
+
+        <div class="bis-project-media">
+            <div class="bis-project-media__preview <?php echo $preview_fallback ? '' : 'is-empty'; ?>" data-image-preview="bis_project_preview_image" style="background-image: url('<?php echo esc_url($preview_fallback); ?>');">
+                <?php if (!$preview_fallback) : ?>
+                    <span class="bis-project-media__placeholder">Нет изображения</span>
+                <?php endif; ?>
+            </div>
+            <div class="bis-project-media__controls">
+                <label for="bis_project_preview_image">Превью проекта</label>
+                <input type="text" id="bis_project_preview_image" name="bis_project_preview_image" value="<?php echo esc_url($preview_image); ?>" placeholder="https://" data-image-input data-preview-target="bis_project_preview_image">
+                <div class="bis-project-media__buttons">
+                    <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_preview_image" data-preview="preview">Выбрать в медиабиблиотеке</button>
+                    <button type="button" class="button bis-project-image-clear" data-target="bis_project_preview_image" data-preview="preview">Убрать фото</button>
+                </div>
+                <p class="bis-field__hint">Используется в карточках проекта. Если не задано, берется старое превью, баннер или миниатюра записи.</p>
             </div>
         </div>
 
@@ -1156,7 +1175,7 @@ function bis_project_details_metabox($post) {
                     <button type="button" class="button button-primary bis-project-image-upload" data-target="bis_project_banner_image" data-preview="banner">Выбрать в медиабиблиотеке</button>
                     <button type="button" class="button bis-project-image-clear" data-target="bis_project_banner_image" data-preview="banner">Убрать фото</button>
                 </div>
-                <p class="bis-field__hint">Изображение отображается в баннере и в карточках на главной.</p>
+                <p class="bis-field__hint">Изображение используется только в баннере страницы проекта.</p>
             </div>
         </div>
 
@@ -1284,6 +1303,7 @@ function bis_save_project_details($post_id) {
         return;
     }
 
+    $preview_image = isset($_POST['bis_project_preview_image']) ? esc_url_raw(wp_unslash($_POST['bis_project_preview_image'])) : '';
     $banner_image = isset($_POST['bis_project_banner_image']) ? esc_url_raw(wp_unslash($_POST['bis_project_banner_image'])) : '';
     $banner_title = isset($_POST['bis_project_banner_title']) ? sanitize_text_field(wp_unslash($_POST['bis_project_banner_title'])) : '';
     $project_description = isset($_POST['bis_project_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_project_description'])) : '';
@@ -1334,7 +1354,8 @@ function bis_save_project_details($post_id) {
     update_post_meta($post_id, 'bis_project_address', $project_address);
     update_post_meta($post_id, 'bis_project_area', $project_area);
     update_post_meta($post_id, 'bis_project_year', $project_year);
-    update_post_meta($post_id, 'bis_project_image', $banner_image);
+    update_post_meta($post_id, 'bis_project_preview_image', $preview_image);
+    update_post_meta($post_id, 'bis_project_image', $preview_image);
     update_post_meta($post_id, 'bis_project_banner_image', $banner_image);
     update_post_meta($post_id, 'bis_project_banner_title', $banner_title);
     update_post_meta($post_id, 'bis_project_banner_blocks', $banner_blocks);
@@ -1754,6 +1775,7 @@ function bis_seed_projects_from_layout() {
             update_post_meta($post_id, 'bis_project_address', $project['address']);
             update_post_meta($post_id, 'bis_project_area', $project['area']);
             update_post_meta($post_id, 'bis_project_year', $project['year']);
+            update_post_meta($post_id, 'bis_project_preview_image', $project['image']);
             update_post_meta($post_id, 'bis_project_image', $project['image']);
             update_post_meta($post_id, 'bis_project_banner_image', $project['image']);
             update_post_meta($post_id, 'bis_project_is_featured', $project['featured'] ? '1' : '0');

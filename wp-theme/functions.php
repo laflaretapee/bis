@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/query-helpers.php';
@@ -9,20 +9,33 @@ require_once get_template_directory() . '/inc/media.php';
 require_once get_template_directory() . '/inc/content-models.php';
 
 function bis_theme_scripts() {
-    $style_version = bis_get_asset_version('assets/css/style.css');
-    $script_version = bis_get_asset_version('assets/js/script.js');
-
     // Enqueue Google Fonts
     wp_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap', array(), null);
 
-    // Enqueue Main Stylesheet
-    wp_enqueue_style('bis-style', get_template_directory_uri() . '/assets/css/style.css', array(), $style_version);
+    $css_files = array(
+        'bis-base'       => 'assets/css/base.css',
+        'bis-front-page' => 'assets/css/front-page.css',
+        'bis-news'       => 'assets/css/news.css',
+        'bis-team'       => 'assets/css/team.css',
+        'bis-content'    => 'assets/css/content.css',
+    );
 
-    // Enqueue Main Script
-    wp_enqueue_script('bis-script', get_template_directory_uri() . '/assets/js/script.js', array(), $script_version, true);
-    wp_localize_script('bis-script', 'bisSiteConfig', array(
+    $style_deps = array();
+    foreach ($css_files as $handle => $file) {
+        wp_enqueue_style($handle, get_template_directory_uri() . '/' . $file, $style_deps, bis_get_asset_version($file));
+        $style_deps[] = $handle;
+    }
+
+    wp_enqueue_script('bis-site-forms', get_template_directory_uri() . '/assets/js/site-forms.js', array(), bis_get_asset_version('assets/js/site-forms.js'), true);
+    wp_localize_script('bis-site-forms', 'bisSiteConfig', array(
         'ajaxUrl' => admin_url('admin-ajax.php'),
     ));
+
+    wp_enqueue_script('bis-site-navigation', get_template_directory_uri() . '/assets/js/site-navigation.js', array(), bis_get_asset_version('assets/js/site-navigation.js'), true);
+    wp_enqueue_script('bis-site-home', get_template_directory_uri() . '/assets/js/site-home.js', array('bis-site-forms'), bis_get_asset_version('assets/js/site-home.js'), true);
+    wp_enqueue_script('bis-site-team', get_template_directory_uri() . '/assets/js/site-team.js', array(), bis_get_asset_version('assets/js/site-team.js'), true);
+    wp_enqueue_script('bis-site-project', get_template_directory_uri() . '/assets/js/site-project.js', array('bis-site-forms'), bis_get_asset_version('assets/js/site-project.js'), true);
+    wp_enqueue_script('bis-site-app', get_template_directory_uri() . '/assets/js/site-app.js', array('bis-site-forms', 'bis-site-navigation', 'bis-site-home', 'bis-site-team', 'bis-site-project'), bis_get_asset_version('assets/js/site-app.js'), true);
 
     // Enqueue Slider Script
     if (is_front_page()) {
@@ -49,7 +62,7 @@ function bis_theme_scripts() {
         }
 
         $revenue['points'] = $revenue_points;
-        wp_localize_script('bis-script', 'bisRevenueData', $revenue);
+        wp_localize_script('bis-site-home', 'bisRevenueData', $revenue);
     }
 }
 add_action('wp_enqueue_scripts', 'bis_theme_scripts');

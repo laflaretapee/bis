@@ -19,10 +19,10 @@ $has_hero_slider = !empty($hero_images);
     <?php else : ?>
       <div class="hero-parallax" aria-hidden="true">
         <div class="parallax-layer parallax-layer--back" data-speed="0.12">
-          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer2.png" alt="" decoding="async">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer2.webp" alt="" decoding="async">
         </div>
         <div class="parallax-layer parallax-layer--front" data-speed="0.2">
-          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer1.png" alt="" decoding="async">
+          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/layers/layer1.webp" alt="" decoding="async">
         </div>
       </div>
     <?php endif; ?>
@@ -663,16 +663,15 @@ style>
             $since = isset($member['since']) ? $member['since'] : '';
             $short = isset($member['short']) ? $member['short'] : '';
             $long = isset($member['long']) ? $member['long'] : '';
-            $photo = isset($member['photo']) ? $member['photo'] : '';
-            $modal_photo = isset($member['modal_photo']) ? $member['modal_photo'] : '';
+            $photo = bis_get_team_member_photo_url($member);
+            $modal_photo = bis_get_team_member_modal_photo_url($member);
             $qr_code = isset($member['qr_code']) ? $member['qr_code'] : '';
             $contact_phone = isset($member['contact_phone']) ? $member['contact_phone'] : '';
             $contact_email = isset($member['contact_email']) ? $member['contact_email'] : '';
             $contact_phone_href = bis_get_phone_href($contact_phone);
             $contact_email_href = sanitize_email($contact_email);
-            $modal_photo = $modal_photo ? $modal_photo : $photo;
             ?>
-            <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-since="<?php echo esc_attr($since); ?>" data-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
+            <article class="team-slide" data-team-slide data-name="<?php echo esc_attr($name); ?>" data-role="<?php echo esc_attr($role); ?>" data-since="<?php echo esc_attr($since); ?>" data-slide-photo="<?php echo esc_url($photo); ?>" data-modal-photo="<?php echo esc_url($modal_photo); ?>">
               <div class="team-slide__content">
               <div class="team-header">
                   <!-- <span class="team-label">Команда</span> -->
@@ -721,7 +720,7 @@ style>
                 <?php endif; ?>
                 <button class="btn btn-outline team-more" type="button" data-team-more>Подробнее</button>
               </div>
-              <div class="team-slide__photo" style="background-image: url('<?php echo esc_url($photo); ?>');"></div>
+              <div class="team-slide__photo" data-team-photo aria-hidden="true"></div>
               <div class="team-slide__long" hidden>
                 <?php echo wp_kses_post(wpautop($long)); ?>
               </div>
@@ -900,8 +899,36 @@ $news_query = new WP_Query(array(
     <section class="map-section">
     <!-- Яндекс.Карта -->
     <div class="map-container">
-      <div id="yandex-map">
-        <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3A7972908992b0111eaafc38990b26b0c1dbbd437ee1e3b769e14322fe175cdfff&amp;width=100%25&amp;height=400&amp;lang=ru_RU&amp;scroll=true"></script>
+      <div
+        id="yandex-map"
+        class="yandex-map"
+        data-yandex-map
+        data-map-script-src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3A7972908992b0111eaafc38990b26b0c1dbbd437ee1e3b769e14322fe175cdfff&amp;id=yandex-map-live&amp;lang=ru_RU&amp;scroll=true"
+      >
+        <div class="yandex-map__static">
+          <img
+            src="https://static-maps.yandex.ru/1.x/?l=map&lang=ru_RU&ll=37.671575165095106%2C55.75377607564223&origin=jsapi-constructor&pt=37.679484%2C55.751665%2Cpm2bll&size=650%2C400&z=13"
+            alt="Карта расположения офиса"
+            loading="lazy"
+            decoding="async"
+            width="1400"
+            height="400"
+          >
+          <div class="yandex-map__hint">Интерактивная карта загрузится при просмотре блока</div>
+        </div>
+        <div
+          id="yandex-map-live"
+          class="yandex-map__interactive"
+          aria-label="Интерактивная карта"
+        ></div>
+        <noscript>
+          <img
+            src="https://api-maps.yandex.ru/services/constructor/1.0/static/?um=constructor%3A7972908992b0111eaafc38990b26b0c1dbbd437ee1e3b769e14322fe175cdfff&amp;width=1400&amp;height=400&amp;lang=ru_RU"
+            alt="Карта расположения офиса"
+            width="1400"
+            height="400"
+          >
+        </noscript>
       </div>
     </div>
   </section>

@@ -4,6 +4,8 @@ function bis_register_media_sizes() {
     add_image_size('bis-banner', 1600, 900, true);
     add_image_size('bis-card', 960, 720, true);
     add_image_size('bis-thumbnail', 640, 480, true);
+    add_image_size('bis-team', 800, 1000, true);
+    add_image_size('bis-team-modal', 1200, 1500, true);
 }
 add_action('after_setup_theme', 'bis_register_media_sizes');
 
@@ -63,4 +65,51 @@ function bis_get_page_banner_image_url($page_id, $size = 'bis-banner') {
     }
 
     return bis_get_post_thumbnail_optimized_url($page_id, $size);
+}
+
+function bis_replace_image_extension($url, $extension) {
+    $url = trim((string) $url);
+    $extension = ltrim(trim((string) $extension), '.');
+
+    if ($url === '' || $extension === '') {
+        return $url;
+    }
+
+    $parts = wp_parse_url($url);
+    if (empty($parts['path'])) {
+        return $url;
+    }
+
+    $path = $parts['path'];
+    $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+    $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+
+    $new_path = preg_replace('/\.[A-Za-z0-9]+$/', '.' . $extension, $path);
+    if (!$new_path || $new_path === $path && str_ends_with(strtolower($path), '.' . strtolower($extension))) {
+        return $url;
+    }
+
+    $rebuilt = '';
+    if (!empty($parts['scheme'])) {
+        $rebuilt .= $parts['scheme'] . '://';
+    }
+    if (!empty($parts['user'])) {
+        $rebuilt .= $parts['user'];
+        if (!empty($parts['pass'])) {
+            $rebuilt .= ':' . $parts['pass'];
+        }
+        $rebuilt .= '@';
+    }
+    if (!empty($parts['host'])) {
+        $rebuilt .= $parts['host'];
+    }
+    if (!empty($parts['port'])) {
+        $rebuilt .= ':' . $parts['port'];
+    }
+
+    return $rebuilt . $new_path . $query . $fragment;
+}
+
+function bis_get_webp_image_url($url) {
+    return bis_replace_image_extension($url, 'webp');
 }

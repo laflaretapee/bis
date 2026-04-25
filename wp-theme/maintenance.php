@@ -21,7 +21,11 @@ if ($phone_href && '+' !== substr($phone_href, 0, 1)) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri() . '/assets/css/style.css'); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri() . '/assets/css/base.css'); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri() . '/assets/css/front-page.css'); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri() . '/assets/css/news.css'); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri() . '/assets/css/team.css'); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri() . '/assets/css/content.css'); ?>">
 </head>
 <body class="maintenance-body site-loading">
     <div class="site-loader" id="siteLoader" role="status" aria-live="polite" aria-label="Loading page">
