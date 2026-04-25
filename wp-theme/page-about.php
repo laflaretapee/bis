@@ -261,7 +261,7 @@ $banner_image = $banner_image ? $banner_image : get_the_post_thumbnail_url($page
     ));
     if ($gratitude_letters->have_posts()) :
     ?>
-    <section class="gratitude-section" id="about-gratitude">
+    <section class="gratitude-section" style="display: none;" id="about-gratitude">
         <div class="mw-1400px">
             <div class="section-header">
                 <h2 class="section-title">Отзывы наших клиентов</h2>

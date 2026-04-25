@@ -1720,7 +1720,7 @@ select {
 .popup-form {
   background: white;
   padding: 48px;
-  border-radius: 24px;
+  border-radius: 0;
   max-width: 500px;
   width: 90%;
   position: relative;
@@ -7431,6 +7431,7 @@ body.post-type-archive-bis_news {
 }
 
 .news-article__content {
+  text-align: justify;
   line-height: 1.8;
   color: #111827;
 }
@@ -7478,10 +7479,6 @@ body.post-type-archive-bis_news {
 
   .news-hero__title {
     font-size: clamp(28px, 8vw, 40px);
-  }
-
-  .news-article {
-    padding: 40px 0 60px;
   }
 
   .news-related {
@@ -8550,7 +8547,7 @@ body.post-type-archive-bis_news {
   font-size: clamp(18px, 2.6vw, 30px);
   font-weight: var(--font-weight-medium);
   line-height: 1.25;
-  min-width: max-content;
+  min-width: min-content;
 }
 
 .breadcrumbs-section {
@@ -8559,6 +8556,7 @@ body.post-type-archive-bis_news {
 }
 
 .project-description {
+  text-align: justify;
   padding: 64px 8vw 0;
   background: var(--bg);
 }
@@ -9009,6 +9007,28 @@ body.post-type-archive-bis_news {
 }
 
 @media (max-width: 768px) {
+
+  .project-consultation__header {
+    text-align: center;
+  }
+
+  .project-consultation__consent {
+    display: inherit;
+  }
+
+  .breadcrumbs-section .mw-1400px {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .project-breadcrumbs {
+    display: flow;
+    font-weight: 16px;
+  }
+
+  .news-article__meta{
+    justify-content: flex-start;
+  }
 
   .page-hero__overlay {
     padding: 110px 6vw 60px;
