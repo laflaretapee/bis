@@ -1,0 +1,38 @@
+name: Deploy to Timeweb Hosting
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bis-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update packages
+        run: sudo apt-get update
+
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Upload files via SFTP
+        run: |
+          lftp -e "
+          set sftp:auto-confirm yes;
+          open -u '${{ secrets.FTP_USER }}','${{ secrets.FTP_PASS }}' sftp://${{ secrets.FTP_HOST }};
+          mirror -R ./wp-theme/ ${{ secrets.PATH_TO_THEME }}
+          quit
+          "
