@@ -7,8 +7,9 @@ get_header();
         <?php while (have_posts()) : the_post(); ?>
             <?php
             $service_id = get_the_ID();
-            $cover = bis_get_service_image_url($service_id);
+            $cover = bis_get_service_banner_image_url($service_id);
             $description = bis_get_service_description($service_id);
+            $content = trim((string) get_post_field('post_content', $service_id));
             ?>
 
             <section class="news-hero news-hero--single">
@@ -42,7 +43,7 @@ get_header();
 
                     <div class="news-article__content service-article__content">
                         <?php
-                        if (trim((string) get_the_content()) !== '') {
+                        if ($content !== '') {
                             the_content();
                         } elseif ($description !== '') {
                             echo wpautop(esc_html($description));
@@ -63,30 +64,32 @@ get_header();
             ?>
 
             <?php if ($related_services->have_posts()) : ?>
-                <section class="service-related">
-                    <div class="service-related__container">
-                        <h2 class="section-title">Другие услуги</h2>
-                        <div class="services-grid">
+                <section class="services-catalog services-catalog--related">
+                    <div class="services-catalog__container">
+                        <div class="service-related__header mw-1400px">
+                            <h2 class="section-title">Другие услуги</h2>
+                        </div>
+                        <div class="services-catalog__grid">
                             <?php while ($related_services->have_posts()) : $related_services->the_post(); ?>
                                 <?php
                                 $related_id = get_the_ID();
-                                $related_image = bis_get_service_image_url($related_id);
+                                $related_image = bis_get_service_preview_image_url($related_id);
                                 $related_description = bis_get_service_description($related_id);
                                 ?>
-                                <article class="service-card">
-                                    <a class="service-image" href="<?php the_permalink(); ?>">
+                                <div class="service-card">
+                                    <div class="service-image">
                                         <img src="<?php echo esc_url($related_image); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async">
-                                    </a>
+                                    </div>
                                     <div class="service-content">
                                         <div class="service-content-main">
-                                            <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                                            <h3><?php the_title(); ?></h3>
                                             <?php if ($related_description !== '') : ?>
                                                 <p class="experience-description"><?php echo esc_html($related_description); ?></p>
                                             <?php endif; ?>
                                         </div>
                                         <a class="btn btn-primary service-card__link" href="<?php the_permalink(); ?>">Подробнее</a>
                                     </div>
-                                </article>
+                                </div>
                             <?php endwhile; ?>
                             <?php wp_reset_postdata(); ?>
                         </div>
@@ -99,4 +102,3 @@ get_header();
 
 <?php
 get_footer();
-?>

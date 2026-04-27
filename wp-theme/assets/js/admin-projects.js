@@ -9,14 +9,14 @@
       return $(`[data-image-preview="${targetId}"]`);
     };
 
-    const syncBlockEditorMeta = (targetId, value) => {
-      if (!hasBlockEditorStore || targetId !== 'bis_news_image') return;
+    const syncMetaField = (fieldName, value) => {
+      if (!hasBlockEditorStore || !fieldName) return;
 
       const currentMeta = wp.data.select('core/editor').getEditedPostAttribute('meta') || {};
       wp.data.dispatch('core/editor').editPost({
         meta: {
           ...currentMeta,
-          bis_news_image: value || ''
+          [fieldName]: value
         }
       });
     };
@@ -32,24 +32,46 @@
     const updateBadge = (checkbox) => {
       const badge = $('[data-featured-badge]');
       if (!badge.length) return;
+
       if (checkbox.is(':checked')) {
-        badge.addClass('is-featured').text('РљР»СЋС‡РµРІРѕР№ РїСЂРѕРµРєС‚');
+        badge.addClass('is-featured').text('Ключевой проект');
       } else {
-        badge.removeClass('is-featured').text('РћР±С‹С‡РЅС‹Р№ РїСЂРѕРµРєС‚');
+        badge.removeClass('is-featured').text('Обычный проект');
       }
     };
 
     const updatePreview = (preview, url) => {
       if (!preview || !preview.length) return;
+
       if (url) {
         preview.css('background-image', `url('${url}')`);
         preview.removeClass('is-empty').find('.bis-project-media__placeholder').remove();
-      } else {
-        preview.css('background-image', 'none').addClass('is-empty');
-        if (!preview.find('.bis-project-media__placeholder').length) {
-          preview.append('<span class="bis-project-media__placeholder">РќРµС‚ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ</span>');
-        }
+        return;
       }
+
+      preview.css('background-image', 'none').addClass('is-empty');
+      if (!preview.find('.bis-project-media__placeholder').length) {
+        preview.append('<span class="bis-project-media__placeholder">Нет изображения</span>');
+      }
+    };
+
+    const syncFieldFromElement = (element) => {
+      const fieldName = element.data('meta-field');
+      if (!fieldName) return;
+      syncMetaField(fieldName, element.val() || '');
+    };
+
+    const clearAttachmentField = (input) => {
+      const attachmentTarget = input.data('attachment-target');
+      if (!attachmentTarget) return null;
+
+      const attachmentInput = $('#' + attachmentTarget);
+      if (!attachmentInput.length) return null;
+
+      attachmentInput.val('').trigger('input').trigger('change');
+      syncFieldFromElement(attachmentInput);
+
+      return attachmentInput;
     };
 
     const openMediaFrame = (title, multiple, callback) => {
@@ -81,10 +103,21 @@
       const input = $('#' + targetId);
       const preview = getPreview(targetId);
 
-      openMediaFrame('Р’С‹Р±РµСЂРёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ', false, (attachment) => {
+      openMediaFrame('Выберите изображение', false, (attachment) => {
         const url = attachment && attachment.url ? attachment.url : '';
+        const attachmentTarget = button.data('attachment-target') || input.data('attachment-target');
+
         input.val(url).trigger('input').trigger('change');
-        syncBlockEditorMeta(targetId, url);
+        syncFieldFromElement(input);
+
+        if (attachmentTarget) {
+          const attachmentInput = $('#' + attachmentTarget);
+          if (attachmentInput.length) {
+            attachmentInput.val(attachment && attachment.id ? attachment.id : '').trigger('input').trigger('change');
+            syncFieldFromElement(attachmentInput);
+          }
+        }
+
         syncFeaturedMedia(targetId, attachment && attachment.id ? attachment.id : 0);
         updatePreview(preview, url);
       });
@@ -98,7 +131,8 @@
       const preview = getPreview(targetId);
 
       input.val('').trigger('input').trigger('change');
-      syncBlockEditorMeta(targetId, '');
+      syncFieldFromElement(input);
+      clearAttachmentField(input);
       syncFeaturedMedia(targetId, 0);
       updatePreview(preview, '');
     });
@@ -106,12 +140,19 @@
     $('[data-image-input]').on('input', function () {
       const input = $(this);
       const targetId = input.data('preview-target') || input.attr('id');
-      syncBlockEditorMeta(targetId, input.val());
+
+      syncFieldFromElement(input);
+      clearAttachmentField(input);
       updatePreview(getPreview(targetId), input.val());
+    });
+
+    $('[data-meta-field]').not('[data-image-input]').on('input change', function () {
+      syncFieldFromElement($(this));
     });
 
     const addGalleryItem = (url) => {
       if (!galleryList.length || !galleryTemplate.length || !url) return;
+
       const item = $(galleryTemplate.html());
       item.find('.bis-project-gallery-thumb').css('background-image', `url('${url}')`);
       item.find('input[type="hidden"]').attr('name', 'bis_project_gallery[]').val(url);
@@ -120,7 +161,7 @@
 
     $('#bis-project-gallery-add').on('click', function (e) {
       e.preventDefault();
-      openMediaFrame('Р’С‹Р±РµСЂРёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РіР°Р»РµСЂРµРё', true, (url) => {
+      openMediaFrame('Выберите изображения галереи', true, (url) => {
         addGalleryItem(url);
       });
     });
@@ -129,8 +170,10 @@
       e.preventDefault();
       const urlInput = $('#bis-project-gallery-url');
       if (!urlInput.length) return;
+
       const url = urlInput.val().trim();
       if (!url) return;
+
       addGalleryItem(url);
       urlInput.val('');
     });
@@ -152,6 +195,7 @@
     });
 
     updateBadge($('[data-featured-toggle]'));
+
     $('[data-image-input]').each(function () {
       const input = $(this);
       const targetId = input.data('preview-target') || input.attr('id');

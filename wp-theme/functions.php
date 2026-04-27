@@ -7,6 +7,7 @@ require_once get_template_directory() . '/inc/admin-tools.php';
 require_once get_template_directory() . '/inc/request-handlers.php';
 require_once get_template_directory() . '/inc/media.php';
 require_once get_template_directory() . '/inc/content-models.php';
+require_once get_template_directory() . '/inc/content-overrides.php';
 
 function bis_theme_scripts() {
     // Enqueue Google Fonts
@@ -187,7 +188,7 @@ function bis_smtp_from_name($name) {
 add_filter('wp_mail_from_name', 'bis_smtp_from_name');
 
 function bis_theme_setup() {
-    add_theme_support('title-tag');
+    // add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
 }
 add_action('after_setup_theme', 'bis_theme_setup');

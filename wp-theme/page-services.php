@@ -1,33 +1,25 @@
 <?php
+/*
+Template Name: Услуги
+*/
 get_header();
 
-$services_page_id = 0;
-$services_pages = get_pages(array(
-    'meta_key'   => '_wp_page_template',
-    'meta_value' => 'page-services.php',
-    'number'     => 1,
-));
-
-if (!empty($services_pages)) {
-    $services_page_id = $services_pages[0]->ID;
-}
-
-if (!$services_page_id) {
-    $services_page = get_page_by_path('services');
-    if ($services_page) {
-        $services_page_id = $services_page->ID;
-    }
-}
-
-$banner_title = $services_page_id ? get_post_meta($services_page_id, 'bis_page_banner_title', true) : '';
-$banner_subtitle = $services_page_id ? get_post_meta($services_page_id, 'bis_page_banner_subtitle', true) : '';
-$banner_title = $banner_title ? $banner_title : ($services_page_id ? get_the_title($services_page_id) : 'Услуги');
+$page_id = get_the_ID();
+$banner_title = get_post_meta($page_id, 'bis_page_banner_title', true);
+$banner_subtitle = get_post_meta($page_id, 'bis_page_banner_subtitle', true);
+$banner_title = $banner_title ? $banner_title : get_the_title();
 
 if (!$banner_subtitle) {
     $banner_subtitle = 'Все услуги компании в одном списке: обследование, испытания, наладка и инженерное сопровождение.';
 }
 
-$banner_image = $services_page_id ? bis_get_page_banner_image_url($services_page_id) : '';
+$banner_image = bis_get_page_banner_image_url($page_id);
+$services_query = new WP_Query(array(
+    'post_type'      => 'bis_service',
+    'post_status'    => 'publish',
+    'posts_per_page' => -1,
+    'orderby'        => array('menu_order' => 'ASC', 'title' => 'ASC'),
+));
 ?>
 
 <main class="services-archive-page">
@@ -55,9 +47,9 @@ $banner_image = $services_page_id ? bis_get_page_banner_image_url($services_page
 
     <section class="services-catalog services-catalog--archive">
         <div class="services-catalog__container">
-            <?php if (have_posts()) : ?>
+            <?php if ($services_query->have_posts()) : ?>
                 <div class="services-catalog__grid">
-                    <?php while (have_posts()) : the_post(); ?>
+                    <?php while ($services_query->have_posts()) : $services_query->the_post(); ?>
                         <?php
                         $service_id = get_the_ID();
                         $image_url = bis_get_service_preview_image_url($service_id);
@@ -78,6 +70,7 @@ $banner_image = $services_page_id ? bis_get_page_banner_image_url($services_page
                             </div>
                         </div>
                     <?php endwhile; ?>
+                    <?php wp_reset_postdata(); ?>
                 </div>
             <?php else : ?>
                 <div class="team-empty">

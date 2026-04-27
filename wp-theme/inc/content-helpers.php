@@ -84,6 +84,11 @@ function bis_get_gratitude_image_url($post_id) {
 }
 
 function bis_get_news_image_url($post_id) {
+    $custom_id = (int) get_post_meta($post_id, 'bis_news_image_id', true);
+    if ($custom_id > 0) {
+        return bis_get_optimized_image_url($custom_id, 'bis-card');
+    }
+
     $custom = get_post_meta($post_id, 'bis_news_image', true);
     if ($custom) {
         return bis_get_optimized_image_url($custom, 'bis-card');
@@ -97,13 +102,41 @@ function bis_get_news_image_url($post_id) {
     return 'https://placehold.co/600x400';
 }
 
-function bis_get_service_image_url($post_id) {
-    $custom = get_post_meta($post_id, 'bis_service_image', true);
+function bis_get_service_preview_image_url($post_id) {
+    $custom = get_post_meta($post_id, 'bis_service_preview_image', true);
     if ($custom) {
         return bis_get_optimized_image_url($custom, 'bis-card');
     }
 
+    $legacy = get_post_meta($post_id, 'bis_service_image', true);
+    if ($legacy) {
+        return bis_get_optimized_image_url($legacy, 'bis-card');
+    }
+
     return bis_get_post_thumbnail_optimized_url($post_id, 'bis-card');
+}
+
+function bis_get_service_banner_image_url($post_id) {
+    $custom = get_post_meta($post_id, 'bis_service_banner_image', true);
+    if ($custom) {
+        return bis_get_optimized_image_url($custom, 'bis-banner');
+    }
+
+    $preview = get_post_meta($post_id, 'bis_service_preview_image', true);
+    if ($preview) {
+        return bis_get_optimized_image_url($preview, 'bis-banner');
+    }
+
+    $legacy = get_post_meta($post_id, 'bis_service_image', true);
+    if ($legacy) {
+        return bis_get_optimized_image_url($legacy, 'bis-banner');
+    }
+
+    return bis_get_post_thumbnail_optimized_url($post_id, 'bis-banner');
+}
+
+function bis_get_service_image_url($post_id) {
+    return bis_get_service_preview_image_url($post_id);
 }
 
 function bis_get_service_description($post_id) {

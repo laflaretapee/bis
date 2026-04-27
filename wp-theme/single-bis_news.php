@@ -17,19 +17,18 @@ get_header();
             </section>
 
             <section class="breadcrumbs-section">
-                <div class="mw-1400px" style="display: flex;
-    justify-content: space-between;">
-                <nav class="project-breadcrumbs ">
-                    <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
-                    <span class="breadcrumbs-delimiter">/</span>
-                    <a href="<?php echo esc_url(get_post_type_archive_link('bis_news')); ?>">Новости</a>
-                    <span class="breadcrumbs-delimiter">/</span>
-                    <span><?php the_title(); ?></span>
-                </nav>
-                <div class="news-article__meta">
+                <div class="mw-1400px" style="display: flex; justify-content: space-between;">
+                    <nav class="project-breadcrumbs">
+                        <a href="<?php echo esc_url(home_url('/')); ?>">Главная</a>
+                        <span class="breadcrumbs-delimiter">/</span>
+                        <a href="<?php echo esc_url(get_post_type_archive_link('bis_news')); ?>">Новости</a>
+                        <span class="breadcrumbs-delimiter">/</span>
+                        <span><?php the_title(); ?></span>
+                    </nav>
+                    <div class="news-article__meta">
                         <time datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date('d.m.Y')); ?></time>
                     </div>
-                    </div>
+                </div>
             </section>
 
             <section class="news-article">
@@ -48,7 +47,7 @@ get_header();
                 'post_type'      => 'bis_news',
                 'posts_per_page' => 3,
                 'post_status'    => 'publish',
-                'post__not_in'    => array(get_the_ID()),
+                'post__not_in'   => array(get_the_ID()),
                 'orderby'        => 'date',
                 'order'          => 'DESC',
             ));
@@ -99,4 +98,3 @@ get_header();
 
 <?php
 get_footer();
-?>

@@ -45,6 +45,7 @@ $has_hero_slider = !empty($hero_images);
         <li><a href="#equipment">Оборудование</a></li>
         <li><a href="#experience">Опыт</a></li>
         <li><a href="<?php echo esc_url(home_url('/about/')); ?>">О нас</a></li>
+        <li><a href="<?php echo esc_url(home_url('/services/')); ?>">Услуги</a></li>
         <li><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></li>
         <li><a href="<?php echo esc_url(home_url('/news/')); ?>">Новости</a></li>
         <li><a href="#contact">Контакты</a></li>
