@@ -533,13 +533,6 @@ function bis_get_request_type_label($request_type) {
     return isset($type_labels[$request_type]) ? $type_labels[$request_type] : 'Заявка с сайта';
 }
 
-function bis_get_request_notification_default_recipients() {
-    return array(
-        'office@bis-rf.ru',
-        'o.moskaleva@bis-rf.ru',
-    );
-}
-
 function bis_normalize_request_notification_recipients($value) {
     if (is_array($value)) {
         $raw_items = $value;
@@ -563,7 +556,7 @@ function bis_get_request_notification_recipients() {
     $emails = bis_normalize_request_notification_recipients($stored);
 
     if (empty($emails)) {
-        return bis_get_request_notification_default_recipients();
+        return array();
     }
 
     return $emails;
