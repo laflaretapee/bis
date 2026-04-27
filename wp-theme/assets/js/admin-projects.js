@@ -62,7 +62,7 @@
       const preview = getPreview(targetId);
 
       openMediaFrame('Выберите изображение', false, (url) => {
-        input.val(url);
+        input.val(url).trigger('input').trigger('change');
         updatePreview(preview, url);
       });
     });
@@ -73,7 +73,7 @@
       const targetId = button.data('target');
       const input = $('#' + targetId);
       const preview = getPreview(targetId);
-      input.val('');
+      input.val('').trigger('input').trigger('change');
       updatePreview(preview, '');
     });
 

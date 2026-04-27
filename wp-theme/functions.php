@@ -29,6 +29,8 @@ function bis_theme_scripts() {
     wp_enqueue_script('bis-site-forms', get_template_directory_uri() . '/assets/js/site-forms.js', array(), bis_get_asset_version('assets/js/site-forms.js'), true);
     wp_localize_script('bis-site-forms', 'bisSiteConfig', array(
         'ajaxUrl' => admin_url('admin-ajax.php'),
+        'locationCookieName' => 'bis_user_location',
+        'locationFallback' => 'Не определено',
     ));
 
     wp_enqueue_script('bis-site-navigation', get_template_directory_uri() . '/assets/js/site-navigation.js', array(), bis_get_asset_version('assets/js/site-navigation.js'), true);
@@ -81,6 +83,13 @@ function bis_get_runtime_setting($key, $default = '') {
     }
 
     return $default;
+}
+
+function bis_get_dadata_settings() {
+    return array(
+        'api_key' => trim((string) bis_get_runtime_setting('BIS_DADATA_API_KEY')),
+        'secret_key' => trim((string) bis_get_runtime_setting('BIS_DADATA_SECRET_KEY')),
+    );
 }
 
 function bis_get_smtp_settings() {
@@ -151,7 +160,7 @@ function bis_smtp_from_name($name) {
 add_filter('wp_mail_from_name', 'bis_smtp_from_name');
 
 function bis_theme_setup() {
-    // add_theme_support('title-tag');
+    add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
 }
 add_action('after_setup_theme', 'bis_theme_setup');

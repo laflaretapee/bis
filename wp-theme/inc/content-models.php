@@ -584,7 +584,10 @@ function bis_add_news_meta_boxes() {
         'bis_news_image_metabox',
         'bis_news',
         'normal',
-        'high'
+        'high',
+        array(
+            '__block_editor_compatible_meta_box' => true,
+        )
     );
 }
 add_action('add_meta_boxes', 'bis_add_news_meta_boxes');
@@ -1457,7 +1460,7 @@ function bis_save_news_image($post_id) {
         return;
     }
 
-    if (!isset($_POST['post_type']) || 'bis_news' !== $_POST['post_type'] || !current_user_can('edit_post', $post_id)) {
+    if ('bis_news' !== get_post_type($post_id) || !current_user_can('edit_post', $post_id)) {
         return;
     }
 
