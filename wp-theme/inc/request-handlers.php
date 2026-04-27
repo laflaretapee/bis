@@ -98,6 +98,32 @@ function bis_get_location_cookie_name() {
     return 'bis_user_location';
 }
 
+function bis_get_request_remote_ip() {
+    $candidate_keys = array(
+        'HTTP_CF_CONNECTING_IP',
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_CLIENT_IP',
+        'REMOTE_ADDR',
+    );
+
+    foreach ($candidate_keys as $key) {
+        if (empty($_SERVER[$key])) {
+            continue;
+        }
+
+        $raw_value = sanitize_text_field(wp_unslash($_SERVER[$key]));
+        $parts = array_map('trim', explode(',', $raw_value));
+
+        foreach ($parts as $part) {
+            if ($part !== '' && false !== filter_var($part, FILTER_VALIDATE_IP)) {
+                return $part;
+            }
+        }
+    }
+
+    return '';
+}
+
 function bis_get_location_fallback_data() {
     $placeholder = bis_get_location_placeholder();
 
@@ -204,6 +230,41 @@ function bis_get_dadata_request_headers() {
     }
 
     return $headers;
+}
+
+function bis_verify_hcaptcha_response() {
+    if (!bis_is_hcaptcha_configured()) {
+        return true;
+    }
+
+    $token = isset($_POST['h-captcha-response']) ? trim((string) wp_unslash($_POST['h-captcha-response'])) : '';
+    if ('' === $token) {
+        return new WP_Error('bis_hcaptcha_missing', 'Подтвердите, что вы не робот.');
+    }
+
+    $settings = bis_get_hcaptcha_settings();
+    $response = wp_remote_post(
+        'https://hcaptcha.com/siteverify',
+        array(
+            'timeout' => 8,
+            'body'    => array(
+                'secret'   => $settings['secret_key'],
+                'response' => $token,
+                'remoteip' => bis_get_request_remote_ip(),
+            ),
+        )
+    );
+
+    if (is_wp_error($response)) {
+        return new WP_Error('bis_hcaptcha_request_failed', 'Не удалось проверить капчу. Попробуйте ещё раз.');
+    }
+
+    $payload = json_decode(wp_remote_retrieve_body($response), true);
+    if (!is_array($payload) || empty($payload['success'])) {
+        return new WP_Error('bis_hcaptcha_invalid', 'Капча не пройдена. Попробуйте ещё раз.');
+    }
+
+    return true;
 }
 
 function bis_dadata_request($endpoint, array $payload) {
@@ -732,6 +793,13 @@ function bis_submit_general_request() {
 
     if (!in_array($request_type, array('contact', 'order', 'callback', 'exit_intent'), true)) {
         $request_type = 'contact';
+    }
+
+    if ('exit_intent' === $request_type) {
+        $hcaptcha_check = bis_verify_hcaptcha_response();
+        if (is_wp_error($hcaptcha_check)) {
+            wp_send_json_error(array('message' => $hcaptcha_check->get_error_message()));
+        }
     }
 
     if ('exit_intent' === $request_type && $name === '') {

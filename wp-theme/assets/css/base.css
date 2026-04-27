@@ -1404,7 +1404,7 @@ select {
 .section-title {
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-bold);
-  margin-bottom: 16px;
+  margin-bottom: 32px;
   letter-spacing: -1px;
 }
 
@@ -1423,6 +1423,10 @@ select {
   /* Убираем тряску при прокрутке */
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+}
+
+.service-related .services-grid{
+  max-width: unset;
 }
 
 .service-card {
@@ -1492,6 +1496,54 @@ select {
   /* кнопка всегда прижата к низу */
 }
 
+
+.services-archive-list {
+    padding: 64px 8vw 96px;
+}
+
+.services-archive-list__container,
+.service-article__container,
+.service-related__container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.services-archive-list .services-grid,
+.service-related .services-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.service-card__link {
+  text-decoration: none;
+}
+
+.service-article {
+  padding: 72px 8vw;
+}
+
+/* .service-article__header {
+  margin-bottom: 32px;
+} */
+
+.service-article__lead {
+  text-align: justify;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--text-light);
+}
+
+.service-article__container .service-article__lead {
+  display: none;
+}
+
+.service-article__content {
+  max-width: 960px;
+}
+
+.service-related {
+    padding: 0 8vw 96px;
+}
 
 /* Cases Section */
 .cases {

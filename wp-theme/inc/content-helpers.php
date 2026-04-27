@@ -106,6 +106,25 @@ function bis_get_service_image_url($post_id) {
     return bis_get_post_thumbnail_optimized_url($post_id, 'bis-card');
 }
 
+function bis_get_service_description($post_id) {
+    $description = trim((string) get_post_meta($post_id, 'bis_service_description', true));
+    if ($description !== '') {
+        return $description;
+    }
+
+    $excerpt = trim((string) get_the_excerpt($post_id));
+    if ($excerpt !== '') {
+        return $excerpt;
+    }
+
+    $post = get_post($post_id);
+    if ($post instanceof WP_Post && '' !== trim((string) $post->post_content)) {
+        return wp_trim_words(wp_strip_all_tags($post->post_content), 28);
+    }
+
+    return '';
+}
+
 function bis_get_equipment_image_url($post_id) {
     $custom = get_post_meta($post_id, 'bis_equipment_image', true);
     if ($custom) {

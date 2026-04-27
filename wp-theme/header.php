@@ -106,7 +106,9 @@
       </div>
       <ul class="drawer-nav">
         <li><a href="<?php echo esc_url(home_url()); ?>">На главную</a></li>
+        <li><a href="<?php echo esc_url(home_url('/services/')); ?>">Услуги</a></li>
         <li><a href="<?php echo esc_url(home_url('/about/')); ?>">О нас</a></li>
+        <li><a href="<?php echo esc_url(home_url('/news/')); ?>">Новости</a></li>
         <li><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></li>
         <li><a href="<?php echo esc_url(home_url('/#services'));?>">Специализация</a></li>
         <li><a href="<?php echo esc_url(home_url('/#equipment'));?>">Оборудование</a></li>

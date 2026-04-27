@@ -2,6 +2,8 @@ const bisAjaxUrl = window.bisSiteConfig?.ajaxUrl || '/wp-admin/admin-ajax.php';
 const bisLocationCookieName = window.bisSiteConfig?.locationCookieName || 'bis_user_location';
 const bisLocationFallback = window.bisSiteConfig?.locationFallback || 'Не определено';
 
+const bisHCaptchaSiteKey = window.bisSiteConfig?.hcaptchaSiteKey || '';
+
 function setBisCookie(name, value, maxAgeSeconds = 60 * 60 * 24 * 180) {
   document.cookie = `${name}=${value}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
 }
@@ -157,6 +159,57 @@ function resetHCaptcha(form) {
       console.warn('hCaptcha reset failed', error);
     }
   });
+}
+
+function clearHCaptchaError(form) {
+  if (!form) return;
+
+  form.querySelectorAll('.h-captcha').forEach((widget) => {
+    widget.classList.remove('error');
+    const errorElement = widget.parentElement?.querySelector('.error-message.error-message--captcha');
+    if (errorElement) {
+      errorElement.remove();
+    }
+  });
+}
+
+function validateHCaptcha(form) {
+  if (!form) return true;
+
+  const widgets = getHCaptchaContainers(form);
+  if (!widgets.length) {
+    return true;
+  }
+
+  const responseField = form.querySelector('textarea[name="h-captcha-response"], input[name="h-captcha-response"]');
+  if (responseField && responseField.value.trim()) {
+    clearHCaptchaError(form);
+    return true;
+  }
+
+  const widget = widgets[0];
+  if (!widget) {
+    return true;
+  }
+
+  widget.classList.add('error');
+
+  let errorElement = widget.parentElement?.querySelector('.error-message.error-message--captcha');
+  if (!errorElement && widget.parentElement) {
+    errorElement = document.createElement('span');
+    errorElement.className = 'error-message error-message--captcha';
+    errorElement.style.color = '#ef4444';
+    errorElement.style.fontSize = '13px';
+    errorElement.style.marginTop = '4px';
+    errorElement.style.display = 'block';
+    widget.parentElement.appendChild(errorElement);
+  }
+
+  if (errorElement) {
+    errorElement.textContent = 'Подтвердите, что вы не робот';
+  }
+
+  return false;
 }
 
 function formatRussianPhone(value) {
@@ -607,7 +660,6 @@ function initExitIntentModal() {
   const storageKey = 'bisExitIntentShown';
   const canTrackPointer = window.matchMedia ? window.matchMedia('(pointer:fine)').matches : true;
   let hasShown = false;
-  let dwellPassed = false;
 
   if (!overlay || !form || !canTrackPointer) {
     return;
@@ -617,13 +669,26 @@ function initExitIntentModal() {
     return;
   }
 
-  window.setTimeout(() => {
-    dwellPassed = true;
-  }, 4000);
-
   const phoneInput = form.querySelector('input[type="tel"]');
   if (phoneInput) {
     attachPhoneMask(phoneInput);
+  }
+
+  if (bisHCaptchaSiteKey && !form.querySelector('.h-captcha')) {
+    const submitButton = form.querySelector('button[type="submit"]');
+    const widget = document.createElement('div');
+    widget.className = 'h-captcha';
+    widget.setAttribute('data-sitekey', bisHCaptchaSiteKey);
+
+    if (submitButton) {
+      form.insertBefore(widget, submitButton);
+    } else {
+      form.appendChild(widget);
+    }
+
+    if (typeof window.hcaptcha !== 'undefined' && typeof window.hcaptcha.render === 'function') {
+      window.hcaptcha.render(widget, { sitekey: bisHCaptchaSiteKey });
+    }
   }
 
   const closeOverlay = () => {
@@ -635,7 +700,7 @@ function initExitIntentModal() {
   };
 
   const openOverlay = () => {
-    if (overlay.classList.contains('active') || hasShown || !dwellPassed) {
+    if (overlay.classList.contains('active') || hasShown) {
       return;
     }
 
@@ -679,7 +744,7 @@ function initExitIntentModal() {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    if (!validateFormFields(form)) {
+    if (!validateFormFields(form) || !validateHCaptcha(form)) {
       return;
     }
 
@@ -797,6 +862,10 @@ function initCallbackModal() {
 }
 
 function submitAjaxForm(form, action, extraData = {}, options = {}) {
+  if (!validateHCaptcha(form)) {
+    return;
+  }
+
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalText = submitBtn ? submitBtn.textContent : '';
   const formData = new FormData(form);
@@ -828,10 +897,13 @@ function submitAjaxForm(form, action, extraData = {}, options = {}) {
         submitBtn.style.background = '#10b981';
       }
 
+      clearHCaptchaError(form);
+
       if (typeof options.onSuccess === 'function') {
         options.onSuccess(data);
       } else {
         resetFormState(form);
+        clearHCaptchaError(form);
       }
 
       showNotification(options.successMessage || 'Спасибо! Ваша заявка отправлена.', 'success');

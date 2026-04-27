@@ -2,19 +2,40 @@
   $(document).ready(function () {
     const galleryList = $('#bis-project-gallery-list');
     const galleryTemplate = $('#bis-project-gallery-item-template');
+    const hasBlockEditorStore = Boolean(window.wp && wp.data && wp.data.dispatch && wp.data.select);
 
     const getPreview = (targetId) => {
       if (!targetId) return $();
       return $(`[data-image-preview="${targetId}"]`);
     };
 
+    const syncBlockEditorMeta = (targetId, value) => {
+      if (!hasBlockEditorStore || targetId !== 'bis_news_image') return;
+
+      const currentMeta = wp.data.select('core/editor').getEditedPostAttribute('meta') || {};
+      wp.data.dispatch('core/editor').editPost({
+        meta: {
+          ...currentMeta,
+          bis_news_image: value || ''
+        }
+      });
+    };
+
+    const syncFeaturedMedia = (targetId, attachmentId) => {
+      if (!hasBlockEditorStore || targetId !== 'bis_news_image') return;
+
+      wp.data.dispatch('core/editor').editPost({
+        featured_media: attachmentId ? Number(attachmentId) : 0
+      });
+    };
+
     const updateBadge = (checkbox) => {
       const badge = $('[data-featured-badge]');
       if (!badge.length) return;
       if (checkbox.is(':checked')) {
-        badge.addClass('is-featured').text('Ключевой проект');
+        badge.addClass('is-featured').text('РљР»СЋС‡РµРІРѕР№ РїСЂРѕРµРєС‚');
       } else {
-        badge.removeClass('is-featured').text('Обычный проект');
+        badge.removeClass('is-featured').text('РћР±С‹С‡РЅС‹Р№ РїСЂРѕРµРєС‚');
       }
     };
 
@@ -26,7 +47,7 @@
       } else {
         preview.css('background-image', 'none').addClass('is-empty');
         if (!preview.find('.bis-project-media__placeholder').length) {
-          preview.append('<span class="bis-project-media__placeholder">Нет изображения</span>');
+          preview.append('<span class="bis-project-media__placeholder">РќРµС‚ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ</span>');
         }
       }
     };
@@ -42,13 +63,12 @@
         const selection = frame.state().get('selection');
         if (multiple) {
           selection.each(function (attachment) {
-            const data = attachment.toJSON();
-            callback(data.url);
+            callback(attachment.toJSON().url);
           });
           return;
         }
-        const attachment = selection.first().toJSON();
-        callback(attachment.url);
+
+        callback(selection.first().toJSON());
       });
 
       frame.open();
@@ -61,8 +81,11 @@
       const input = $('#' + targetId);
       const preview = getPreview(targetId);
 
-      openMediaFrame('Выберите изображение', false, (url) => {
+      openMediaFrame('Р’С‹Р±РµСЂРёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ', false, (attachment) => {
+        const url = attachment && attachment.url ? attachment.url : '';
         input.val(url).trigger('input').trigger('change');
+        syncBlockEditorMeta(targetId, url);
+        syncFeaturedMedia(targetId, attachment && attachment.id ? attachment.id : 0);
         updatePreview(preview, url);
       });
     });
@@ -73,13 +96,17 @@
       const targetId = button.data('target');
       const input = $('#' + targetId);
       const preview = getPreview(targetId);
+
       input.val('').trigger('input').trigger('change');
+      syncBlockEditorMeta(targetId, '');
+      syncFeaturedMedia(targetId, 0);
       updatePreview(preview, '');
     });
 
     $('[data-image-input]').on('input', function () {
       const input = $(this);
       const targetId = input.data('preview-target') || input.attr('id');
+      syncBlockEditorMeta(targetId, input.val());
       updatePreview(getPreview(targetId), input.val());
     });
 
@@ -87,13 +114,13 @@
       if (!galleryList.length || !galleryTemplate.length || !url) return;
       const item = $(galleryTemplate.html());
       item.find('.bis-project-gallery-thumb').css('background-image', `url('${url}')`);
-      item.find('input[type=\"hidden\"]').attr('name', 'bis_project_gallery[]').val(url);
+      item.find('input[type="hidden"]').attr('name', 'bis_project_gallery[]').val(url);
       galleryList.append(item);
     };
 
     $('#bis-project-gallery-add').on('click', function (e) {
       e.preventDefault();
-      openMediaFrame('Выберите изображения галереи', true, (url) => {
+      openMediaFrame('Р’С‹Р±РµСЂРёС‚Рµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РіР°Р»РµСЂРµРё', true, (url) => {
         addGalleryItem(url);
       });
     });

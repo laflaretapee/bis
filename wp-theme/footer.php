@@ -34,6 +34,7 @@
         <p><a href="#services">Специализация</a></p>
         <p><a href="#equipment">Оборудование</a></p>
         <p><a href="#experience">Опыт</a></p>
+        <p><a href="<?php echo esc_url(home_url('/services/')); ?>">Услуги</a></p>
         <p><a href="<?php echo esc_url(home_url('/about/')); ?>">О нас</a></p>
         <p><a href="<?php echo esc_url(home_url('/projects/')); ?>">Наши проекты</a></p>
         <p><a href="<?php echo esc_url(home_url('/news/')); ?>">Новости</a></p>
@@ -102,6 +103,7 @@
           <label for="exitIntentPhone">Телефон</label>
           <input type="tel" id="exitIntentPhone" name="phone" required placeholder="+7 (___) ___-__-__" autocomplete="tel">
         </div>
+        <?php echo bis_render_hcaptcha_widget(); ?>
         <button type="submit" class="btn btn-primary">Отправить</button>
       </form>
     </div>
@@ -135,3 +137,4 @@
   </div>
 </body>
 </html>
+
