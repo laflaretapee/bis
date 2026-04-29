@@ -594,6 +594,20 @@ function bis_add_service_meta_boxes() {
 }
 add_action('add_meta_boxes', 'bis_add_service_meta_boxes');
 
+function bis_add_seo_meta_boxes() {
+    foreach (array('bis_project', 'bis_service') as $post_type) {
+        add_meta_box(
+            'bis_seo_meta',
+            'SEO-метатеги',
+            'bis_seo_metabox',
+            $post_type,
+            'normal',
+            'high'
+        );
+    }
+}
+add_action('add_meta_boxes', 'bis_add_seo_meta_boxes');
+
 function bis_add_equipment_meta_boxes() {
     add_meta_box(
         'bis_equipment_details',
@@ -666,12 +680,38 @@ function bis_page_banner_metabox($post) {
     <?php
 }
 
+function bis_seo_metabox($post) {
+    wp_nonce_field('bis_seo_nonce', 'bis_seo_nonce_field');
+
+    $seo_title = get_post_meta($post->ID, 'bis_seo_title', true);
+    $seo_description = get_post_meta($post->ID, 'bis_seo_description', true);
+    ?>
+    <div class="bis-project-box">
+        <div class="bis-project-box__header">
+            <div>
+                <h3>SEO-метатеги</h3>
+                <p>Укажите значения для meta title и meta description. Если поля пустые, используются стандартные заголовок и описание.</p>
+            </div>
+        </div>
+
+        <div class="bis-project-grid">
+            <div class="bis-field">
+                <label for="bis_seo_title">Meta «title»</label>
+                <input type="text" id="bis_seo_title" name="bis_seo_title" value="<?php echo esc_attr($seo_title); ?>" placeholder="<?php echo esc_attr(get_the_title($post->ID)); ?>">
+            </div>
+            <div class="bis-field">
+                <label for="bis_seo_description">Meta «description»</label>
+                <textarea id="bis_seo_description" name="bis_seo_description" rows="3" placeholder="Описание для поисковых систем"><?php echo esc_textarea($seo_description); ?></textarea>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
 function bis_service_details_metabox($post) {
     wp_nonce_field('bis_service_details_nonce', 'bis_service_details_nonce_field');
 
     $description = get_post_meta($post->ID, 'bis_service_description', true);
-    $seo_title = get_post_meta($post->ID, 'bis_seo_title', true);
-    $seo_description = get_post_meta($post->ID, 'bis_seo_description', true);
     $image = get_post_meta($post->ID, 'bis_service_image', true);
     $thumbnail = get_the_post_thumbnail_url($post->ID, 'full');
     $preview = $image ? $image : $thumbnail;
@@ -704,23 +744,6 @@ function bis_service_details_metabox($post) {
         <div class="bis-field">
             <label for="bis_service_description">Описание</label>
             <textarea id="bis_service_description" name="bis_service_description" rows="4" placeholder="Краткое описание услуги"><?php echo esc_textarea($description); ?></textarea>
-        </div>
-
-        <div class="bis-project-section">
-            <div class="bis-project-section__header">
-                <h4>SEO-метатеги</h4>
-                <p class="bis-field__hint">Если поля пустые, используются стандартные заголовок и описание.</p>
-            </div>
-            <div class="bis-project-grid">
-                <div class="bis-field">
-                    <label for="bis_seo_title">Meta «title»</label>
-                    <input type="text" id="bis_seo_title" name="bis_seo_title" value="<?php echo esc_attr($seo_title); ?>" placeholder="<?php echo esc_attr(get_the_title($post->ID)); ?>">
-                </div>
-                <div class="bis-field">
-                    <label for="bis_seo_description">Meta «description»</label>
-                    <textarea id="bis_seo_description" name="bis_seo_description" rows="3" placeholder="Описание для поисковых систем"><?php echo esc_textarea($seo_description); ?></textarea>
-                </div>
-            </div>
         </div>
     </div>
     <?php
@@ -1095,8 +1118,6 @@ function bis_project_details_metabox($post) {
     $banner_image = get_post_meta($post->ID, 'bis_project_banner_image', true);
     $banner_blocks = get_post_meta($post->ID, 'bis_project_banner_blocks', true);
     $project_description = get_post_meta($post->ID, 'bis_project_description', true);
-    $seo_title = get_post_meta($post->ID, 'bis_seo_title', true);
-    $seo_description = get_post_meta($post->ID, 'bis_seo_description', true);
     $gallery = get_post_meta($post->ID, 'bis_project_gallery', true);
 
     if (!is_array($banner_blocks)) {
@@ -1209,23 +1230,6 @@ function bis_project_details_metabox($post) {
 
         <div class="bis-project-section">
             <div class="bis-project-section__header">
-                <h4>SEO-метатеги</h4>
-                <p class="bis-field__hint">Если поля пустые, используются стандартные заголовок и описание.</p>
-            </div>
-            <div class="bis-project-grid">
-                <div class="bis-field">
-                    <label for="bis_seo_title">Meta «title»</label>
-                    <input type="text" id="bis_seo_title" name="bis_seo_title" value="<?php echo esc_attr($seo_title); ?>" placeholder="<?php echo esc_attr(get_the_title($post->ID)); ?>">
-                </div>
-                <div class="bis-field">
-                    <label for="bis_seo_description">Meta «description»</label>
-                    <textarea id="bis_seo_description" name="bis_seo_description" rows="3" placeholder="Описание для поисковых систем"><?php echo esc_textarea($seo_description); ?></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="bis-project-section">
-            <div class="bis-project-section__header">
                 <h4>Галерея проекта</h4>
                 <p class="bis-field__hint">Фото для слайдера на странице проекта. Можно менять порядок перетаскиванием.</p>
             </div>
@@ -1287,8 +1291,6 @@ function bis_save_project_details($post_id) {
     $preview_image = isset($_POST['bis_project_preview_image']) ? esc_url_raw(wp_unslash($_POST['bis_project_preview_image'])) : '';
     $banner_image = isset($_POST['bis_project_banner_image']) ? esc_url_raw(wp_unslash($_POST['bis_project_banner_image'])) : '';
     $project_description = isset($_POST['bis_project_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_project_description'])) : '';
-    $seo_title = isset($_POST['bis_seo_title']) ? sanitize_text_field(wp_unslash($_POST['bis_seo_title'])) : '';
-    $seo_description = isset($_POST['bis_seo_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_seo_description'])) : '';
     $is_key = isset($_POST['bis_project_is_featured']) ? '1' : '0';
 
     $positions = array('top_left', 'bottom_left', 'top_right', 'bottom_right');
@@ -1327,8 +1329,6 @@ function bis_save_project_details($post_id) {
     update_post_meta($post_id, 'bis_project_gallery', $gallery);
     update_post_meta($post_id, 'bis_project_is_featured', $is_key);
     update_post_meta($post_id, 'bis_project_description', $project_description);
-    update_post_meta($post_id, 'bis_seo_title', $seo_title);
-    update_post_meta($post_id, 'bis_seo_description', $seo_description);
 }
 add_action('save_post', 'bis_save_project_details');
 
@@ -1370,15 +1370,32 @@ function bis_save_service_details($post_id) {
 
     $image = isset($_POST['bis_service_image']) ? esc_url_raw(wp_unslash($_POST['bis_service_image'])) : '';
     $description = isset($_POST['bis_service_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_service_description'])) : '';
-    $seo_title = isset($_POST['bis_seo_title']) ? sanitize_text_field(wp_unslash($_POST['bis_seo_title'])) : '';
-    $seo_description = isset($_POST['bis_seo_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_seo_description'])) : '';
 
     update_post_meta($post_id, 'bis_service_image', $image);
     update_post_meta($post_id, 'bis_service_description', $description);
+}
+add_action('save_post', 'bis_save_service_details');
+
+function bis_save_seo_meta($post_id) {
+    if (!isset($_POST['bis_seo_nonce_field']) || !wp_verify_nonce($_POST['bis_seo_nonce_field'], 'bis_seo_nonce')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!in_array(get_post_type($post_id), array('bis_project', 'bis_service'), true) || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $seo_title = isset($_POST['bis_seo_title']) ? sanitize_text_field(wp_unslash($_POST['bis_seo_title'])) : '';
+    $seo_description = isset($_POST['bis_seo_description']) ? sanitize_textarea_field(wp_unslash($_POST['bis_seo_description'])) : '';
+
     update_post_meta($post_id, 'bis_seo_title', $seo_title);
     update_post_meta($post_id, 'bis_seo_description', $seo_description);
 }
-add_action('save_post', 'bis_save_service_details');
+add_action('save_post', 'bis_save_seo_meta');
 
 function bis_save_equipment_details($post_id) {
     if (!isset($_POST['bis_equipment_details_nonce_field']) || !wp_verify_nonce($_POST['bis_equipment_details_nonce_field'], 'bis_equipment_details_nonce')) {
